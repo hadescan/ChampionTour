@@ -4,34 +4,40 @@
   const BOARD_COLUMNS = 7;
   const BOARD_ROWS = 9;
   const CELL_COUNT = BOARD_COLUMNS * BOARD_ROWS;
-  const MAX_LEVEL = 6;
+  const DATA = window.ChampionTour.GameData;
+  const Progression = window.ChampionTour.Progression;
+  const GameAudio = window.ChampionTour.Audio;
+  const TESTING_MODE = DATA.testing;
+  const INITIAL_PRODUCER_INDEX =
+    Math.floor(BOARD_ROWS / 2) * BOARD_COLUMNS +
+    Math.floor(BOARD_COLUMNS / 2);
+  const MAX_LEVEL = DATA.maxItemLevel;
   const MAX_ENERGY = 100;
-  const PRODUCTION_COST = 1;
+  const PRODUCTION_COST = DATA.producer.energyCost;
   const REGEN_INTERVAL_MS = 2 * 60 * 1000;
-  const TEST_MODE_UNLIMITED_ENERGY = true;
   const STORAGE_KEY = 'championTour.prototype.energy.v1';
-  const BALL_PATH = 'assets/Football/Ball/';
   const PRODUCER_SOURCE = 'assets/Football/Producer/producer_lv1.png';
   const SHADOW_SOURCE = 'assets/Football/shadow.png';
   const DRAG_THRESHOLD = 7;
-  const PRODUCER_PRESS_MS = 280;
+  const PRODUCER_PRESS_MS = 100;
+  const PRODUCER_OVERLAP_MS = 70;
+  const PRODUCER_EJECTION_MS = 160;
   const MERGE_DEPARTURE_MS = 180;
   const DRAG_FOLLOW_OFFSET = 4;
   const DRAG_MAX_TILT = 3;
   const DROP_SETTLE_MS = 100;
   const INVALID_DROP_MS = 150;
-  const SPAWN_FLIGHT_MS = 362;
   const MERGE_ANTICIPATION_MS = 90;
 
   const TEXT = {
-    emptyCell: 'Boş hücre',
-    producer: 'Futbol Antrenman Tesisi',
-    ballLevel: (level) => `Seviye ${level} futbol topu`,
-    boardFull: 'Tahta dolu',
-    noEnergy: 'Enerjin bitti',
-    maxReached: 'Maksimum seviyeye ulaşıldı',
-    sameLevel: 'Yalnızca aynı seviyedeki toplar birleşir',
-    full: 'Dolu'
+    emptyCell: window.t('board.empty_cell'),
+    producer: window.t('producer.football_academy.name'),
+    ballLevel: (level) => window.t('prototype.ball_level').replace('{level}', String(level)),
+    boardFull: window.t('prototype.board_full'),
+    noEnergy: window.t('energy.not_enough'),
+    maxReached: window.t('prototype.max_reached'),
+    sameLevel: window.t('prototype.same_level'),
+    full: window.t('energy.full')
   };
 
   const state = {
@@ -45,9 +51,24 @@
   let cellElements = [];
   let toastTimer;
   let mergeSparksElement;
+  let producerEffectElement;
+  let selectedItemLevel = null;
+  let selectedCellIndex = -1;
+  let itemInfoTimer;
+  let lastItemTapIndex = -1;
+  let lastItemTapAt = 0;
 
   function ballSource(level) {
-    return `${BALL_PATH}ball_lv${level}.png`;
+    return DATA.items[level].sprite;
+  }
+
+  function applyTranslations() {
+    document.querySelectorAll('[data-i18n]').forEach((element) => {
+      element.textContent = window.t(element.dataset.i18n);
+    });
+    document.querySelectorAll('[data-i18n-aria]').forEach((element) => {
+      element.setAttribute('aria-label', window.t(element.dataset.i18nAria));
+    });
   }
 
   function createItemShadow() {
@@ -61,13 +82,6 @@
   }
 
   function loadEnergy() {
-    if (TEST_MODE_UNLIMITED_ENERGY) {
-      state.energy = MAX_ENERGY;
-      state.nextEnergyAt = null;
-      saveEnergy();
-      return;
-    }
-
     let saved = null;
 
     try {
@@ -98,12 +112,6 @@
   }
 
   function updateRegeneration(now) {
-    if (TEST_MODE_UNLIMITED_ENERGY) {
-      state.energy = MAX_ENERGY;
-      state.nextEnergyAt = null;
-      return false;
-    }
-
     if (state.energy >= MAX_ENERGY) {
       state.energy = MAX_ENERGY;
       state.nextEnergyAt = null;
@@ -130,9 +138,7 @@
   }
 
   function spendEnergy(amount) {
-    if (TEST_MODE_UNLIMITED_ENERGY) {
-      state.energy = MAX_ENERGY;
-      state.nextEnergyAt = null;
+    if (TESTING_MODE.enabled && TESTING_MODE.bypassEnergy) {
       renderEnergy();
       return true;
     }
@@ -188,6 +194,119 @@
     toastTimer = setTimeout(() => toast.classList.remove('show'), 1500);
   }
 
+  function itemName(level) {
+    return window.t(`item.football.lv${level}`);
+  }
+
+  function itemDescription(level) {
+    return window.t(`item.football.lv${level}.description`);
+  }
+
+  function selectCell(index) {
+    if (selectedCellIndex >= 0) {
+      cellElements[selectedCellIndex]?.classList.remove('item-selected');
+    }
+    selectedCellIndex = index;
+    cellElements[index]?.classList.add('item-selected');
+  }
+
+  function showItemInfo(level, index = selectedCellIndex) {
+    const panel = document.getElementById('itemInfoPanel');
+    const name = document.getElementById('itemInfoName');
+    const description = document.getElementById('itemInfoDescription');
+    const icon = document.getElementById('itemInfoIcon');
+    const levelElement = document.getElementById('itemInfoLevel');
+    const producerElement = document.getElementById('itemInfoProducer');
+    const rarityElement = document.getElementById('itemInfoRarity');
+    const nextElement = document.getElementById('itemInfoNext');
+    const definition = DATA.items[level];
+    if (index >= 0) selectCell(index);
+
+    clearTimeout(itemInfoTimer);
+    if (
+      selectedItemLevel === level &&
+      selectedCellIndex === index &&
+      panel.classList.contains('is-visible')
+    ) return;
+
+    function reveal() {
+      selectedItemLevel = level;
+      name.textContent = itemName(level);
+      description.textContent = itemDescription(level);
+      icon.src = ballSource(level);
+      icon.alt = itemName(level);
+      levelElement.textContent = window.t('item.info.level').replace('{level}', String(level));
+      producerElement.textContent = window.t('item.info.from').replace(
+        '{producer}',
+        window.t(`producer.${definition.producerId}.name`)
+      );
+      rarityElement.textContent = window.t(definition.rarityKey);
+      nextElement.textContent = definition.nextLevel
+        ? window.t('item.info.next').replace('{item}', itemName(definition.nextLevel))
+        : window.t('item.info.max');
+      panel.setAttribute('aria-hidden', 'false');
+      panel.classList.remove('is-empty');
+      panel.classList.add('is-visible');
+    }
+
+    const wasVisible = panel.classList.contains('is-visible');
+    reveal();
+    if (wasVisible) {
+      panel.classList.remove('content-change');
+      void panel.offsetWidth;
+      panel.classList.add('content-change');
+      itemInfoTimer = window.setTimeout(
+        () => panel.classList.remove('content-change'),
+        170
+      );
+    }
+  }
+
+  function showProducerInfo(index) {
+    const panel = document.getElementById('itemInfoPanel');
+    const producerState = Progression.getProducerState();
+    clearTimeout(itemInfoTimer);
+    selectedItemLevel = null;
+    selectCell(index);
+    document.getElementById('itemInfoIcon').src = PRODUCER_SOURCE;
+    document.getElementById('itemInfoIcon').alt = window.t('producer.football_academy.name');
+    document.getElementById('itemInfoName').textContent = window.t('producer.football_academy.name');
+    document.getElementById('itemInfoLevel').textContent =
+      `${window.t('producer.charges')} ${producerState.charges}/${producerState.maxCharges}`;
+    document.getElementById('itemInfoDescription').textContent =
+      window.t('producer.football_academy.description');
+    document.getElementById('itemInfoProducer').textContent =
+      window.t('producer.produces').replace('{item}', itemName(1));
+    document.getElementById('itemInfoRarity').textContent =
+      `${window.t('energy.label')} −${PRODUCTION_COST}`;
+    document.getElementById('itemInfoNext').textContent = producerState.cooldownRemainingMs > 0
+      ? `${window.t('producer.cooldown')} ${formatCountdown(producerState.cooldownRemainingMs)}`
+      : window.t('producer.ready');
+    panel.setAttribute('aria-hidden', 'false');
+    panel.classList.remove('is-empty');
+    panel.classList.add('is-visible');
+  }
+
+  function clearItemInfo() {
+    clearTimeout(itemInfoTimer);
+    selectedItemLevel = null;
+    if (selectedCellIndex >= 0) {
+      cellElements[selectedCellIndex]?.classList.remove('item-selected');
+      selectedCellIndex = -1;
+    }
+    const panel = document.getElementById('itemInfoPanel');
+    document.getElementById('itemInfoIcon').removeAttribute('src');
+    document.getElementById('itemInfoIcon').alt = '';
+    document.getElementById('itemInfoName').textContent = '';
+    document.getElementById('itemInfoLevel').textContent = '';
+    document.getElementById('itemInfoDescription').textContent = '';
+    document.getElementById('itemInfoProducer').textContent = '';
+    document.getElementById('itemInfoRarity').textContent = '';
+    document.getElementById('itemInfoNext').textContent = '';
+    panel.classList.add('is-visible', 'is-empty');
+    panel.setAttribute('aria-hidden', 'false');
+  }
+
   function createBoard() {
     boardElement = document.getElementById('board');
     boardElement.innerHTML = '';
@@ -206,8 +325,9 @@
     }
 
     createMergeSparkPool();
-    state.cells[0] = { type: 'producer' };
-    renderCell(0);
+    createProducerEffectPool();
+    state.cells[INITIAL_PRODUCER_INDEX] = { type: 'producer' };
+    renderCell(INITIAL_PRODUCER_INDEX);
   }
 
   function renderCell(index, animationClass) {
@@ -242,6 +362,15 @@
       producerImage.setAttribute('aria-hidden', 'true');
       producerWrapper.appendChild(producerImage);
       cell.appendChild(producerWrapper);
+
+      const chargeBadge = document.createElement('span');
+      chargeBadge.className = 'producer-charge-badge';
+      cell.appendChild(chargeBadge);
+
+      const cooldown = document.createElement('span');
+      cooldown.className = 'producer-cooldown';
+      cell.appendChild(cooldown);
+      if (index === selectedCellIndex) cell.classList.add('item-selected');
       updateProducerReadiness();
       return;
     }
@@ -260,73 +389,144 @@
     image.style.objectFit = 'contain';
     wrapper.appendChild(image);
     cell.appendChild(wrapper);
+    if (index === selectedCellIndex) cell.classList.add('item-selected');
     cell.setAttribute('aria-label', TEXT.ballLevel(item.level));
   }
 
   function updateProducerReadiness() {
     const producerCell = cellElements.find((cell, index) => state.cells[index]?.type === 'producer');
     if (!producerCell) return;
-    producerCell.classList.toggle('ready', state.energy >= PRODUCTION_COST);
+    const producerState = Progression.getProducerState();
+    const energyReady =
+      TESTING_MODE.enabled && TESTING_MODE.bypassEnergy ||
+      state.energy >= PRODUCTION_COST;
+    const producerReady =
+      TESTING_MODE.enabled && TESTING_MODE.bypassProducerCooldown ||
+      producerState.charges > 0;
+    const ready = energyReady && producerReady;
+    producerCell.classList.toggle('ready', ready);
+    producerCell.classList.toggle(
+      'cooling-down',
+      producerState.charges === 0 &&
+      !(TESTING_MODE.enabled && TESTING_MODE.bypassProducerCooldown)
+    );
+
+    const badge = producerCell.querySelector('.producer-charge-badge');
+    const cooldown = producerCell.querySelector('.producer-cooldown');
+    if (badge) {
+      badge.textContent = `${window.t('producer.charges')} ${producerState.charges}/${producerState.maxCharges}`;
+      badge.hidden = TESTING_MODE.enabled;
+    }
+    if (cooldown) {
+      const cooldownProgress = producerState.cooldownRemainingMs > 0
+        ? 1 - producerState.cooldownRemainingMs / DATA.producer.cooldownMs
+        : 1;
+      cooldown.style.setProperty(
+        '--cooldown-progress',
+        `${Math.max(0, Math.min(1, cooldownProgress)) * 360}deg`
+      );
+      cooldown.textContent = producerState.cooldownRemainingMs > 0
+        ? String(Math.ceil(producerState.cooldownRemainingMs / 1000))
+        : '';
+      cooldown.setAttribute(
+        'aria-label',
+        producerState.cooldownRemainingMs > 0
+          ? `${window.t('producer.cooldown')} ${formatCountdown(producerState.cooldownRemainingMs)}`
+          : window.t('producer.ready')
+      );
+    }
   }
 
-  function randomEmptyCell() {
-    const emptyIndexes = [];
-    state.cells.forEach((item, index) => {
-      if (!item) emptyIndexes.push(index);
+  function renderEconomy() {
+    const economy = Progression.getEconomy();
+    document.getElementById('coinValue').textContent = String(economy.coins);
+    document.getElementById('xpValue').textContent = String(economy.xp);
+    document.getElementById('gemValue').textContent = String(economy.gems);
+    document.getElementById('eventValue').textContent = String(economy.eventPoints);
+  }
+
+  function renderOrders() {
+    const root = document.getElementById('ordersStrip');
+    const orders = Progression.getOrders();
+    root.innerHTML = '';
+
+    orders.forEach((order, index) => {
+      const card = document.createElement('article');
+      card.className = 'order-card';
+      card.dataset.orderIndex = String(index);
+
+      const image = document.createElement('img');
+      image.src = ballSource(order.level);
+      image.alt = itemName(order.level);
+      card.appendChild(image);
+
+      const quantity = document.createElement('strong');
+      quantity.className = 'order-quantity';
+      quantity.textContent = `×${order.quantity}`;
+      card.appendChild(quantity);
+
+      const rewards = document.createElement('span');
+      rewards.className = 'order-rewards';
+      rewards.textContent = `● ${order.rewards.coins}  ★ ${order.rewards.xp}`;
+      card.appendChild(rewards);
+
+      card.setAttribute(
+        'aria-label',
+        `${itemName(order.level)}, ${window.t('orders.quantity')} ${order.quantity}`
+      );
+      root.appendChild(card);
     });
-
-    if (emptyIndexes.length === 0) return -1;
-    return emptyIndexes[Math.floor(Math.random() * emptyIndexes.length)];
   }
 
-  function createSpawnFlight(targetIndex) {
-    const producerCell = cellElements.find((cell, index) => state.cells[index]?.type === 'producer');
-    const targetCell = cellElements[targetIndex];
-    const producerRect = producerCell.getBoundingClientRect();
-    const targetRect = targetCell.getBoundingClientRect();
-    const itemGroundOffset =
-      Number.parseFloat(
-        getComputedStyle(document.documentElement).getPropertyValue('--item-ground-offset')
-      ) || 0;
+  function playRewardFlights(orderCard, rewards) {
+    const sourceRect = orderCard.getBoundingClientRect();
+    const targets = [
+      ['coins', 'coinValue', '●'],
+      ['xp', 'xpValue', '★'],
+      ['gems', 'gemValue', '◆'],
+      ['eventPoints', 'eventValue', '⚑']
+    ];
 
-    const flight = document.createElement('div');
-    flight.className = 'spawn-flight';
-    flight.style.left = `${producerRect.left + producerRect.width / 2}px`;
-    flight.style.top = `${producerRect.top + producerRect.height / 2}px`;
-    flight.style.width = `${targetRect.width * .92}px`;
-    flight.style.height = `${targetRect.height * .92}px`;
-    const travelX =
-      targetRect.left + targetRect.width / 2 -
-      (producerRect.left + producerRect.width / 2);
-    const travelY =
-      targetRect.top + targetRect.height / 2 + itemGroundOffset -
-      (producerRect.top + producerRect.height / 2);
+    targets.forEach(([rewardKey, targetId, symbol], index) => {
+      if (!rewards[rewardKey]) return;
+      const targetRect = document.getElementById(targetId).getBoundingClientRect();
+      const flight = document.createElement('span');
+      flight.className = 'reward-flight';
+      flight.textContent = symbol;
+      flight.style.left = `${sourceRect.left + sourceRect.width / 2}px`;
+      flight.style.top = `${sourceRect.top + sourceRect.height / 2}px`;
+      flight.style.setProperty('--reward-x', `${targetRect.left + targetRect.width / 2 - (sourceRect.left + sourceRect.width / 2)}px`);
+      flight.style.setProperty('--reward-y', `${targetRect.top + targetRect.height / 2 - (sourceRect.top + sourceRect.height / 2)}px`);
+      flight.style.setProperty('--reward-delay', `${index * 35}ms`);
+      document.body.appendChild(flight);
+      window.setTimeout(() => flight.remove(), 620);
+    });
+  }
 
-    flight.style.setProperty('--spawn-travel-x', `${travelX}px`);
-    flight.style.setProperty('--spawn-travel-y', `${travelY}px`);
-    flight.style.setProperty('--spawn-exit-x', `${travelX * .12}px`);
-    flight.style.setProperty('--spawn-exit-y', `${travelY * .12}px`);
+  function tryFulfillOrder(fromIndex, orderIndex) {
+    const item = state.cells[fromIndex];
+    const card = document.querySelector(`.order-card[data-order-index="${orderIndex}"]`);
+    const completed = Progression.fulfillOrder(orderIndex, item?.level);
+    if (!completed) {
+      showToast(window.t('orders.wrong_item'));
+      return false;
+    }
 
-    const shadow = createItemShadow();
-    shadow.classList.add('spawn-flight-shadow');
-    flight.appendChild(shadow);
-
-    const image = document.createElement('img');
-    image.className = 'spawn-flight-ball';
-    image.src = ballSource(1);
-    image.alt = '';
-    image.draggable = false;
-    image.setAttribute('aria-hidden', 'true');
-    flight.appendChild(image);
-
-    document.body.appendChild(flight);
-    boardElement.classList.add('spawn-resolving');
-
+    state.cells[fromIndex] = null;
+    if (selectedCellIndex === fromIndex) clearItemInfo();
+    renderCell(fromIndex);
+    playRewardFlights(card, completed.rewards);
+    GameAudio.play('reward');
+    card.classList.add('order-complete');
     window.setTimeout(() => {
-      flight.remove();
-      renderCell(targetIndex);
-      boardElement.classList.remove('spawn-resolving');
-    }, SPAWN_FLIGHT_MS);
+      renderOrders();
+      renderEconomy();
+    }, 260);
+    return true;
+  }
+
+  function firstEmptyCell() {
+    return state.cells.findIndex((item) => item === null);
   }
 
   function createMergeSparkPool() {
@@ -356,6 +556,78 @@
     mergeSparksElement.classList.add('is-active');
   }
 
+  function createProducerEffectPool() {
+    producerEffectElement = document.createElement('span');
+    producerEffectElement.className = 'producer-effect';
+    producerEffectElement.setAttribute('aria-hidden', 'true');
+
+    for (let index = 0; index < 5; index += 1) {
+      const spark = document.createElement('span');
+      spark.className = 'producer-spark';
+      spark.style.setProperty('--producer-spark-angle', `${-70 + index * 35}deg`);
+      producerEffectElement.appendChild(spark);
+    }
+  }
+
+  function playProducerEffect(producerCell) {
+    producerEffectElement.remove();
+    producerEffectElement.classList.remove('is-active');
+    producerCell.appendChild(producerEffectElement);
+    void producerEffectElement.offsetWidth;
+    producerEffectElement.classList.add('is-active');
+  }
+
+  function createProducerLaunch(targetIndex) {
+    const producerCell = cellElements.find((cell, index) => state.cells[index]?.type === 'producer');
+    const producerSprite = producerCell.querySelector('.producer-image');
+    const targetCell = cellElements[targetIndex];
+    const producerRect = producerSprite.getBoundingClientRect();
+    const targetRect = targetCell.getBoundingClientRect();
+    const launch = document.createElement('div');
+    const content = document.createElement('div');
+
+    launch.className = 'producer-launch';
+    content.className = 'producer-launch-content';
+    launch.style.left = `${producerRect.left + producerRect.width / 2}px`;
+    launch.style.top = `${producerRect.top + producerRect.height / 2}px`;
+    launch.style.width = `${targetRect.width * .92}px`;
+    launch.style.height = `${targetRect.height * .92}px`;
+    launch.style.setProperty(
+      '--producer-launch-x',
+      `${targetRect.left + targetRect.width / 2 - (producerRect.left + producerRect.width / 2)}px`
+    );
+    launch.style.setProperty(
+      '--producer-launch-y',
+      `${targetRect.top + targetRect.height / 2 - (producerRect.top + producerRect.height / 2)}px`
+    );
+
+    content.appendChild(createItemShadow());
+    const image = document.createElement('img');
+    image.className = 'producer-launch-ball';
+    image.src = ballSource(1);
+    image.alt = '';
+    image.draggable = false;
+    image.setAttribute('aria-hidden', 'true');
+    content.appendChild(image);
+    launch.appendChild(content);
+
+    function finishLaunch() {
+      launch.remove();
+      targetCell.classList.remove('launch-pending');
+    }
+
+    launch.addEventListener('pointerdown', (event) => {
+      finishLaunch();
+      startPointer(targetIndex, event);
+    }, { once: true });
+
+    document.body.appendChild(launch);
+    window.setTimeout(
+      finishLaunch,
+      PRODUCER_OVERLAP_MS + PRODUCER_EJECTION_MS
+    );
+  }
+
   function activateProducer() {
     const producerCell = cellElements.find((cell, index) => state.cells[index]?.type === 'producer');
     if (producerCell) {
@@ -363,11 +635,21 @@
       void producerCell.offsetWidth;
       producerCell.classList.add('producer-pressed');
       window.setTimeout(() => producerCell.classList.remove('producer-pressed'), PRODUCER_PRESS_MS);
+      playProducerEffect(producerCell);
     }
 
-    const emptyIndex = randomEmptyCell();
+    const emptyIndex = firstEmptyCell();
     if (emptyIndex === -1) {
       showToast(TEXT.boardFull);
+      return;
+    }
+
+    if (
+      !(TESTING_MODE.enabled && TESTING_MODE.bypassProducerCooldown) &&
+      !Progression.canProduce()
+    ) {
+      const producerState = Progression.getProducerState();
+      showToast(`${window.t('producer.cooldown')} ${formatCountdown(producerState.cooldownRemainingMs)}`);
       return;
     }
 
@@ -376,8 +658,17 @@
       return;
     }
 
+    if (!(TESTING_MODE.enabled && TESTING_MODE.bypassProducerCooldown)) {
+      Progression.consumeCharge();
+    }
+    if (selectedCellIndex === Number(producerCell.dataset.index)) {
+      showProducerInfo(Number(producerCell.dataset.index));
+    }
+    GameAudio.play('producer');
     state.cells[emptyIndex] = { type: 'ball', level: 1 };
-    createSpawnFlight(emptyIndex);
+    renderCell(emptyIndex);
+    cellElements[emptyIndex].classList.add('launch-pending');
+    createProducerLaunch(emptyIndex);
   }
 
   function createGhost(item, x, y) {
@@ -433,6 +724,17 @@
     const source = event.currentTarget;
     const fromIndex = Number(source.dataset.index);
     const item = state.cells[fromIndex];
+
+    if (!item) {
+      clearItemInfo();
+      return;
+    }
+
+    startPointer(fromIndex, event);
+  }
+
+  function startPointer(fromIndex, event) {
+    const item = state.cells[fromIndex];
     if (!item || state.drag) return;
 
     event.preventDefault();
@@ -458,9 +760,14 @@
     return element ? element.closest('.cell') : null;
   }
 
+  function interactionTargetFromPoint(x, y) {
+    const element = document.elementFromPoint(x, y);
+    return element ? element.closest('.cell, .order-card') : null;
+  }
+
   function clearTarget() {
     if (!state.drag?.target) return;
-    state.drag.target.classList.remove('drag-target', 'invalid-target');
+    state.drag.target.classList.remove('drag-target', 'invalid-target', 'order-target');
     state.drag.target = null;
   }
 
@@ -502,8 +809,20 @@
     state.drag.lastY = event.clientY;
 
     clearTarget();
-    const target = cellFromPoint(event.clientX, event.clientY);
-    if (!target || Number(target.dataset.index) === state.drag.fromIndex) return;
+    const target = interactionTargetFromPoint(event.clientX, event.clientY);
+    if (!target) return;
+
+    if (target.classList.contains('order-card')) {
+      const orderIndex = Number(target.dataset.orderIndex);
+      const order = Progression.getOrders()[orderIndex];
+      target.classList.add(order?.level === state.drag.item.level
+        ? 'order-target'
+        : 'invalid-target');
+      state.drag.target = target;
+      return;
+    }
+
+    if (Number(target.dataset.index) === state.drag.fromIndex) return;
 
     const targetIndex = Number(target.dataset.index);
     target.classList.add(isValidTarget(state.drag.fromIndex, targetIndex)
@@ -518,21 +837,91 @@
     const fromIndex = state.drag.fromIndex;
     const item = state.drag.item;
     const wasMoved = state.drag.moved;
-    const target = wasMoved ? cellFromPoint(event.clientX, event.clientY) : null;
+    const interactionTarget = wasMoved
+      ? interactionTargetFromPoint(event.clientX, event.clientY)
+      : null;
+    const orderCard = interactionTarget?.classList.contains('order-card')
+      ? interactionTarget
+      : null;
+    const target = interactionTarget?.classList.contains('cell')
+      ? interactionTarget
+      : null;
     const toIndex = target ? Number(target.dataset.index) : fromIndex;
+    const orderIndex = orderCard ? Number(orderCard.dataset.orderIndex) : -1;
+    const orderMatches = orderCard
+      ? Progression.getOrders()[orderIndex]?.level === item.level
+      : false;
     const invalidDrop = wasMoved && (
-      !target ||
-      toIndex === fromIndex ||
-      !isValidTarget(fromIndex, toIndex)
+      (!target && !orderCard) ||
+      (orderCard && !orderMatches) ||
+      (target && toIndex === fromIndex) ||
+      (target && !isValidTarget(fromIndex, toIndex))
     );
     finishPointer(invalidDrop);
 
     if (!wasMoved) {
-      if (item.type === 'producer') activateProducer();
+      if (item.type === 'producer') {
+        showProducerInfo(fromIndex);
+        activateProducer();
+      }
+      if (item.type === 'ball') handleItemTap(fromIndex, item);
+      return;
+    }
+
+    if (orderCard) {
+      if (orderMatches) tryFulfillOrder(fromIndex, orderIndex);
+      else showToast(window.t('orders.wrong_item'));
       return;
     }
 
     if (toIndex !== fromIndex) dropItem(fromIndex, toIndex);
+  }
+
+  function handleItemTap(index, item) {
+    const now = Date.now();
+    const isDoubleTap = lastItemTapIndex === index && now - lastItemTapAt <= 320;
+    lastItemTapIndex = index;
+    lastItemTapAt = now;
+    showItemInfo(item.level, index);
+
+    if (isDoubleTap) {
+      lastItemTapIndex = -1;
+      autoMerge(index);
+    }
+  }
+
+  function autoMerge(fromIndex) {
+    const from = state.cells[fromIndex];
+    if (!from || from.type !== 'ball' || from.level >= MAX_LEVEL) return false;
+
+    const fromRow = Math.floor(fromIndex / BOARD_COLUMNS);
+    const fromColumn = fromIndex % BOARD_COLUMNS;
+    let targetIndex = -1;
+    let closestDistance = Infinity;
+
+    state.cells.forEach((candidate, index) => {
+      if (
+        index === fromIndex ||
+        candidate?.type !== 'ball' ||
+        candidate.level !== from.level
+      ) return;
+
+      const row = Math.floor(index / BOARD_COLUMNS);
+      const column = index % BOARD_COLUMNS;
+      const distance = Math.hypot(row - fromRow, column - fromColumn);
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        targetIndex = index;
+      }
+    });
+
+    if (targetIndex === -1) {
+      showToast(TEXT.sameLevel);
+      return false;
+    }
+
+    dropItem(fromIndex, targetIndex);
+    return true;
   }
 
   function cancelPointer() {
@@ -581,6 +970,7 @@
     if (!from) return;
 
     if (!to) {
+      if (selectedCellIndex === fromIndex) selectedCellIndex = toIndex;
       state.cells[toIndex] = from;
       state.cells[fromIndex] = null;
       renderCell(fromIndex);
@@ -622,8 +1012,13 @@
 
         state.cells[fromIndex] = null;
         state.cells[toIndex] = { type: 'ball', level: nextLevel };
+        if (selectedCellIndex === fromIndex || selectedCellIndex === toIndex) {
+          selectedCellIndex = toIndex;
+        }
         renderCell(toIndex, 'merge-pop');
         playMergeSparks(cellElements[toIndex]);
+        GameAudio.play('merge');
+        if (selectedItemLevel === from.level) showItemInfo(nextLevel, toIndex);
         cellElements[toIndex].appendChild(targetEcho);
 
         window.setTimeout(() => {
@@ -648,10 +1043,18 @@
   }
 
   function init() {
+    applyTranslations();
     loadEnergy();
     createBoard();
+    renderOrders();
+    renderEconomy();
     renderEnergy();
-    window.setInterval(energyTick, 250);
+    clearItemInfo();
+    window.setInterval(() => {
+      energyTick();
+      Progression.tick(Date.now());
+      updateProducerReadiness();
+    }, 250);
   }
 
   document.addEventListener('DOMContentLoaded', init);

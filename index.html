@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <meta name="theme-color" content="#67b9d8">
   <title>Champion Tour — Futbol Birleştirme Prototipi</title>
-  <link rel="stylesheet" href="style.css?v=sprint4-6-merge">
+  <link rel="stylesheet" href="style.css?v=gameplay-prototype">
 </head>
 <body>
   <div class="scene" aria-hidden="true">
@@ -22,45 +22,76 @@
   <main class="game">
     <header class="game-header">
       <div class="brand">
-        <span class="brand-kicker">Futbol Akademisi</span>
+        <span class="brand-kicker" data-i18n="prototype.kicker"></span>
         <h1>Champion Tour</h1>
       </div>
 
-      <section class="energy-card" aria-label="Enerji">
+      <section class="energy-card" data-i18n-aria="energy.label">
         <div class="energy-symbol" aria-hidden="true">⚡</div>
         <div class="energy-content">
           <div class="energy-row">
-            <span>Enerji</span>
+            <span data-i18n="energy.label"></span>
             <strong id="energyValue">100 / 100</strong>
           </div>
           <div class="energy-track" aria-hidden="true">
             <span class="energy-fill" id="energyFill"></span>
           </div>
           <div class="energy-timer">
-            <span>Sonraki enerji</span>
-            <strong id="energyTimer">Dolu</strong>
+            <span data-i18n="energy.next_label"></span>
+            <strong id="energyTimer"></strong>
           </div>
         </div>
       </section>
     </header>
 
+    <section class="resource-bar" data-i18n-aria="resources.title">
+      <span class="resource-pill resource-coins">● <strong id="coinValue">0</strong></span>
+      <span class="resource-pill resource-xp">★ <strong id="xpValue">0</strong></span>
+      <span class="resource-pill resource-gems">◆ <strong id="gemValue">0</strong></span>
+      <span class="resource-pill resource-event">⚑ <strong id="eventValue">0</strong></span>
+    </section>
+
+    <section class="orders-strip" id="ordersStrip" data-i18n-aria="orders.title"></section>
+
     <section class="board-frame">
       <div class="board-heading">
         <span class="board-heading-dot"></span>
-        <span>Antrenman Sahası</span>
+        <span data-i18n="prototype.board"></span>
         <span class="board-heading-dot"></span>
       </div>
-      <div class="board" id="board" role="grid" aria-label="Birleştirme tahtası"></div>
+      <div class="board" id="board" role="grid" data-i18n-aria="prototype.board"></div>
+    </section>
+
+    <section class="item-info-panel is-visible is-empty" id="itemInfoPanel" aria-live="polite" aria-hidden="false">
+      <div class="item-info-icon-wrap">
+        <img id="itemInfoIcon" alt="">
+      </div>
+      <div class="item-info-copy">
+        <div class="item-info-title-row">
+          <strong id="itemInfoName"></strong>
+          <span id="itemInfoLevel"></span>
+        </div>
+        <p id="itemInfoDescription"></p>
+        <div class="item-info-meta">
+          <span id="itemInfoProducer"></span>
+          <span id="itemInfoRarity"></span>
+          <span id="itemInfoNext"></span>
+        </div>
+      </div>
     </section>
 
     <footer class="hint">
       <span class="hint-icon" aria-hidden="true">↔</span>
-      <span>Topları birleştir · Tesise dokunarak top üret</span>
+      <span data-i18n="prototype.hint"></span>
     </footer>
   </main>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="script.js?v=sprint4-6-merge"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/game-data.js"></script>
+  <script src="js/progression.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="script.js?v=gameplay-prototype"></script>
 </body>
 </html>
