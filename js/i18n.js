@@ -1,0 +1,101 @@
+/**
+ * i18n.js
+ * Tüm UI metinleri buradan gelir. Kodun hiçbir yerinde ham metin bulunmaz.
+ */
+
+window.ChampionTour = window.ChampionTour || {};
+
+window.ChampionTour.I18N = {
+  currentLang: 'tr',
+
+  strings: {
+    tr: {
+      'app.title': 'Champion Tour',
+      'sport.football.name': 'Futbol',
+      'producer.sports_bag.name': 'Spor Çantası',
+      'producer.info.level': 'Seviye',
+      'producer.info.cooldown': 'Üretim Süresi',
+      'producer.info.produces': 'Üretiyor',
+      'producer.info.tap_to_collect': 'Toplamak için dokun',
+      'producer.info.producing': 'Üretiliyor...',
+      'item.football.lv1': 'Futbol Topu',
+      'item.football.lv2': 'Gelişmiş Futbol Topu',
+      'item.football.lv3': 'Profesyonel Futbol Topu',
+      'item.football.lv4': 'Maç Topu',
+      'item.football.lv5': 'Elit Futbol Topu',
+      'item.football.lv6': 'Şampiyonluk Topu',
+      'board.full': 'Board dolu! Önce birleştir.',
+      'board.empty_cell': 'Boş hücre',
+      'orders.wrong_item': 'Bu sipariş için doğru item değil.',
+      'producer.info.energy_cost': 'Enerji Maliyeti',
+      'energy.next_label': 'Sonraki +1:',
+      'energy.full': 'Dolu',
+      'energy.not_enough': 'Yetersiz enerji!',
+      'prototype.kicker': 'Futbol Akademisi',
+      'prototype.stadium': 'Futbol Stadyumu',
+      'prototype.spawn': 'Top üret',
+      'prototype.stadium_aria': 'Seviye 1 futbol topu üret',
+      'prototype.max': 'Maksimum',
+      'prototype.max_aria': 'Maksimum top seviyesi 6',
+      'prototype.board': 'Antrenman Sahası',
+      'prototype.hint': 'Aynı seviyedeki topları sürükleyip birleştir',
+      'prototype.ball_level': 'Seviye {level} futbol topu',
+      'prototype.board_full': 'Saha dolu!',
+      'prototype.max_reached': 'Maksimum seviyeye ulaşıldı.',
+      'prototype.same_level': 'Yalnızca aynı seviyedeki toplar birleşir.'
+    },
+    en: {
+      'app.title': 'Champion Tour',
+      'sport.football.name': 'Football',
+      'producer.sports_bag.name': 'Sports Bag',
+      'producer.info.level': 'Level',
+      'producer.info.cooldown': 'Cooldown',
+      'producer.info.produces': 'Produces',
+      'producer.info.tap_to_collect': 'Tap to collect',
+      'producer.info.producing': 'Producing...',
+      'item.football.lv1': 'Football',
+      'item.football.lv2': 'Better Football',
+      'item.football.lv3': 'Professional Football',
+      'item.football.lv4': 'Match Football',
+      'item.football.lv5': 'Elite Football',
+      'item.football.lv6': 'Championship Football',
+      'board.full': 'Board is full! Merge items first.',
+      'board.empty_cell': 'Empty cell',
+      'orders.wrong_item': 'Not the right item for this order.',
+      'producer.info.energy_cost': 'Energy Cost',
+      'energy.next_label': 'Next +1:',
+      'energy.full': 'Full',
+      'energy.not_enough': 'Not enough energy!',
+      'prototype.kicker': 'Football Academy',
+      'prototype.stadium': 'Football Stadium',
+      'prototype.spawn': 'Spawn ball',
+      'prototype.stadium_aria': 'Spawn a level 1 football',
+      'prototype.max': 'Maximum',
+      'prototype.max_aria': 'Maximum ball level is 6',
+      'prototype.board': 'Training Pitch',
+      'prototype.hint': 'Drag matching ball levels together to merge',
+      'prototype.ball_level': 'Level {level} football',
+      'prototype.board_full': 'The pitch is full!',
+      'prototype.max_reached': 'Maximum level reached.',
+      'prototype.same_level': 'Only matching ball levels can merge.'
+    }
+  },
+
+  /**
+   * Verilen key için mevcut dildeki metni döndürür.
+   * Key bulunamazsa key'in kendisini döndürür (sessizce başarısız olmaz, fark edilir).
+   */
+  t(key) {
+    const dict = this.strings[this.currentLang] || this.strings.tr;
+    return dict[key] || key;
+  },
+
+  setLang(lang) {
+    if (this.strings[lang]) {
+      this.currentLang = lang;
+    }
+  }
+};
+
+// Kısayol
+window.t = (key) => window.ChampionTour.I18N.t(key);

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#67b9d8">
+  <title>Champion Tour — Futbol Birleştirme Prototipi</title>
+  <link rel="stylesheet" href="style.css?v=sprint4-5-5-motion">
+</head>
+<body>
+  <div class="scene" aria-hidden="true">
+    <div class="sun"></div>
+    <div class="cloud cloud-a"></div>
+    <div class="cloud cloud-b"></div>
+    <div class="academy">
+      <div class="academy-roof"></div>
+      <div class="academy-badge">CT</div>
+    </div>
+    <div class="pitch"></div>
+  </div>
+
+  <main class="game">
+    <header class="game-header">
+      <div class="brand">
+        <span class="brand-kicker">Futbol Akademisi</span>
+        <h1>Champion Tour</h1>
+      </div>
+
+      <section class="energy-card" aria-label="Enerji">
+        <div class="energy-symbol" aria-hidden="true">⚡</div>
+        <div class="energy-content">
+          <div class="energy-row">
+            <span>Enerji</span>
+            <strong id="energyValue">100 / 100</strong>
+          </div>
+          <div class="energy-track" aria-hidden="true">
+            <span class="energy-fill" id="energyFill"></span>
+          </div>
+          <div class="energy-timer">
+            <span>Sonraki enerji</span>
+            <strong id="energyTimer">Dolu</strong>
+          </div>
+        </div>
+      </section>
+    </header>
+
+    <section class="board-frame">
+      <div class="board-heading">
+        <span class="board-heading-dot"></span>
+        <span>Antrenman Sahası</span>
+        <span class="board-heading-dot"></span>
+      </div>
+      <div class="board" id="board" role="grid" aria-label="Birleştirme tahtası"></div>
+    </section>
+
+    <footer class="hint">
+      <span class="hint-icon" aria-hidden="true">↔</span>
+      <span>Topları birleştir · Tesise dokunarak top üret</span>
+    </footer>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="script.js?v=sprint4-5-5-motion"></script>
+</body>
+</html>
