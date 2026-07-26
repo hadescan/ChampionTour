@@ -21,7 +21,7 @@
   const DROP_SETTLE_MS = 100;
   const INVALID_DROP_MS = 150;
   const SPAWN_FLIGHT_MS = 362;
-  const MERGE_SPARK_MS = 250;
+  const MERGE_ANTICIPATION_MS = 90;
 
   const TEXT = {
     emptyCell: 'Boş hücre',
@@ -44,6 +44,7 @@
   let boardElement;
   let cellElements = [];
   let toastTimer;
+  let mergeSparksElement;
 
   function ballSource(level) {
     return `${BALL_PATH}ball_lv${level}.png`;
@@ -204,6 +205,7 @@
       cellElements.push(cell);
     }
 
+    createMergeSparkPool();
     state.cells[0] = { type: 'producer' };
     renderCell(0);
   }
@@ -327,11 +329,10 @@
     }, SPAWN_FLIGHT_MS);
   }
 
-  function createMergeSparks(cell) {
-    const particles = document.createElement('div');
-    particles.className = 'merge-sparks';
-    particles.setAttribute('aria-hidden', 'true');
-
+  function createMergeSparkPool() {
+    mergeSparksElement = document.createElement('div');
+    mergeSparksElement.className = 'merge-sparks';
+    mergeSparksElement.setAttribute('aria-hidden', 'true');
     const directions = [
       [-24, -4], [-17, -18], [0, -25], [18, -17],
       [25, 1], [17, 19], [0, 25], [-19, 17]
@@ -343,11 +344,16 @@
       spark.style.setProperty('--spark-x', `${x}px`);
       spark.style.setProperty('--spark-y', `${y}px`);
       spark.style.setProperty('--spark-delay', `${index * 5}ms`);
-      particles.appendChild(spark);
+      mergeSparksElement.appendChild(spark);
     });
+  }
 
-    cell.appendChild(particles);
-    window.setTimeout(() => particles.remove(), MERGE_SPARK_MS);
+  function playMergeSparks(cell) {
+    mergeSparksElement.remove();
+    mergeSparksElement.classList.remove('is-active');
+    cell.appendChild(mergeSparksElement);
+    void mergeSparksElement.offsetWidth;
+    mergeSparksElement.classList.add('is-active');
   }
 
   function activateProducer() {
@@ -606,20 +612,26 @@
       targetEcho.style.setProperty('--merge-shift-y', `${-shiftY}px`);
       targetEcho.classList.add('merge-echo', 'merge-away');
 
-      cellElements[fromIndex].classList.add('merge-away');
       boardElement.classList.add('merge-resolving');
-
-      state.cells[fromIndex] = null;
-      state.cells[toIndex] = { type: 'ball', level: nextLevel };
-      renderCell(toIndex, 'merge-pop');
-      createMergeSparks(cellElements[toIndex]);
-      cellElements[toIndex].appendChild(targetEcho);
-
+      fromCell.classList.add('merge-anticipation');
+      toCell.classList.add('merge-anticipation');
       window.setTimeout(() => {
-        targetEcho.remove();
-        renderCell(fromIndex);
-        boardElement.classList.remove('merge-resolving');
-      }, MERGE_DEPARTURE_MS);
+        fromCell.classList.remove('merge-anticipation');
+        toCell.classList.remove('merge-anticipation');
+        fromCell.classList.add('merge-away');
+
+        state.cells[fromIndex] = null;
+        state.cells[toIndex] = { type: 'ball', level: nextLevel };
+        renderCell(toIndex, 'merge-pop');
+        playMergeSparks(cellElements[toIndex]);
+        cellElements[toIndex].appendChild(targetEcho);
+
+        window.setTimeout(() => {
+          targetEcho.remove();
+          renderCell(fromIndex);
+          boardElement.classList.remove('merge-resolving');
+        }, MERGE_DEPARTURE_MS);
+      }, MERGE_ANTICIPATION_MS);
       return;
     }
 

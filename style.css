@@ -281,29 +281,18 @@ body {
 .board-heading-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--gold); }
 
 .board {
+  --board-grass: #86c98a;
+  --board-grass-dark: #75b579;
   width: 100%;
   height: 100%;
   padding: clamp(5px, 1.5vw, 8px);
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   grid-template-rows: repeat(9, 1fr);
-  gap: var(--slot-gap);
+  gap: 0;
   border: 2px solid rgba(151,108,69,.24);
   border-radius: 20px;
-  background-color: #d9bd97;
-  background-image:
-    radial-gradient(circle, rgba(104, 72, 43, .035) 0 .55px, transparent .75px),
-    radial-gradient(circle, rgba(255, 255, 255, .085) 0 .45px, transparent .7px),
-    radial-gradient(
-      ellipse at 50% 44%,
-      #ead7b5 0%,
-      #e4cca8 48%,
-      #d9bb96 78%,
-      #cfa985 100%
-    );
-  background-size: 5px 5px, 7px 7px, 100% 100%;
-  background-position: 0 0, 2px 3px, center;
-  background-repeat: repeat, repeat, no-repeat;
+  background: var(--board-grass);
   box-shadow:
     inset 0 5px 14px rgba(117, 77, 45, .16),
     inset 0 -3px 6px rgba(111, 70, 41, .12),
@@ -318,24 +307,15 @@ body {
   place-items: center;
   overflow: hidden;
   touch-action: none;
-  border: 1px solid rgba(171,127,84,.18);
-  border-radius: clamp(8px, 1.8vw, 11px);
-  background:
-    radial-gradient(circle at 28% 14%, rgba(255,255,255,.58), transparent 38%),
-    linear-gradient(145deg, #fff1d3, #f1d7ad);
-  box-shadow:
-    inset 0 3px 3px rgba(255,255,255,.78),
-    inset 0 -4px 5px rgba(142,96,56,.14),
-    inset 2px 0 3px rgba(255,244,220,.25),
-    inset -2px 0 3px rgba(126,82,48,.07),
-    0 2px 2px rgba(104,70,42,.12);
+  border: 0;
+  border-radius: 0;
+  background: var(--board-grass);
+  box-shadow: none;
   transition: transform .14s ease, box-shadow .14s ease, filter .14s ease;
 }
 
 .cell:nth-child(even) {
-  background:
-    radial-gradient(circle at 28% 14%, rgba(255,255,255,.54), transparent 38%),
-    linear-gradient(145deg, #fcebc9, #edd1a6);
+  background: var(--board-grass-dark);
 }
 .cell.occupied { cursor: grab; }
 .cell.drag-source { filter: brightness(.91); }
@@ -590,9 +570,13 @@ body {
   animation: spawnPop 260ms ease-out;
   will-change: transform, opacity;
 }
+.cell.merge-anticipation .ball-wrap {
+  animation: mergeAnticipation 90ms cubic-bezier(.2, .72, .3, 1) both;
+  will-change: transform;
+}
 .cell.merge-away .ball-wrap,
 .ball-wrap.merge-away {
-  animation: mergeAway 180ms linear forwards;
+  animation: mergeAway 180ms cubic-bezier(.4, 0, .25, 1) forwards;
 }
 
 .ball-wrap.merge-echo {
@@ -608,18 +592,16 @@ body {
   background: radial-gradient(circle, rgba(255,255,255,.5), rgba(255,255,255,0) 68%);
   opacity: 0;
   pointer-events: none;
-  animation: mergeGlow 150ms ease-out;
+  animation: mergeGlow 300ms cubic-bezier(.16, .8, .25, 1);
   will-change: transform, opacity;
 }
 
 .cell.merge-pop .ball-wrap {
-  animation:
-    mergePop 290ms ease-out,
-    mergeSecondaryPop 120ms ease-out 290ms;
+  animation: mergePop 380ms cubic-bezier(.16, .82, .24, 1) both;
 }
 
 .cell.merge-pop .ball-wrap.merge-away {
-  animation: mergeAway 180ms linear forwards;
+  animation: mergeAway 180ms cubic-bezier(.4, 0, .25, 1) forwards;
 }
 
 .merge-sparks {
@@ -642,8 +624,11 @@ body {
   background: linear-gradient(145deg, rgba(255,255,255,.96), rgba(255,220,104,.88));
   opacity: 0;
   transform: translate3d(0, 0, 0) scale(.65);
-  animation: mergeSpark 240ms ease-out var(--spark-delay) forwards;
   will-change: transform, opacity;
+}
+
+.merge-sparks.is-active .merge-spark {
+  animation: mergeSpark 420ms cubic-bezier(.18, .72, .28, 1) var(--spark-delay) forwards;
 }
 
 .merge-spark:nth-child(3n) {
@@ -745,15 +730,15 @@ body {
   }
 }
 
-@keyframes mergePop {
-  0% { transform: translate(-50%, -50%) scale(.6); opacity: 0; }
-  75.86% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
-  100% { transform: translate(-50%, -50%) scale(1); }
+@keyframes mergeAnticipation {
+  from { transform: translate(-50%, -50%) scale(1); }
+  to { transform: translate(-50%, -50%) scale(1.1); }
 }
 
-@keyframes mergeSecondaryPop {
-  0%, 100% { transform: translate(-50%, -50%) scale(1); }
-  50% { transform: translate(-50%, -50%) scale(1.06); }
+@keyframes mergePop {
+  0% { transform: translate(-50%, -50%) scale(.9); opacity: .72; }
+  52% { transform: translate(-50%, -50%) scale(1.03); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1); }
 }
 
 @keyframes mergeGlow {
@@ -986,6 +971,7 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .cell.spawn-pop .ball-wrap,
+  .cell.merge-anticipation .ball-wrap,
   .cell.merge-away .ball-wrap,
   .ball-wrap.merge-away,
   .cell.merge-pop::after,
@@ -998,7 +984,7 @@ body {
   .drag-ghost-content,
   .drag-ghost-shadow,
   .spawn-flight,
-  .merge-spark { animation: none !important; }
+  .merge-sparks.is-active .merge-spark { animation: none !important; }
   .toast,
   .cell,
   .energy-fill { transition: none !important; }
