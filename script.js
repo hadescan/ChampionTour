@@ -20,7 +20,9 @@
   const DRAG_THRESHOLD = 7;
   const PRODUCER_PRESS_MS = 120;
   const PRODUCER_EXIT_HOLD_MS = 50;
-  const PRODUCER_FLIGHT_MS = 210;
+  const PRODUCER_MIN_FLIGHT_MS = 190;
+  const PRODUCER_MAX_FLIGHT_MS = 250;
+  const PRODUCER_FLIGHT_MS_PER_CELL = 12;
   const PRODUCER_LANDING_MS = 110;
   const PRODUCER_SPAWN_FALLBACK_MS = 120;
   const SPAWN_VISUAL_STAGGER_MS = 65;
@@ -661,8 +663,30 @@
     const producerCell = cellElements.find((cell, index) => state.cells[index]?.type === 'producer');
     const targetCell = cellElements[targetIndex];
     let launch;
+    let content;
+    let image;
+    let shadow;
+    let motionAnimation;
+    let contentAnimation;
+    let shadowAnimation;
     let fallbackTimer;
     let finished = false;
+
+    function adoptLandingVisual() {
+      const renderedWrapper = targetCell.querySelector('.ball-wrap');
+      if (!renderedWrapper || !content || !image) return;
+
+      motionAnimation?.cancel();
+      contentAnimation?.cancel();
+      shadowAnimation?.cancel();
+      content.className = 'ball-wrap';
+      image.className = 'ball';
+      image.alt = TEXT.ballLevel(1);
+      image.removeAttribute('aria-hidden');
+      image.style.background = 'transparent';
+      image.style.objectFit = 'contain';
+      renderedWrapper.replaceWith(content);
+    }
 
     function finishLaunch() {
       if (finished) return;
@@ -676,6 +700,7 @@
         if (targetCell && state.cells[targetIndex] === null) {
           state.cells[targetIndex] = { type: 'ball', level: 1 };
           renderCell(targetIndex);
+          adoptLandingVisual();
           targetCell.classList.add('spawn-landed');
           launch?.remove();
           window.setTimeout(
@@ -716,10 +741,17 @@
     const perpendicularX = -travelY / travelDistance;
     const perpendicularY = travelX / travelDistance;
     const arcHeight = targetRect.height * .11;
-    const motionDuration = PRODUCER_EXIT_HOLD_MS + PRODUCER_FLIGHT_MS;
+    const distanceInCells =
+      travelDistance / Math.max(targetRect.width, targetRect.height);
+    const flightDuration = Math.min(
+      PRODUCER_MAX_FLIGHT_MS,
+      PRODUCER_MIN_FLIGHT_MS +
+        Math.max(0, distanceInCells - 1) * PRODUCER_FLIGHT_MS_PER_CELL
+    );
+    const motionDuration = PRODUCER_EXIT_HOLD_MS + flightDuration;
     const connectionOffset = PRODUCER_EXIT_HOLD_MS / motionDuration;
     launch = document.createElement('div');
-    const content = document.createElement('div');
+    content = document.createElement('div');
 
     launch.className = 'producer-launch';
     content.className = 'producer-launch-content';
@@ -727,9 +759,9 @@
     launch.style.top = `${producerRect.top + producerRect.height / 2}px`;
     launch.style.width = `${targetRect.width * .92}px`;
     launch.style.height = `${targetRect.height * .92}px`;
-    const shadow = createItemShadow();
+    shadow = createItemShadow();
     content.appendChild(shadow);
-    const image = document.createElement('img');
+    image = document.createElement('img');
     image.className = 'producer-launch-ball';
     image.src = ballSource(1);
     image.alt = '';
@@ -741,7 +773,7 @@
     document.body.appendChild(launch);
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const effectiveDuration = reducedMotion ? 1 : motionDuration;
-    const motionAnimation = launch.animate(
+    motionAnimation = launch.animate(
       [
         {
           offset: 0,
@@ -773,7 +805,7 @@
         fill: 'forwards'
       }
     );
-    content.animate(
+    contentAnimation = content.animate(
       [
         {
           offset: 0,
@@ -798,7 +830,7 @@
         fill: 'forwards'
       }
     );
-    shadow.animate(
+    shadowAnimation = shadow.animate(
       [
         {
           offset: 0,
