@@ -16,12 +16,15 @@
   const PRODUCTION_COST = DATA.producer.energyCost;
   const REGEN_INTERVAL_MS = 2 * 60 * 1000;
   const STORAGE_KEY = 'championTour.prototype.energy.v1';
-  const PRODUCER_SOURCE = 'assets/Football/Producer/producer_lv1.png';
   const SHADOW_SOURCE = 'assets/Football/shadow.png';
   const DRAG_THRESHOLD = 7;
-  const PRODUCER_PRESS_MS = 100;
-  const PRODUCER_OVERLAP_MS = 70;
-  const PRODUCER_EJECTION_MS = 160;
+  const PRODUCER_PRESS_MS = 120;
+  const PRODUCER_EXIT_HOLD_MS = 50;
+  const PRODUCER_FLIGHT_MS = 210;
+  const PRODUCER_LANDING_MS = 110;
+  const PRODUCER_SPAWN_FALLBACK_MS = 120;
+  const SPAWN_VISUAL_STAGGER_MS = 65;
+  const MAX_ACTIVE_SPAWN_VISUALS = 3;
   const MERGE_DEPARTURE_MS = 180;
   const DRAG_FOLLOW_OFFSET = 4;
   const DRAG_MAX_TILT = 3;
@@ -43,6 +46,7 @@
   const state = {
     cells: new Array(CELL_COUNT).fill(null),
     drag: null,
+    producerPointer: null,
     energy: MAX_ENERGY,
     nextEnergyAt: null
   };
@@ -51,15 +55,22 @@
   let cellElements = [];
   let toastTimer;
   let mergeSparksElement;
-  let producerEffectElement;
   let selectedItemLevel = null;
   let selectedCellIndex = -1;
   let itemInfoTimer;
   let lastItemTapIndex = -1;
   let lastItemTapAt = 0;
+  const pendingSpawnTargets = new Set();
+  const spawnVisualQueue = [];
+  let activeSpawnVisuals = 0;
+  let nextSpawnVisualStartAt = 0;
 
   function ballSource(level) {
     return DATA.items[level].sprite;
+  }
+
+  function producerSource() {
+    return Progression.getProducerState().artwork;
   }
 
   function applyTranslations() {
@@ -220,6 +231,7 @@
     const rarityElement = document.getElementById('itemInfoRarity');
     const nextElement = document.getElementById('itemInfoNext');
     const definition = DATA.items[level];
+    document.getElementById('producerXpDebug').hidden = true;
     if (index >= 0) selectCell(index);
 
     clearTimeout(itemInfoTimer);
@@ -265,23 +277,31 @@
   function showProducerInfo(index) {
     const panel = document.getElementById('itemInfoPanel');
     const producerState = Progression.getProducerState();
+    const debugButton = document.getElementById('producerXpDebug');
     clearTimeout(itemInfoTimer);
     selectedItemLevel = null;
     selectCell(index);
-    document.getElementById('itemInfoIcon').src = PRODUCER_SOURCE;
+    document.getElementById('itemInfoIcon').src = producerState.artwork;
     document.getElementById('itemInfoIcon').alt = window.t('producer.football_academy.name');
     document.getElementById('itemInfoName').textContent = window.t('producer.football_academy.name');
     document.getElementById('itemInfoLevel').textContent =
-      `${window.t('producer.charges')} ${producerState.charges}/${producerState.maxCharges}`;
-    document.getElementById('itemInfoDescription').textContent =
-      window.t('producer.football_academy.description');
+      window.t('producer.progress.level').replace('{level}', String(producerState.level));
+    document.getElementById('itemInfoDescription').textContent = producerState.isMaxLevel
+      ? window.t('producer.progress.max')
+      : window.t('producer.progress.xp')
+        .replace('{current}', String(producerState.xp))
+        .replace('{required}', String(producerState.xpToNext));
     document.getElementById('itemInfoProducer').textContent =
       window.t('producer.produces').replace('{item}', itemName(1));
-    document.getElementById('itemInfoRarity').textContent =
-      `${window.t('energy.label')} −${PRODUCTION_COST}`;
+    document.getElementById('itemInfoRarity').textContent = '';
     document.getElementById('itemInfoNext').textContent = producerState.cooldownRemainingMs > 0
       ? `${window.t('producer.cooldown')} ${formatCountdown(producerState.cooldownRemainingMs)}`
       : window.t('producer.ready');
+    debugButton.hidden = !TESTING_MODE.enabled || producerState.isMaxLevel;
+    debugButton.textContent = window.t('producer.progress.debug_xp').replace(
+      '{amount}',
+      String(TESTING_MODE.producerXpIncrement)
+    );
     panel.setAttribute('aria-hidden', 'false');
     panel.classList.remove('is-empty');
     panel.classList.add('is-visible');
@@ -295,15 +315,18 @@
       selectedCellIndex = -1;
     }
     const panel = document.getElementById('itemInfoPanel');
-    document.getElementById('itemInfoIcon').removeAttribute('src');
+    document.getElementById('itemInfoIcon').src = 'assets/icons/sports_bag.svg';
     document.getElementById('itemInfoIcon').alt = '';
-    document.getElementById('itemInfoName').textContent = '';
+    document.getElementById('itemInfoName').textContent = window.t('item.info.default_title');
     document.getElementById('itemInfoLevel').textContent = '';
-    document.getElementById('itemInfoDescription').textContent = '';
+    document.getElementById('itemInfoDescription').textContent =
+      window.t('item.info.default_description');
     document.getElementById('itemInfoProducer').textContent = '';
     document.getElementById('itemInfoRarity').textContent = '';
     document.getElementById('itemInfoNext').textContent = '';
-    panel.classList.add('is-visible', 'is-empty');
+    document.getElementById('producerXpDebug').hidden = true;
+    panel.classList.remove('is-empty', 'content-change');
+    panel.classList.add('is-visible');
     panel.setAttribute('aria-hidden', 'false');
   }
 
@@ -325,7 +348,6 @@
     }
 
     createMergeSparkPool();
-    createProducerEffectPool();
     state.cells[INITIAL_PRODUCER_INDEX] = { type: 'producer' };
     renderCell(INITIAL_PRODUCER_INDEX);
   }
@@ -356,12 +378,34 @@
 
       const producerImage = document.createElement('img');
       producerImage.className = 'producer-image';
-      producerImage.src = PRODUCER_SOURCE;
+      producerImage.src = producerSource();
       producerImage.alt = '';
       producerImage.draggable = false;
       producerImage.setAttribute('aria-hidden', 'true');
+      producerImage.addEventListener('pointerdown', beginProducerPointer);
       producerWrapper.appendChild(producerImage);
       cell.appendChild(producerWrapper);
+
+      const infoButton = document.createElement('button');
+      infoButton.className = 'producer-info-button';
+      infoButton.type = 'button';
+      infoButton.textContent = window.t('producer.info.symbol');
+      infoButton.setAttribute('aria-label', window.t('producer.info.open'));
+      infoButton.addEventListener('pointerdown', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+      });
+      infoButton.addEventListener('pointerup', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        showProducerInfo(index);
+      });
+      infoButton.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        if (event.detail === 0) showProducerInfo(index);
+      });
+      cell.appendChild(infoButton);
 
       const chargeBadge = document.createElement('span');
       chargeBadge.className = 'producer-charge-badge';
@@ -503,6 +547,53 @@
     });
   }
 
+  function playProducerUpgrade(levelUps) {
+    if (!levelUps.length) return;
+    const producerIndex = state.cells.findIndex((item) => item?.type === 'producer');
+    const totalDiamonds = levelUps.reduce(
+      (total, levelUp) => total + levelUp.diamondReward,
+      0
+    );
+
+    renderCell(producerIndex, 'producer-upgrade');
+    if (selectedCellIndex === producerIndex) showProducerInfo(producerIndex);
+
+    const producerCell = cellElements[producerIndex];
+    window.setTimeout(
+      () => producerCell?.classList.remove('producer-upgrade'),
+      1200
+    );
+    const target = document.getElementById('gemValue');
+    if (totalDiamonds > 0 && producerCell && target) {
+      const sourceRect = producerCell.getBoundingClientRect();
+      const targetRect = target.getBoundingClientRect();
+      const flight = document.createElement('span');
+      flight.className = 'reward-flight producer-diamond-flight';
+      flight.textContent = `◆ +${totalDiamonds}`;
+      flight.style.left = `${sourceRect.left + sourceRect.width / 2}px`;
+      flight.style.top = `${sourceRect.top + sourceRect.height / 2}px`;
+      flight.style.setProperty(
+        '--reward-x',
+        `${targetRect.left + targetRect.width / 2 - (sourceRect.left + sourceRect.width / 2)}px`
+      );
+      flight.style.setProperty(
+        '--reward-y',
+        `${targetRect.top + targetRect.height / 2 - (sourceRect.top + sourceRect.height / 2)}px`
+      );
+      flight.style.setProperty('--reward-delay', '180ms');
+      document.body.appendChild(flight);
+      window.setTimeout(() => flight.remove(), 900);
+    }
+
+    const finalLevel = levelUps[levelUps.length - 1].level;
+    const message = window.t('producer.progress.upgraded')
+      .replace('{level}', String(finalLevel));
+    const rewardMessage = totalDiamonds > 0
+      ? ` ${window.t('producer.progress.diamonds').replace('{amount}', String(totalDiamonds))}`
+      : '';
+    showToast(`${message}${rewardMessage}`);
+  }
+
   function tryFulfillOrder(fromIndex, orderIndex) {
     const item = state.cells[fromIndex];
     const card = document.querySelector(`.order-card[data-order-index="${orderIndex}"]`);
@@ -516,6 +607,7 @@
     if (selectedCellIndex === fromIndex) clearItemInfo();
     renderCell(fromIndex);
     playRewardFlights(card, completed.rewards);
+    playProducerUpgrade(completed.producerProgress);
     GameAudio.play('reward');
     card.classList.add('order-complete');
     window.setTimeout(() => {
@@ -525,8 +617,27 @@
     return true;
   }
 
-  function firstEmptyCell() {
-    return state.cells.findIndex((item) => item === null);
+  function nearestEmptyCell() {
+    const producerIndex = state.cells.findIndex((item) => item?.type === 'producer');
+    const producerRow = Math.floor(producerIndex / BOARD_COLUMNS);
+    const producerColumn = producerIndex % BOARD_COLUMNS;
+    let bestIndex = -1;
+    let bestDistance = Infinity;
+
+    state.cells.forEach((item, index) => {
+      if (item !== null || pendingSpawnTargets.has(index)) return;
+      const row = Math.floor(index / BOARD_COLUMNS);
+      const column = index % BOARD_COLUMNS;
+      const distance =
+        (row - producerRow) ** 2 +
+        (column - producerColumn) ** 2;
+      if (distance < bestDistance || (distance === bestDistance && index < bestIndex)) {
+        bestDistance = distance;
+        bestIndex = index;
+      }
+    });
+
+    return bestIndex;
   }
 
   function createMergeSparkPool() {
@@ -556,34 +667,68 @@
     mergeSparksElement.classList.add('is-active');
   }
 
-  function createProducerEffectPool() {
-    producerEffectElement = document.createElement('span');
-    producerEffectElement.className = 'producer-effect';
-    producerEffectElement.setAttribute('aria-hidden', 'true');
-
-    for (let index = 0; index < 5; index += 1) {
-      const spark = document.createElement('span');
-      spark.className = 'producer-spark';
-      spark.style.setProperty('--producer-spark-angle', `${-70 + index * 35}deg`);
-      producerEffectElement.appendChild(spark);
-    }
-  }
-
-  function playProducerEffect(producerCell) {
-    producerEffectElement.remove();
-    producerEffectElement.classList.remove('is-active');
-    producerCell.appendChild(producerEffectElement);
-    void producerEffectElement.offsetWidth;
-    producerEffectElement.classList.add('is-active');
-  }
-
-  function createProducerLaunch(targetIndex) {
+  function createProducerLaunch(targetIndex, onComplete) {
     const producerCell = cellElements.find((cell, index) => state.cells[index]?.type === 'producer');
-    const producerSprite = producerCell.querySelector('.producer-image');
     const targetCell = cellElements[targetIndex];
+    let launch;
+    let fallbackTimer;
+    let finished = false;
+
+    function finishLaunch() {
+      if (finished) return;
+      finished = true;
+      window.clearTimeout(fallbackTimer);
+
+      try {
+        pendingSpawnTargets.delete(targetIndex);
+        targetCell?.classList.remove('spawn-reserved');
+
+        if (targetCell && state.cells[targetIndex] === null) {
+          state.cells[targetIndex] = { type: 'ball', level: 1 };
+          renderCell(targetIndex);
+          targetCell.classList.add('spawn-landed');
+          launch?.remove();
+          window.setTimeout(
+            () => targetCell.classList.remove('spawn-landed'),
+            PRODUCER_LANDING_MS
+          );
+        }
+      } finally {
+        launch?.remove();
+        onComplete();
+      }
+    }
+
+    if (!producerCell || !targetCell) {
+      finishLaunch();
+      return;
+    }
+
+    const producerSprite = producerCell.querySelector('.producer-image');
+    if (!producerSprite) {
+      finishLaunch();
+      return;
+    }
+
     const producerRect = producerSprite.getBoundingClientRect();
     const targetRect = targetCell.getBoundingClientRect();
-    const launch = document.createElement('div');
+    const itemGroundOffset = Number.parseFloat(
+      getComputedStyle(document.documentElement)
+        .getPropertyValue('--item-ground-offset')
+    ) || 0;
+    const travelX =
+      targetRect.left + targetRect.width / 2 -
+      (producerRect.left + producerRect.width / 2);
+    const travelY =
+      targetRect.top + targetRect.height / 2 + itemGroundOffset -
+      (producerRect.top + producerRect.height / 2);
+    const travelDistance = Math.hypot(travelX, travelY) || 1;
+    const perpendicularX = -travelY / travelDistance;
+    const perpendicularY = travelX / travelDistance;
+    const arcHeight = targetRect.height * .11;
+    const motionDuration = PRODUCER_EXIT_HOLD_MS + PRODUCER_FLIGHT_MS;
+    const connectionOffset = PRODUCER_EXIT_HOLD_MS / motionDuration;
+    launch = document.createElement('div');
     const content = document.createElement('div');
 
     launch.className = 'producer-launch';
@@ -592,16 +737,8 @@
     launch.style.top = `${producerRect.top + producerRect.height / 2}px`;
     launch.style.width = `${targetRect.width * .92}px`;
     launch.style.height = `${targetRect.height * .92}px`;
-    launch.style.setProperty(
-      '--producer-launch-x',
-      `${targetRect.left + targetRect.width / 2 - (producerRect.left + producerRect.width / 2)}px`
-    );
-    launch.style.setProperty(
-      '--producer-launch-y',
-      `${targetRect.top + targetRect.height / 2 - (producerRect.top + producerRect.height / 2)}px`
-    );
-
-    content.appendChild(createItemShadow());
+    const shadow = createItemShadow();
+    content.appendChild(shadow);
     const image = document.createElement('img');
     image.className = 'producer-launch-ball';
     image.src = ballSource(1);
@@ -611,37 +748,146 @@
     content.appendChild(image);
     launch.appendChild(content);
 
-    function finishLaunch() {
-      launch.remove();
-      targetCell.classList.remove('launch-pending');
-    }
-
-    launch.addEventListener('pointerdown', (event) => {
-      finishLaunch();
-      startPointer(targetIndex, event);
-    }, { once: true });
-
     document.body.appendChild(launch);
-    window.setTimeout(
-      finishLaunch,
-      PRODUCER_OVERLAP_MS + PRODUCER_EJECTION_MS
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const effectiveDuration = reducedMotion ? 1 : motionDuration;
+    const motionAnimation = launch.animate(
+      [
+        {
+          offset: 0,
+          transform: 'translate(-50%, -50%) translate3d(0, 0, 0)',
+          easing: 'linear'
+        },
+        {
+          offset: connectionOffset,
+          transform: 'translate(-50%, -50%) translate3d(0, 0, 0)',
+          easing: 'cubic-bezier(.16, .82, .24, 1)'
+        },
+        {
+          offset: .45,
+          transform:
+            `translate(-50%, -50%) translate3d(` +
+            `${travelX * .72 + perpendicularX * arcHeight}px, ` +
+            `${travelY * .72 + perpendicularY * arcHeight}px, 0)`,
+          easing: 'cubic-bezier(.2, .72, .28, 1)'
+        },
+        {
+          offset: 1,
+          transform:
+            `translate(-50%, -50%) translate3d(${travelX}px, ${travelY}px, 0)`
+        }
+      ],
+      {
+        duration: effectiveDuration,
+        easing: 'linear',
+        fill: 'forwards'
+      }
     );
+    content.animate(
+      [
+        {
+          offset: 0,
+          transform: 'scale(.9)',
+          easing: 'cubic-bezier(.2, .72, .28, 1)'
+        },
+        {
+          offset: .11,
+          transform: 'scale(.88)',
+          easing: 'cubic-bezier(.2, .72, .28, 1)'
+        },
+        {
+          offset: connectionOffset,
+          transform: 'scale(.9)',
+          easing: 'cubic-bezier(.18, .76, .26, 1)'
+        },
+        { offset: 1, transform: 'scale(1)' }
+      ],
+      {
+        duration: effectiveDuration,
+        easing: 'linear',
+        fill: 'forwards'
+      }
+    );
+    shadow.animate(
+      [
+        {
+          offset: 0,
+          transform: 'translateX(-50%) scale(.82)',
+          opacity: .12,
+          easing: 'linear'
+        },
+        {
+          offset: connectionOffset,
+          transform: 'translateX(-50%) scale(.82)',
+          opacity: .12,
+          easing: 'cubic-bezier(.16, .82, .24, 1)'
+        },
+        {
+          offset: 1,
+          transform: 'translateX(-50%) scale(1)',
+          opacity: .4
+        }
+      ],
+      {
+        duration: effectiveDuration,
+        easing: 'linear',
+        fill: 'forwards'
+      }
+    );
+    motionAnimation.addEventListener('finish', finishLaunch, { once: true });
+    fallbackTimer = window.setTimeout(
+      finishLaunch,
+      effectiveDuration + PRODUCER_SPAWN_FALLBACK_MS
+    );
+  }
+
+  function scheduleSpawnVisuals() {
+    while (
+      activeSpawnVisuals < MAX_ACTIVE_SPAWN_VISUALS &&
+      spawnVisualQueue.length > 0
+    ) {
+      const targetIndex = spawnVisualQueue.shift();
+      const now = Date.now();
+      const startAt = Math.max(now, nextSpawnVisualStartAt);
+      const delay = startAt - now;
+      nextSpawnVisualStartAt = startAt + SPAWN_VISUAL_STAGGER_MS;
+      activeSpawnVisuals += 1;
+
+      window.setTimeout(() => {
+        let visualFinished = false;
+        const finishVisual = () => {
+          if (visualFinished) return;
+          visualFinished = true;
+          activeSpawnVisuals -= 1;
+          scheduleSpawnVisuals();
+        };
+
+        try {
+          createProducerLaunch(targetIndex, finishVisual);
+        } catch (error) {
+          pendingSpawnTargets.delete(targetIndex);
+          cellElements[targetIndex]?.classList.remove('spawn-reserved');
+          if (state.cells[targetIndex] === null) {
+            state.cells[targetIndex] = { type: 'ball', level: 1 };
+            renderCell(targetIndex);
+          }
+          finishVisual();
+        }
+      }, delay);
+    }
+  }
+
+  function enqueueSpawnVisual(targetIndex) {
+    spawnVisualQueue.push(targetIndex);
+    scheduleSpawnVisuals();
   }
 
   function activateProducer() {
     const producerCell = cellElements.find((cell, index) => state.cells[index]?.type === 'producer');
-    if (producerCell) {
-      producerCell.classList.remove('producer-pressed');
-      void producerCell.offsetWidth;
-      producerCell.classList.add('producer-pressed');
-      window.setTimeout(() => producerCell.classList.remove('producer-pressed'), PRODUCER_PRESS_MS);
-      playProducerEffect(producerCell);
-    }
-
-    const emptyIndex = firstEmptyCell();
+    const emptyIndex = nearestEmptyCell();
     if (emptyIndex === -1) {
       showToast(TEXT.boardFull);
-      return;
+      return false;
     }
 
     if (
@@ -650,25 +896,32 @@
     ) {
       const producerState = Progression.getProducerState();
       showToast(`${window.t('producer.cooldown')} ${formatCountdown(producerState.cooldownRemainingMs)}`);
-      return;
+      return false;
     }
 
     if (!spendEnergy(PRODUCTION_COST)) {
       showToast(TEXT.noEnergy);
-      return;
+      return false;
     }
 
     if (!(TESTING_MODE.enabled && TESTING_MODE.bypassProducerCooldown)) {
       Progression.consumeCharge();
     }
+    producerCell.classList.remove('producer-pressed');
+    void producerCell.offsetWidth;
+    producerCell.classList.add('producer-pressed');
+    window.setTimeout(
+      () => producerCell.classList.remove('producer-pressed'),
+      PRODUCER_PRESS_MS
+    );
     if (selectedCellIndex === Number(producerCell.dataset.index)) {
       showProducerInfo(Number(producerCell.dataset.index));
     }
     GameAudio.play('producer');
-    state.cells[emptyIndex] = { type: 'ball', level: 1 };
-    renderCell(emptyIndex);
-    cellElements[emptyIndex].classList.add('launch-pending');
-    createProducerLaunch(emptyIndex);
+    pendingSpawnTargets.add(emptyIndex);
+    cellElements[emptyIndex].classList.add('spawn-reserved');
+    enqueueSpawnVisual(emptyIndex);
+    return true;
   }
 
   function createGhost(item, x, y) {
@@ -695,7 +948,7 @@
     } else {
       ghost = document.createElement('img');
       ghost.classList.add('producer-ghost');
-      ghost.src = PRODUCER_SOURCE;
+      ghost.src = producerSource();
       ghost.alt = '';
       ghost.draggable = false;
     }
@@ -720,6 +973,59 @@
     ghost.style.setProperty('--drag-tilt', `${tilt}deg`);
   }
 
+  function beginProducerPointer(event) {
+    if (state.producerPointer || state.drag || event.button > 0) return;
+    event.preventDefault();
+    event.stopPropagation();
+    state.producerPointer = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      moved: false
+    };
+    window.addEventListener('pointermove', moveProducerPointer);
+    window.addEventListener('pointerup', endProducerPointer);
+    window.addEventListener('pointercancel', cancelProducerPointer);
+  }
+
+  function moveProducerPointer(event) {
+    const pointer = state.producerPointer;
+    if (!pointer || event.pointerId !== pointer.pointerId) return;
+    if (
+      Math.hypot(
+        event.clientX - pointer.startX,
+        event.clientY - pointer.startY
+      ) >= DRAG_THRESHOLD
+    ) {
+      pointer.moved = true;
+    }
+  }
+
+  function finishProducerPointer() {
+    window.removeEventListener('pointermove', moveProducerPointer);
+    window.removeEventListener('pointerup', endProducerPointer);
+    window.removeEventListener('pointercancel', cancelProducerPointer);
+    state.producerPointer = null;
+  }
+
+  function endProducerPointer(event) {
+    const pointer = state.producerPointer;
+    if (!pointer || event.pointerId !== pointer.pointerId) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const shouldProduce = !pointer.moved;
+    finishProducerPointer();
+    if (shouldProduce) activateProducer();
+  }
+
+  function cancelProducerPointer(event) {
+    if (
+      state.producerPointer &&
+      event.pointerId !== state.producerPointer.pointerId
+    ) return;
+    finishProducerPointer();
+  }
+
   function beginPointer(event) {
     const source = event.currentTarget;
     const fromIndex = Number(source.dataset.index);
@@ -727,6 +1033,11 @@
 
     if (!item) {
       clearItemInfo();
+      return;
+    }
+
+    if (item.type === 'producer') {
+      beginProducerPointer(event);
       return;
     }
 
@@ -773,6 +1084,7 @@
 
   function isValidTarget(fromIndex, toIndex) {
     if (fromIndex === toIndex) return false;
+    if (pendingSpawnTargets.has(toIndex)) return false;
     const from = state.cells[fromIndex];
     const to = state.cells[toIndex];
     if (!to) return true;
@@ -860,10 +1172,6 @@
     finishPointer(invalidDrop);
 
     if (!wasMoved) {
-      if (item.type === 'producer') {
-        showProducerInfo(fromIndex);
-        activateProducer();
-      }
       if (item.type === 'ball') handleItemTap(fromIndex, item);
       return;
     }
@@ -1046,6 +1354,14 @@
     applyTranslations();
     loadEnergy();
     createBoard();
+    document.getElementById('producerXpDebug').addEventListener('click', () => {
+      if (!TESTING_MODE.enabled) return;
+      const result = Progression.addProducerXp(TESTING_MODE.producerXpIncrement);
+      playProducerUpgrade(result.levelUps);
+      renderEconomy();
+      const producerIndex = state.cells.findIndex((item) => item?.type === 'producer');
+      if (!result.levelUps.length && producerIndex >= 0) showProducerInfo(producerIndex);
+    });
     renderOrders();
     renderEconomy();
     renderEnergy();

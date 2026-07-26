@@ -6,7 +6,8 @@ window.ChampionTour.GameData = Object.freeze({
   testing: Object.freeze({
     enabled: true,
     bypassEnergy: true,
-    bypassProducerCooldown: true
+    bypassProducerCooldown: true,
+    producerXpIncrement: 25
   }),
 
   producer: Object.freeze({
@@ -15,6 +16,16 @@ window.ChampionTour.GameData = Object.freeze({
     maxCharges: 8,
     cooldownMs: 30000,
     energyCost: 1,
+    maxLevel: 6,
+    levels: Object.freeze([
+      null,
+      Object.freeze({ level: 1, xpToNext: 100, diamondReward: 0, artwork: 'assets/Football/Producer/producer_lv1.png' }),
+      Object.freeze({ level: 2, xpToNext: 250, diamondReward: 1, artwork: 'assets/Football/Producer/producer_lv2.png' }),
+      Object.freeze({ level: 3, xpToNext: 450, diamondReward: 1, artwork: 'assets/Football/Producer/producer_lv3.png' }),
+      Object.freeze({ level: 4, xpToNext: 700, diamondReward: 2, artwork: 'assets/Football/Producer/producer_lv4.png' }),
+      Object.freeze({ level: 5, xpToNext: 1000, diamondReward: 2, artwork: 'assets/Football/Producer/producer_lv5.png' }),
+      Object.freeze({ level: 6, xpToNext: null, diamondReward: 3, artwork: 'assets/Football/Producer/producer_lv6.png' })
+    ]),
     dropRates: Object.freeze([
       Object.freeze({ level: 1, weight: 1 })
     ])
@@ -37,9 +48,9 @@ window.ChampionTour.GameData = Object.freeze({
       1: Object.freeze({ coins: 12, xp: 4, gems: 0, eventPoints: 1 }),
       2: Object.freeze({ coins: 22, xp: 7, gems: 0, eventPoints: 2 }),
       3: Object.freeze({ coins: 40, xp: 12, gems: 0, eventPoints: 3 }),
-      4: Object.freeze({ coins: 70, xp: 20, gems: 1, eventPoints: 5 }),
-      5: Object.freeze({ coins: 115, xp: 32, gems: 1, eventPoints: 8 }),
-      6: Object.freeze({ coins: 180, xp: 50, gems: 2, eventPoints: 12 })
+      4: Object.freeze({ coins: 70, xp: 20, gems: 0, eventPoints: 5 }),
+      5: Object.freeze({ coins: 115, xp: 32, gems: 0, eventPoints: 8 }),
+      6: Object.freeze({ coins: 180, xp: 50, gems: 0, eventPoints: 12 })
     })
   })
 });
