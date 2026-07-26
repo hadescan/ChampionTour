@@ -617,27 +617,17 @@
     return true;
   }
 
-  function nearestEmptyCell() {
-    const producerIndex = state.cells.findIndex((item) => item?.type === 'producer');
-    const producerRow = Math.floor(producerIndex / BOARD_COLUMNS);
-    const producerColumn = producerIndex % BOARD_COLUMNS;
-    let bestIndex = -1;
-    let bestDistance = Infinity;
+  function randomEmptyCell() {
+    const availableCells = [];
 
     state.cells.forEach((item, index) => {
-      if (item !== null || pendingSpawnTargets.has(index)) return;
-      const row = Math.floor(index / BOARD_COLUMNS);
-      const column = index % BOARD_COLUMNS;
-      const distance =
-        (row - producerRow) ** 2 +
-        (column - producerColumn) ** 2;
-      if (distance < bestDistance || (distance === bestDistance && index < bestIndex)) {
-        bestDistance = distance;
-        bestIndex = index;
+      if (item === null && !pendingSpawnTargets.has(index)) {
+        availableCells.push(index);
       }
     });
 
-    return bestIndex;
+    if (!availableCells.length) return -1;
+    return availableCells[Math.floor(Math.random() * availableCells.length)];
   }
 
   function createMergeSparkPool() {
@@ -884,7 +874,7 @@
 
   function activateProducer() {
     const producerCell = cellElements.find((cell, index) => state.cells[index]?.type === 'producer');
-    const emptyIndex = nearestEmptyCell();
+    const emptyIndex = randomEmptyCell();
     if (emptyIndex === -1) {
       showToast(TEXT.boardFull);
       return false;
