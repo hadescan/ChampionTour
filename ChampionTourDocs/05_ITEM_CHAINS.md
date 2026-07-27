@@ -23,32 +23,35 @@ Version: 2.1
 5. Signed Ball
 6. Championship Ball
 
-### Equipment Locker — Equipment Chain
+### Water Station — Hydration Chain
 
-1. Football Socks
-2. Football Boots
-3. Shin Guards
-4. Shirt
-5. Goalkeeper Gloves
-6. Professional Equipment Set
+The persisted `equipment` chain identifier remains unchanged for save
+compatibility, while its Football Academy presentation is the Hydration Chain.
+
+1. Water Cup
+2. Water Bottle
+3. Sports Bottle
+4. Team Shaker
+5. Thermos
+6. Professional Hydration Set
 
 ### Training Cart — Training Chain
 
-1. Cone
-2. Training Hurdle
-3. Mini Goal
+1. Training Cone
+2. Cone Set
+3. Training Hurdle
 4. Coordination Ladder
-5. Shooting Target
+5. Mini Goal
 6. Professional Training Station
 
 ### Trophy Cabinet — Trophy Chain
 
 1. Medal
-2. Small Trophy
-3. Bronze Trophy
-4. Silver Trophy
-5. Gold Trophy
-6. Championship Trophy
+2. Bronze Trophy
+3. Silver Trophy
+4. Gold Trophy
+5. Championship Trophy
+6. Legends Trophy
 
 ## Future Academies
 

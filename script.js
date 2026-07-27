@@ -70,6 +70,7 @@
   let mergeSparksElement;
   let selectedItemLevel = null;
   let selectedItemChainId = null;
+  let selectedInfo = null;
   let selectedCellIndex = -1;
   let itemInfoTimer;
   let lastItemTapIndex = -1;
@@ -80,75 +81,14 @@
   let nextSpawnVisualStartAt = 0;
   let orderReadinessScheduled = false;
   const counterAnimations = new Map();
+  const producerHighlightTimers = new Map();
 
   function itemSource(chainId, level) {
-    if (chainId === 'footballs') return DATA.items[level].sprite;
-    const palettes = {
-      equipment: ['#3b8eaa', '#9bd8df', '#fff0c6'],
-      training: ['#dc713d', '#f6b45f', '#fff0bd'],
-      trophies: ['#b77b25', '#edc151', '#fff4b3']
-    };
-    const [dark, primary, light] = palettes[chainId] || ['#397d68', '#69b98a', '#e8f5d0'];
-    const equipmentShapes = [
-      '',
-      '<path d="M39 18h45v48q0 8 9 10l17 5q8 3 5 12-4 14-23 14H61q-22 0-22-21z" fill="url(#g)"/><path d="M40 34h43M50 86q16 8 32 0" class="line"/>',
-      '<path d="M27 71q18 3 30-30l22 10-5 17 28 8q8 15-10 22H38q-20-3-11-27z" fill="url(#g)"/><path d="M44 72h28M50 62l9 7" class="line"/>',
-      '<path d="M39 27q25-12 50 0l-5 64q-20 18-40 0z" fill="url(#g)"/><path d="M50 42h28M45 58h38" class="line"/>',
-      '<path d="M33 36l20-15 11 12 11-12 20 15-12 18v50H45V54z" fill="url(#g)"/><path d="M54 36q10 10 20 0" class="line"/>',
-      '<path d="M37 76V39q0-14 11-14 8 0 8 13V22q0-10 9-10t9 10v15q0-11 9-11t9 11v34q0 28-27 34-23-4-28-29z" fill="url(#g)"/><path d="M48 66h34" class="line"/>',
-      '<path d="M25 48q39-28 78 0v50H25z" fill="url(#g)"/><path d="M44 48q0-24 20-24t20 24M35 65h58M64 66v32" class="line"/>'
-    ];
-    const trainingShapes = [
-      '',
-      '<path d="M52 21h24l23 79H29z" fill="url(#g)"/><path d="M40 72h48M46 51h36" class="line"/>',
-      '<path d="M27 37h12v59H27zm62 0h12v59H89zM35 49h58v13H35z" fill="url(#g)"/><path d="M31 80h66" class="line"/>',
-      '<path d="M29 23h70v81H29z" fill="none" stroke="url(#g)" stroke-width="9"/><path d="M29 44h70M29 64h70M29 84h70M46 23v81M64 23v81M82 23v81" class="line"/>',
-      '<path d="M24 34h80v68H24z" fill="none" stroke="url(#g)" stroke-width="9"/><path d="M28 97l72-58M100 97L28 39" class="line"/>',
-      '<circle cx="64" cy="63" r="44" fill="url(#g)"/><circle cx="64" cy="63" r="29" fill="none" class="line"/><circle cx="64" cy="63" r="12" fill="#fff2bd"/>',
-      '<path d="M18 38h92v66H18z" fill="none" stroke="url(#g)" stroke-width="9"/><circle cx="64" cy="68" r="22" fill="#fff2bd" opacity=".72"/><path d="M28 45l72 52M100 45L28 97" class="line"/>'
-    ];
-    const trophyShapes = [
-      '',
-      '<circle cx="64" cy="51" r="27" fill="url(#g)"/><path d="M48 72l-8 35 24-13 24 13-8-35" fill="url(#g)"/><path d="M64 38v26" class="line"/>',
-      '<path d="M39 24h50v32q0 29-25 34-25-5-25-34z" fill="url(#g)"/><path d="M39 37H24q0 27 22 28M89 37h15q0 27-22 28M64 89v15M45 106h38" class="line"/>',
-      '<path d="M35 20h58v38q0 31-29 36-29-5-29-36z" fill="url(#g)"/><path d="M35 34H19q0 31 24 33M93 34h16q0 31-24 33M64 93v13M42 108h44" class="line"/>',
-      '<path d="M31 18h66v42q0 34-33 39-33-5-33-39z" fill="url(#g)"/><path d="M31 32H15q0 35 26 38M97 32h16q0 35-26 38M64 98v10M39 110h50" class="line"/>',
-      '<path d="M25 18h78v45q0 35-39 42-39-7-39-42z" fill="url(#g)"/><path d="M25 33H10q0 36 25 42M103 33h15q0 36-25 42M64 104v7M35 113h58" class="line"/><path d="M64 33l7 14 16 2-12 11 3 16-14-8-14 8 3-16-12-11 16-2z" fill="#fff1a6"/>',
-      '<path d="M22 29l14-18 14 18 14-18 14 18 14-18 14 18-9 74H31z" fill="url(#g)"/><path d="M43 50h42M64 43v42M38 108h52" class="line"/>'
-    ];
-    const shape = {
-      equipment: equipmentShapes,
-      training: trainingShapes,
-      trophies: trophyShapes
-    }[chainId]?.[level] || '';
-    const svg =
-      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">` +
-      `<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">` +
-      `<stop stop-color="${light}"/><stop offset=".55" stop-color="${primary}"/><stop offset="1" stop-color="${dark}"/></linearGradient>` +
-      `<style>.line{fill:none;stroke:#fff7d4;stroke-width:5;stroke-linecap:round;stroke-linejoin:round}</style></defs>` +
-      `<ellipse cx="64" cy="111" rx="40" ry="8" fill="#31594b" opacity=".17"/>${shape}` +
-      `</svg>`;
-    return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+    return DATA.chains[chainId]?.assets[level] || DATA.chains.footballs.assets[level];
   }
 
   function producerSource(producerId = 'ball_basket') {
-    const shapes = {
-      ball_basket:
-        '<path d="M19 39h90l-8 70H27z" fill="url(#g)"/><path d="M28 45l72 57M100 45l-72 57M42 40l-9 67M62 40l2 69M84 40l10 67" class="line"/><circle cx="45" cy="43" r="19" fill="#fff5da" stroke="#4d8c7a" stroke-width="4"/><circle cx="78" cy="38" r="20" fill="#f6efe0" stroke="#4d8c7a" stroke-width="4"/><path d="M45 30l8 6-3 10H40l-3-10zM78 24l9 7-3 11H72l-4-11z" fill="#375e65"/>',
-      equipment_locker:
-        '<rect x="29" y="14" width="70" height="99" rx="12" fill="url(#g)"/><path d="M64 17v93M48 45h11M70 45h11" class="line"/><path d="M41 60l12-8 11 10 11-10 12 8-8 14v25H49V74z" fill="#f7e5b5"/>',
-      training_cart:
-        '<path d="M18 51h92l-9 45H28z" fill="url(#g)"/><path d="M31 50l11-30h14l9 30M67 50l9-37h13l7 37" class="line"/><circle cx="40" cy="105" r="10" fill="#365d62"/><circle cx="91" cy="105" r="10" fill="#365d62"/><path d="M38 40h55" class="line"/>',
-      trophy_cabinet:
-        '<rect x="22" y="12" width="84" height="104" rx="13" fill="url(#g)"/><rect x="31" y="22" width="66" height="73" rx="7" fill="#cce9e2" opacity=".72"/><path d="M64 23v72M31 59h66" class="line"/><path d="M40 34h17v13q0 10-9 13-9-3-9-13zM72 67h18v14q0 10-9 13-9-3-9-13z" fill="#f5cc58"/><path d="M34 101h60" class="line"/>'
-    };
-    const svg =
-      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">` +
-      `<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f2d496"/><stop offset=".55" stop-color="#6db3a0"/><stop offset="1" stop-color="#387967"/></linearGradient><style>.line{fill:none;stroke:#fff1c0;stroke-width:5;stroke-linecap:round;stroke-linejoin:round}</style></defs>` +
-      `<ellipse cx="64" cy="108" rx="44" ry="10" fill="#274f46" opacity=".2"/>` +
-      `${shapes[producerId] || ''}` +
-      `</svg>`;
-    return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+    return DATA.producers[producerId]?.artwork || DATA.producers.ball_basket.artwork;
   }
 
   function applyTranslations() {
@@ -305,6 +245,25 @@
     cellElements[index]?.classList.add('item-selected');
   }
 
+  function highlightProducer(producerId) {
+    const index = state.cells.findIndex(
+      (item) => item?.type === 'producer' && item.producerId === producerId
+    );
+    if (index < 0) return;
+    const cell = cellElements[index];
+    window.clearTimeout(producerHighlightTimers.get(producerId));
+    cell.classList.remove('source-highlight');
+    void cell.offsetWidth;
+    cell.classList.add('source-highlight');
+    producerHighlightTimers.set(
+      producerId,
+      window.setTimeout(() => {
+        cell.classList.remove('source-highlight');
+        producerHighlightTimers.delete(producerId);
+      }, 1350)
+    );
+  }
+
   function showItemInfo(level, index = selectedCellIndex, chainId = 'footballs') {
     const panel = document.getElementById('itemInfoPanel');
     const name = document.getElementById('itemInfoName');
@@ -316,7 +275,11 @@
     const nextElement = document.getElementById('itemInfoNext');
     const definition = DATA.items[level];
     document.getElementById('producerXpDebug').hidden = true;
+    document.getElementById('itemInfoButton').hidden = false;
     if (index >= 0) selectCell(index);
+    const producerId = DATA.chains[chainId].producerId;
+    selectedInfo = { type: 'item', chainId, level, producerId };
+    highlightProducer(producerId);
 
     clearTimeout(itemInfoTimer);
     if (
@@ -368,6 +331,7 @@
     clearTimeout(itemInfoTimer);
     selectedItemLevel = null;
     selectedItemChainId = null;
+    selectedInfo = { type: 'producer', producerId };
     selectCell(index);
     document.getElementById('itemInfoIcon').src = producerSource(producerId);
     document.getElementById('itemInfoIcon').alt = producerState.name;
@@ -377,10 +341,12 @@
     document.getElementById('itemInfoDescription').textContent =
       DATA.producers[producerId].description;
     document.getElementById('itemInfoProducer').textContent = 'Üretici';
-    document.getElementById('itemInfoRarity').textContent = '';
+    document.getElementById('itemInfoRarity').textContent =
+      state.energy >= PRODUCTION_COST ? 'Hazır' : 'Enerji gerekli';
     document.getElementById('itemInfoNext').textContent =
       'Üretmek için dokun. Taşımak için sürükle.';
     debugButton.hidden = true;
+    document.getElementById('itemInfoButton').hidden = false;
     debugButton.textContent = window.t('producer.progress.debug_xp').replace(
       '{amount}',
       String(TESTING_MODE.producerXpIncrement)
@@ -394,6 +360,7 @@
     clearTimeout(itemInfoTimer);
     selectedItemLevel = null;
     selectedItemChainId = null;
+    selectedInfo = null;
     if (selectedCellIndex >= 0) {
       cellElements[selectedCellIndex]?.classList.remove('item-selected');
       selectedCellIndex = -1;
@@ -409,9 +376,119 @@
     document.getElementById('itemInfoRarity').textContent = '';
     document.getElementById('itemInfoNext').textContent = '';
     document.getElementById('producerXpDebug').hidden = true;
+    document.getElementById('itemInfoButton').hidden = true;
     panel.classList.remove('is-empty', 'content-change');
     panel.classList.add('is-visible');
     panel.setAttribute('aria-hidden', 'false');
+  }
+
+  function detailImage(src, alt, className = '') {
+    const image = document.createElement('img');
+    image.src = src;
+    image.alt = alt;
+    if (className) image.className = className;
+    return image;
+  }
+
+  function detailHeading(kicker, title, levelText, imageSource) {
+    const hero = document.createElement('header');
+    hero.className = 'item-detail-hero';
+    hero.appendChild(detailImage(imageSource, title, 'item-detail-hero-image'));
+    const copy = document.createElement('div');
+    const small = document.createElement('small');
+    small.textContent = kicker;
+    const heading = document.createElement('h2');
+    heading.id = 'itemDetailTitle';
+    heading.textContent = title;
+    const badge = document.createElement('span');
+    badge.textContent = levelText;
+    copy.append(small, heading, badge);
+    hero.appendChild(copy);
+    return hero;
+  }
+
+  function producerLink(producerId) {
+    const producer = DATA.producers[producerId];
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'item-detail-producer-link';
+    button.appendChild(detailImage(producerSource(producerId), producer.name));
+    const copy = document.createElement('span');
+    const label = document.createElement('small');
+    label.textContent = 'HANGİ ÜRETİCİDEN GELİR?';
+    const name = document.createElement('strong');
+    name.textContent = producer.name;
+    copy.append(label, name);
+    button.appendChild(copy);
+    button.addEventListener('click', () => highlightProducer(producerId));
+    return button;
+  }
+
+  function renderItemDetail() {
+    if (!selectedInfo) return;
+    const content = document.getElementById('itemDetailContent');
+    content.innerHTML = '';
+
+    if (selectedInfo.type === 'item') {
+      const { chainId, level, producerId } = selectedInfo;
+      content.appendChild(detailHeading(
+        DATA.chains[chainId].name,
+        itemName(chainId, level),
+        `Seviye ${level}`,
+        itemSource(chainId, level)
+      ));
+      const description = document.createElement('p');
+      description.className = 'item-detail-description';
+      description.textContent = itemDescription(chainId, level);
+      const position = document.createElement('p');
+      position.className = 'item-detail-position';
+      position.textContent = `Zincirdeki yeri: ${level} / ${MAX_LEVEL}`;
+      content.append(description, producerLink(producerId), position);
+      return;
+    }
+
+    const producerId = selectedInfo.producerId;
+    const producer = DATA.producers[producerId];
+    const producerState = Progression.getProducerState(producerId);
+    content.appendChild(detailHeading(
+      'ÜRETİCİ',
+      producer.name,
+      `Seviye ${producerState.level}`,
+      producerSource(producerId)
+    ));
+    const description = document.createElement('p');
+    description.className = 'item-detail-description';
+    description.textContent = producer.description;
+    content.appendChild(description);
+    const chain = document.createElement('div');
+    chain.className = 'item-detail-chain';
+    chain.setAttribute('aria-label', `${producer.name} ürün zinciri`);
+    for (let level = 1; level <= MAX_LEVEL; level += 1) {
+      const entry = document.createElement('article');
+      entry.appendChild(detailImage(
+        itemSource(producer.chainId, level),
+        itemName(producer.chainId, level)
+      ));
+      const badge = document.createElement('small');
+      badge.textContent = `SV. ${level}`;
+      const name = document.createElement('strong');
+      name.textContent = itemName(producer.chainId, level);
+      entry.append(badge, name);
+      chain.appendChild(entry);
+    }
+    content.appendChild(chain);
+  }
+
+  function openItemDetail() {
+    if (!selectedInfo) return;
+    renderItemDetail();
+    document.getElementById('itemDetailOverlay').hidden = false;
+    document.body.classList.add('item-detail-open');
+  }
+
+  function closeItemDetail() {
+    document.getElementById('itemDetailOverlay').hidden = true;
+    document.body.classList.remove('item-detail-open');
   }
 
   function saveBoardState() {
@@ -2277,6 +2354,11 @@
     document.getElementById('campusBackButton').addEventListener('click', () => {
       renderCampusMap();
       showCampusMap();
+    });
+    document.getElementById('itemInfoButton').addEventListener('click', openItemDetail);
+    document.getElementById('itemDetailClose').addEventListener('click', closeItemDetail);
+    document.getElementById('itemDetailOverlay').addEventListener('click', (event) => {
+      if (event.target.id === 'itemDetailOverlay') closeItemDetail();
     });
     document.getElementById('producerXpDebug').addEventListener('click', () => {
       if (!TESTING_MODE.enabled) return;

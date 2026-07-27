@@ -1,14 +1,14 @@
 # 04_PRODUCER_SYSTEM
-Version: 2.1
+Version: 2.2
 
 ## Football Academy Producers
 
 Four permanent producers exist together on the board:
 
-1. Ball Basket → Football chain
-2. Equipment Locker → Equipment chain
-3. Training Cart → Training equipment chain
-4. Trophy Cabinet → Trophy chain
+1. Football Equipment Chest → Football chain
+2. Water and Drink Station → Hydration chain
+3. Training Equipment Shed → Training equipment chain
+4. Trophy Workshop → Trophy chain
 
 ## Shared Rules
 

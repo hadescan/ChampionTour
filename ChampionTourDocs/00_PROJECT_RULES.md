@@ -61,7 +61,8 @@ Lv6
 Football Academy Rules
 
 - Four producer families exist together on the board.
-- Ball Basket, Equipment Locker, Training Cart and Trophy Cabinet are permanent.
+- Football Equipment Chest, Water and Drink Station, Training Equipment Shed
+  and Trophy Workshop are permanent.
 - Each producer generates only its documented chain.
 - Every producer uses Energy. There are no producer charges or cooldowns;
   production is limited only by Energy and available board space.

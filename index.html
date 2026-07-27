@@ -121,6 +121,7 @@
         </div>
         <button class="producer-xp-debug" id="producerXpDebug" type="button" hidden></button>
       </div>
+      <button class="item-info-button" id="itemInfoButton" type="button" aria-label="Detaylı bilgiyi aç" hidden>i</button>
     </section>
 
     <footer class="hint">
@@ -130,6 +131,13 @@
   </main>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <div class="item-detail-overlay" id="itemDetailOverlay" hidden>
+    <section class="item-detail-card" role="dialog" aria-modal="true" aria-labelledby="itemDetailTitle">
+      <button class="item-detail-close" id="itemDetailClose" type="button" aria-label="Bilgi ekranını kapat">×</button>
+      <div id="itemDetailContent"></div>
+    </section>
+  </div>
 
   <div class="sports-campus-overlay" id="sportsCampusOverlay" hidden>
     <section class="sports-campus-screen" role="dialog" aria-modal="true" aria-labelledby="sportsCampusTitle">
@@ -197,11 +205,11 @@
   </div>
 
   <script src="js/i18n.js"></script>
-  <script src="js/game-data.js?v=sprint-8-6-producer-orders"></script>
-  <script src="js/progression.js?v=sprint-8-6-producer-orders"></script>
+  <script src="js/game-data.js?v=football-reference-assets"></script>
+  <script src="js/progression.js?v=football-reference-assets"></script>
   <script src="js/sports-content.js?v=sprint-8-4-multi-producer"></script>
   <script src="js/academy.js?v=sprint-8-4-multi-producer"></script>
   <script src="js/audio.js"></script>
-  <script src="script.js?v=sprint-8-6-producer-orders"></script>
+  <script src="script.js?v=football-reference-assets"></script>
 </body>
 </html>
