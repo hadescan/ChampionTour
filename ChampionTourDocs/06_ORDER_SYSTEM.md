@@ -40,14 +40,17 @@ This loop repeats continuously.
 
 # 3. Active Orders
 
-Version 1.0:
+Football Academy:
 
-Maximum visible orders: 3
+- Active orders: 6
+- Approximately 3 cards remain visible at once.
+- Remaining cards are available in the same horizontally scrollable order strip.
+- Each order contains at least one and at most two different requested items.
 
 Rules:
-- At least one easy order.
-- One medium order.
-- One difficult order (optional early game).
+- The set should include approachable and progressively harder requests.
+- Completing one order replaces only that order and restores the active total to six.
+- Legacy orders containing more than two item types retain their first two valid requirements.
 
 The player should always have something achievable.
 

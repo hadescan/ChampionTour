@@ -44,8 +44,10 @@ window.ChampionTour.Progression = (function () {
       Object.keys(economy).forEach((key) => {
         economy[key] = Math.max(0, Math.floor(Number(saved.economy?.[key]) || 0));
       });
-      if (Array.isArray(saved.orders) && saved.orders.length === DATA.orders.slotCount) {
-        orders = saved.orders.map(normalizeOrder);
+      if (Array.isArray(saved.orders) && saved.orders.length > 0) {
+        orders = saved.orders
+          .slice(0, DATA.orders.slotCount)
+          .map(normalizeOrder);
         loadedExistingOrders = true;
       }
       normalizeProducerProgress();

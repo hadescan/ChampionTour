@@ -39,9 +39,9 @@
   const DROP_SETTLE_MS = 100;
   const INVALID_DROP_MS = 150;
   const MERGE_ANTICIPATION_MS = 55;
-  const ORDER_DELIVERY_MS = 180;
-  const ORDER_CARD_RESOLVE_MS = 310;
-  const ORDER_REWARD_START_MS = 105;
+  const ORDER_DELIVERY_MS = 420;
+  const ORDER_CARD_RESOLVE_MS = 940;
+  const ORDER_REWARD_START_MS = 430;
   const ORDER_REWARD_FLIGHT_MS = 470;
   const ORDER_COUNTER_PULSE_MS = 240;
 
@@ -605,6 +605,11 @@
       producerImage.addEventListener('pointerdown', beginProducerPointer);
       producerWrapper.appendChild(producerImage);
       cell.appendChild(producerWrapper);
+      const energyBadge = document.createElement('span');
+      energyBadge.className = 'producer-energy-badge';
+      energyBadge.textContent = '⚡';
+      energyBadge.setAttribute('aria-hidden', 'true');
+      cell.appendChild(energyBadge);
       if (index === selectedCellIndex) cell.classList.add('item-selected');
       updateProducerReadiness();
       return;
@@ -1153,11 +1158,28 @@
     return card;
   }
 
+  function updateOrdersScrollProgress() {
+    const root = document.getElementById('ordersStrip');
+    const thumb = document.getElementById('ordersScrollThumb');
+    if (!root || !thumb) return;
+    const maximum = Math.max(0, root.scrollWidth - root.clientWidth);
+    const progress = maximum ? root.scrollLeft / maximum : 0;
+    thumb.style.setProperty('--orders-progress-x', `${progress * 100}%`);
+  }
+
   function renderOrders() {
     const root = document.getElementById('ordersStrip');
+    const previousScrollLeft = root.scrollLeft;
     root.innerHTML = '';
     Progression.getOrders().forEach((order, index) => {
       root.appendChild(createOrderCard(order, index));
+    });
+    requestAnimationFrame(() => {
+      root.scrollLeft = Math.min(
+        previousScrollLeft,
+        Math.max(0, root.scrollWidth - root.clientWidth)
+      );
+      updateOrdersScrollProgress();
     });
     scheduleOrderReadinessUpdate();
   }
@@ -1177,7 +1199,53 @@
     nextCard.classList.add('order-entering');
     currentCard.replaceWith(nextCard);
     window.setTimeout(() => nextCard.classList.remove('order-entering'), 260);
+    updateOrdersScrollProgress();
     scheduleOrderReadinessUpdate();
+  }
+
+  function setupOrdersStripInteraction() {
+    const root = document.getElementById('ordersStrip');
+    if (!root) return;
+    let pointerState = null;
+
+    root.addEventListener('scroll', updateOrdersScrollProgress, { passive: true });
+    root.addEventListener('wheel', (event) => {
+      if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+      root.scrollLeft += event.deltaY;
+      event.preventDefault();
+    }, { passive: false });
+
+    root.addEventListener('pointerdown', (event) => {
+      if (event.button !== 0 || event.target.closest('.order-deliver-button')) return;
+      pointerState = {
+        id: event.pointerId,
+        startX: event.clientX,
+        startScroll: root.scrollLeft,
+        moved: false
+      };
+      root.setPointerCapture?.(event.pointerId);
+    });
+
+    root.addEventListener('pointermove', (event) => {
+      if (!pointerState || pointerState.id !== event.pointerId) return;
+      const distance = event.clientX - pointerState.startX;
+      if (!pointerState.moved && Math.abs(distance) < 8) return;
+      pointerState.moved = true;
+      root.classList.add('is-dragging');
+      root.scrollLeft = pointerState.startScroll - distance;
+      event.preventDefault();
+    });
+
+    const finishPointer = (event) => {
+      if (!pointerState || pointerState.id !== event.pointerId) return;
+      root.releasePointerCapture?.(event.pointerId);
+      root.classList.remove('is-dragging');
+      pointerState = null;
+    };
+    root.addEventListener('pointerup', finishPointer);
+    root.addEventListener('pointercancel', finishPointer);
+    window.addEventListener('resize', updateOrdersScrollProgress);
+    updateOrdersScrollProgress();
   }
 
   function animateCounterValue(target, endValue) {
@@ -1285,7 +1353,7 @@
     });
   }
 
-  function playOrderDelivery(ghost, card, chainId, itemLevel) {
+  function playOrderDelivery(ghost, card, chainId, itemLevel, sequenceIndex = 0) {
     if (!ghost) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       ghost.remove();
@@ -1306,8 +1374,15 @@
       `${imageRect.top + imageRect.height / 2 - ghostY}px`
     );
     ghost.style.setProperty('--drag-tilt', '0deg');
+    ghost.style.animationDelay = `${sequenceIndex * 90}ms`;
+    ghost.querySelectorAll('.drag-ghost-content, .drag-ghost-shadow').forEach(
+      (element) => { element.style.animationDelay = `${sequenceIndex * 90}ms`; }
+    );
     ghost.classList.add('order-delivery');
-    window.setTimeout(() => ghost.remove(), ORDER_DELIVERY_MS);
+    window.setTimeout(
+      () => ghost.remove(),
+      ORDER_DELIVERY_MS + sequenceIndex * 90
+    );
   }
 
   function playProducerUpgrade(levelUps) {
@@ -1433,8 +1508,19 @@
 
     card.classList.remove('order-target');
     card.classList.add('order-presenting', 'order-complete');
-    deliveries.forEach((delivery) => {
-      playOrderDelivery(delivery.ghost, card, delivery.chainId, delivery.level);
+    const deliveredStamp = document.createElement('span');
+    deliveredStamp.className = 'order-delivered-stamp';
+    deliveredStamp.textContent = '✓';
+    deliveredStamp.setAttribute('aria-hidden', 'true');
+    card.appendChild(deliveredStamp);
+    deliveries.forEach((delivery, sequenceIndex) => {
+      playOrderDelivery(
+        delivery.ghost,
+        card,
+        delivery.chainId,
+        delivery.level,
+        sequenceIndex
+      );
     });
     const rewardTotals = Progression.getEconomy();
     consumedIndices.forEach((index) => {
@@ -1806,6 +1892,13 @@
     }
 
     if (!spendEnergy(PRODUCTION_COST)) {
+      producerCell.classList.remove('energy-denied');
+      void producerCell.offsetWidth;
+      producerCell.classList.add('energy-denied');
+      window.setTimeout(
+        () => producerCell.classList.remove('energy-denied'),
+        320
+      );
       showToast(TEXT.noEnergy);
       return false;
     }
@@ -1846,11 +1939,19 @@
       content.appendChild(image);
       ghost.appendChild(content);
     } else {
-      ghost = document.createElement('img');
-      ghost.classList.add('producer-ghost');
-      ghost.src = producerSource(item.producerId);
-      ghost.alt = '';
-      ghost.draggable = false;
+      ghost = document.createElement('div');
+      ghost.className = 'producer-ghost';
+      const image = document.createElement('img');
+      image.className = 'producer-ghost-image';
+      image.src = producerSource(item.producerId);
+      image.alt = '';
+      image.draggable = false;
+      ghost.appendChild(image);
+      const badge = document.createElement('span');
+      badge.className = 'producer-energy-badge';
+      badge.textContent = '⚡';
+      badge.setAttribute('aria-hidden', 'true');
+      ghost.appendChild(badge);
     }
 
     ghost.classList.add('drag-ghost');
@@ -2371,6 +2472,7 @@
       if (!result.levelUps.length && producerIndex >= 0) showProducerInfo(producerIndex);
     });
     renderOrders();
+    setupOrdersStripInteraction();
     renderEconomy();
     renderAcademyWorld();
     renderEnergy();

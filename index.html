@@ -93,7 +93,11 @@
       <span id="eventValue" hidden>0</span>
     </header>
 
-    <section class="orders-strip" id="ordersStrip" data-i18n-aria="orders.title"></section>
+    <section class="orders-shell" data-i18n-aria="orders.title">
+      <span class="orders-label" aria-hidden="true">AKADEMİ TALEPLERİ</span>
+      <div class="orders-strip" id="ordersStrip" role="region" data-i18n-aria="orders.title"></div>
+      <span class="orders-scroll-progress" aria-hidden="true"><i id="ordersScrollThumb"></i></span>
+    </section>
 
     <section class="board-frame">
       <div class="board-heading">

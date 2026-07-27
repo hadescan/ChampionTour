@@ -701,22 +701,19 @@ body {
     inset 0 2px 0 rgba(255,255,255,.3);
 }
 
-.orders-strip {
+.orders-shell {
   position: relative;
   width: min(98%, 500px);
-  min-height: 92px;
   margin: 7px auto 0;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 7px;
+  padding-top: 17px;
   flex: 0 0 auto;
+  overflow: hidden;
 }
 
-.orders-strip::before {
-  content: "AKADEMİ TALEPLERİ";
+.orders-label {
   position: absolute;
   z-index: 5;
-  top: -21px;
+  top: 0;
   left: 14px;
   height: 20px;
   padding: 0 9px;
@@ -735,8 +732,54 @@ body {
   pointer-events: none;
 }
 
+.orders-strip {
+  width: 100%;
+  min-height: 92px;
+  padding: 0 8px 5px;
+  box-sizing: border-box;
+  display: flex;
+  flex-flow: row nowrap;
+  gap: 7px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  touch-action: pan-x;
+  cursor: grab;
+}
+
+.orders-strip::-webkit-scrollbar { display: none; }
+.orders-strip.is-dragging { cursor: grabbing; scroll-snap-type: none; user-select: none; }
+
+.orders-scroll-progress {
+  position: absolute;
+  z-index: 6;
+  left: 50%;
+  bottom: 0;
+  width: 38px;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(59,105,91,.16);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.orders-scroll-progress i {
+  display: block;
+  width: 50%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #69b9a0, #e7b851);
+  transform: translateX(var(--orders-progress-x, 0%));
+  transition: transform 90ms linear;
+}
+
 .order-card {
   position: relative;
+  flex: 0 0 calc((100% - 14px) / 2.9);
   min-width: 0;
   min-height: 88px;
   padding: 7px 7px 7px 6px;
@@ -746,7 +789,8 @@ body {
   align-items: center;
   column-gap: 5px;
   overflow: hidden;
-  touch-action: none;
+  scroll-snap-align: start;
+  touch-action: pan-x;
   border: 1px solid rgba(255,255,255,.86);
   border-radius: 19px;
   background:
@@ -2396,6 +2440,272 @@ body {
   .item-info-panel { width: 88%; }
 }
 
+/* Sprint 8.7 — safe item scale, compact details and six-order carousel */
+:root {
+  --normal-item-safe-size: 72%;
+  /* Producer cells use a thicker border; 87% resolves to ~81% of the outer cell. */
+  --producer-item-safe-size: 87%;
+}
+
+.ball-wrap {
+  width: var(--normal-item-safe-size);
+  height: var(--normal-item-safe-size);
+  overflow: visible;
+}
+
+.ball,
+.order-item-chip img {
+  transform: none;
+  object-fit: contain;
+  object-position: center;
+  image-rendering: auto;
+}
+
+.producer-cell {
+  overflow: hidden;
+}
+
+.producer-cell::after {
+  content: none;
+}
+
+.producer-wrap {
+  width: var(--producer-item-safe-size);
+  height: var(--producer-item-safe-size);
+}
+
+.producer-image {
+  transform: none;
+  object-fit: contain;
+  object-position: center;
+  image-rendering: auto;
+}
+
+.producer-energy-badge {
+  position: absolute;
+  z-index: 10;
+  top: 4px;
+  left: 4px;
+  width: clamp(17px, 4.5vw, 20px);
+  height: clamp(17px, 4.5vw, 20px);
+  display: grid;
+  place-items: center;
+  color: #fffce7;
+  font-size: clamp(9px, 2.2vw, 12px);
+  line-height: 1;
+  border: 1px solid rgba(255,255,255,.9);
+  border-radius: 50%;
+  background: linear-gradient(145deg, #64c6df, #248cb6);
+  box-shadow: 0 2px 5px rgba(34,91,105,.26), inset 0 1px 0 rgba(255,255,255,.52);
+  text-shadow: 0 1px 2px rgba(23,74,98,.4);
+  pointer-events: none;
+  transition: opacity 140ms ease, filter 140ms ease;
+}
+
+.producer-cell:not(.ready) .producer-energy-badge {
+  opacity: .62;
+  filter: grayscale(.35);
+}
+
+.producer-cell.energy-denied .producer-energy-badge {
+  animation: producerEnergyDenied 300ms ease-out;
+}
+
+.producer-cell.drag-source > .producer-energy-badge {
+  opacity: 0;
+}
+
+.item-info-panel {
+  width: 78%;
+  height: 75px;
+  min-height: 75px;
+  padding: 7px 11px;
+  gap: 10px;
+  border-radius: 17px;
+}
+
+.item-info-icon-wrap {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+}
+
+.item-info-copy {
+  padding-right: 28px;
+}
+
+.item-info-copy p {
+  margin-top: 3px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.item-info-meta {
+  display: none;
+}
+
+.item-info-button {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+}
+
+.drag-ghost.producer-ghost {
+  overflow: visible;
+}
+
+.producer-ghost-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  image-rendering: auto;
+  pointer-events: none;
+}
+
+.producer-ghost .producer-energy-badge {
+  top: 1px;
+  left: 1px;
+  transform: scale(.8);
+}
+
+.order-card.order-complete {
+  animation-duration: 940ms;
+}
+
+.drag-ghost.order-delivery {
+  animation-duration: 420ms;
+}
+
+.drag-ghost.order-delivery .drag-ghost-content,
+.drag-ghost.order-delivery .drag-ghost-shadow {
+  animation-duration: 420ms;
+}
+
+.order-delivered-stamp {
+  position: absolute;
+  z-index: 12;
+  inset: 50% auto auto 50%;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  color: white;
+  font-size: 20px;
+  font-weight: 950;
+  border: 2px solid rgba(255,255,255,.92);
+  border-radius: 50%;
+  background: linear-gradient(145deg, #7bcf73, #319d63);
+  box-shadow: 0 5px 12px rgba(38,112,62,.25);
+  pointer-events: none;
+  animation: orderStamp 620ms cubic-bezier(.18,.8,.24,1) both;
+}
+
+.order-card.order-presenting .customer-portrait {
+  animation: orderAvatarThanks 480ms ease-out both;
+}
+
+@keyframes producerEnergyDenied {
+  0%, 100% { transform: translateX(0); filter: none; }
+  30% { transform: translateX(-2px); filter: sepia(.55) saturate(2.2) hue-rotate(315deg); }
+  60% { transform: translateX(2px); filter: sepia(.55) saturate(2.2) hue-rotate(315deg); }
+}
+
+@keyframes orderStamp {
+  0% { transform: translate(-50%, -50%) scale(.5); opacity: 0; }
+  30%, 72% { transform: translate(-50%, -50%) scale(1.08); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(.92); opacity: 0; }
+}
+
+@keyframes orderAvatarThanks {
+  0%, 100% { transform: translateY(0) scale(1); }
+  42% { transform: translateY(-3px) scale(1.08); }
+}
+
+@keyframes orderComplete {
+  0% { transform: translateY(0) scale(1.025); filter: brightness(1.08); opacity: 1; }
+  18% { transform: translateY(-2px) scale(1.05); filter: brightness(1.14); }
+  70% { transform: translateY(0) scale(1); filter: brightness(1.03); opacity: 1; }
+  100% { transform: translateY(-5px) scale(.97); filter: brightness(1); opacity: 0; }
+}
+
+@keyframes orderDelivery {
+  0% {
+    transform: translate(-50%, -62%) translate3d(0, 0, 0) rotate(var(--drag-tilt, 0deg));
+    opacity: 1;
+  }
+  48% {
+    transform:
+      translate(-50%, -56%)
+      translate3d(calc(var(--order-delivery-x) * .48), calc(var(--order-delivery-y) * .48 - 12px), 0)
+      rotate(1deg);
+    opacity: 1;
+  }
+  78% {
+    transform:
+      translate(-50%, -50%)
+      translate3d(var(--order-delivery-x), var(--order-delivery-y), 0)
+      rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform:
+      translate(-50%, -50%)
+      translate3d(var(--order-delivery-x), var(--order-delivery-y), 0)
+      rotate(0deg);
+    opacity: 0;
+  }
+}
+
+@keyframes producerUpgradeReveal {
+  0% { transform: scale(.78); opacity: .2; filter: brightness(1.7) blur(2px); }
+  24% { transform: scale(1.08); opacity: 1; filter: brightness(1.35); }
+  52% { transform: scale(.96); filter: brightness(1.12) drop-shadow(0 0 8px rgba(255,225,112,.75)); }
+  74% { transform: scale(1.03); filter: brightness(1.05); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@media (max-height: 650px) {
+  .item-info-panel {
+    height: 75px;
+    min-height: 75px;
+  }
+}
+
+@media (max-width: 420px) {
+  .orders-strip {
+    min-height: 68px;
+    gap: 4px;
+  }
+
+  .order-card {
+    flex-basis: calc((100% - 8px) / 2.85);
+  }
+
+  .item-info-panel {
+    width: 88%;
+    height: 72px;
+    min-height: 72px;
+    padding-block: 6px;
+  }
+
+  .item-info-icon-wrap {
+    width: 48px;
+    height: 48px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .producer-cell.energy-denied .producer-energy-badge,
+  .order-delivered-stamp,
+  .order-card.order-presenting .customer-portrait {
+    animation: none;
+  }
+}
+
 @media (max-width: 350px) {
   .level-copy { display: none; }
   .player-level-card { justify-content: center; }
@@ -3655,5 +3965,32 @@ body.campus-open {
   .football-renovation-screen,
   .football-campus-visual.is-renovating::after {
     animation-duration: 1ms !important;
+  }
+}
+
+/* Sprint 8.7 final cascade guard: supersedes legacy Sprint 8.5 enlargement. */
+.ball-wrap {
+  width: var(--normal-item-safe-size);
+  height: var(--normal-item-safe-size);
+}
+
+.ball,
+.order-item-chip img {
+  transform: none;
+}
+
+.producer-wrap {
+  width: var(--producer-item-safe-size);
+  height: var(--producer-item-safe-size);
+}
+
+.producer-image {
+  transform: none;
+}
+
+@media (max-height: 650px) {
+  .item-info-panel {
+    height: 75px;
+    min-height: 75px;
   }
 }

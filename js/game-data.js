@@ -162,7 +162,7 @@ window.ChampionTour.GameData = Object.freeze({
   ]),
 
   orders: Object.freeze({
-    slotCount: 3,
+    slotCount: 6,
     levelWeights: Object.freeze([0, .42, .28, .17, .09, .035, .005]),
     rewards: Object.freeze({
       1: Object.freeze({ coins: 12, xp: 4, gems: 0, eventPoints: 1 }),
