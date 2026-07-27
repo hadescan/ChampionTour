@@ -607,7 +607,8 @@
       cell.appendChild(producerWrapper);
       const energyBadge = document.createElement('span');
       energyBadge.className = 'producer-energy-badge';
-      energyBadge.textContent = '⚡';
+      energyBadge.innerHTML =
+        '<svg viewBox="0 0 20 24" aria-hidden="true"><path d="M11.7 1.7 3.5 13h5.4l-.7 9.3 8.3-12h-5.4z"/></svg>';
       energyBadge.setAttribute('aria-hidden', 'true');
       cell.appendChild(energyBadge);
       if (index === selectedCellIndex) cell.classList.add('item-selected');
@@ -1961,7 +1962,8 @@
       ghost.appendChild(image);
       const badge = document.createElement('span');
       badge.className = 'producer-energy-badge';
-      badge.textContent = '⚡';
+      badge.innerHTML =
+        '<svg viewBox="0 0 20 24" aria-hidden="true"><path d="M11.7 1.7 3.5 13h5.4l-.7 9.3 8.3-12h-5.4z"/></svg>';
       badge.setAttribute('aria-hidden', 'true');
       ghost.appendChild(badge);
     }
