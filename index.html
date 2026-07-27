@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <meta name="theme-color" content="#67b9d8">
   <title>Champion Tour — Futbol Birleştirme Prototipi</title>
-  <link rel="stylesheet" href="style.css?v=sprint-8-3-campus-2">
+  <link rel="stylesheet" href="style.css?v=sprint-8-4-campus">
 </head>
 <body>
   <div class="scene" aria-hidden="true">
@@ -86,6 +86,10 @@
         </span>
         <span class="resource-copy"><small>ELMAS</small><strong id="gemValue">0</strong></span>
       </section>
+      <button type="button" class="campus-hud-button" id="campusHudButton" aria-label="Spor Kampüsünü aç">
+        <span class="campus-hud-icon" aria-hidden="true">🏟</span>
+        <span><small>ANA HEDEF</small><strong>SPOR KAMPÜSÜ</strong></span>
+      </button>
       <span id="eventValue" hidden>0</span>
     </header>
 
@@ -175,6 +179,8 @@
         <div class="renovation-landscape"><i></i><i></i><i></i></div>
       </div>
 
+      <div class="facility-progress-strip" id="facilityProgressStrip" aria-label="Football Academy tesis ilerlemesi"></div>
+
       <div class="renovation-action-panel" id="renovationActionPanel">
         <span class="renovation-action-icon" id="renovationActionIcon" aria-hidden="true">🏠</span>
         <div class="renovation-action-copy">
@@ -192,9 +198,10 @@
 
   <script src="js/i18n.js"></script>
   <script src="js/game-data.js"></script>
-  <script src="js/progression.js?v=sprint-8-3-campus-2"></script>
-  <script src="js/academy.js?v=sprint-8-3-campus-2"></script>
+  <script src="js/progression.js?v=sprint-8-4-campus"></script>
+  <script src="js/sports-content.js?v=sprint-8-4-campus"></script>
+  <script src="js/academy.js?v=sprint-8-4-campus"></script>
   <script src="js/audio.js"></script>
-  <script src="script.js?v=sprint-8-3-campus-2"></script>
+  <script src="script.js?v=sprint-8-4-campus"></script>
 </body>
 </html>

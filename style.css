@@ -2302,6 +2302,62 @@ body.campus-open {
   overflow: hidden;
 }
 
+.campus-hud-button {
+  grid-column: 1 / -1;
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 4px 16px;
+  color: #fff;
+  border: 2px solid rgba(255, 243, 175, .94);
+  border-radius: 15px;
+  font: inherit;
+  background:
+    radial-gradient(circle at 25% 0, rgba(255,255,255,.35), transparent 38%),
+    linear-gradient(180deg, #54b886, #2e8a66);
+  box-shadow:
+    0 4px 0 #246f53,
+    0 7px 14px rgba(31, 93, 70, .18),
+    inset 0 2px 0 rgba(255,255,255,.3);
+  cursor: pointer;
+  transition: transform 120ms ease-out, filter 120ms ease-out;
+}
+
+.campus-hud-button:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+
+.campus-hud-button:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #246f53, 0 4px 8px rgba(31, 93, 70, .16);
+}
+
+.campus-hud-icon {
+  font-size: 1.2rem;
+  filter: drop-shadow(0 2px 1px rgba(22,74,54,.22));
+}
+
+.campus-hud-button span:last-child {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+}
+
+.campus-hud-button small {
+  color: #d9f4dd;
+  font-size: .54rem;
+  font-weight: 900;
+  letter-spacing: .1em;
+}
+
+.campus-hud-button strong {
+  font-size: .76rem;
+  letter-spacing: .035em;
+}
+
 .sports-campus-overlay {
   position: fixed;
   inset: 0;
@@ -2625,7 +2681,7 @@ body.campus-open {
 .football-renovation-screen {
   position: relative;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
 }
 
 .renovation-header {
@@ -3055,6 +3111,124 @@ body.campus-open {
   border-top: 1px solid rgba(129, 105, 67, .15);
 }
 
+.facility-progress-strip {
+  display: flex;
+  gap: 7px;
+  overflow-x: auto;
+  padding: 9px clamp(14px, 3vw, 28px);
+  scrollbar-width: thin;
+  background: linear-gradient(180deg, #e8f2d6, #d8e5be);
+  border-top: 1px solid rgba(86, 124, 76, .13);
+  border-bottom: 1px solid rgba(86, 124, 76, .13);
+}
+
+.facility-progress-item {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 128px;
+  padding: 6px 9px;
+  border: 1px solid rgba(84, 104, 74, .16);
+  border-radius: 13px;
+  color: #6f786e;
+  background: rgba(246, 239, 215, .72);
+  filter: grayscale(.45);
+}
+
+.facility-progress-item > i {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  font-size: .65rem;
+  font-style: normal;
+  font-weight: 900;
+  background: #969d91;
+}
+
+.facility-progress-item > span,
+.facility-progress-item strong,
+.facility-progress-item small {
+  display: block;
+}
+
+.facility-progress-item strong {
+  max-width: 95px;
+  overflow: hidden;
+  font-size: .62rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.facility-progress-item small {
+  margin-top: 1px;
+  font-size: .56rem;
+  font-weight: 800;
+}
+
+.facility-progress-item.is-active {
+  color: #3e7259;
+  border-color: rgba(66, 150, 102, .3);
+  background: rgba(226, 243, 211, .92);
+  filter: none;
+}
+
+.facility-progress-item.is-active > i {
+  background: #55aa75;
+}
+
+.facility-progress-item.is-completed {
+  color: #655b38;
+  border-color: rgba(202, 157, 52, .32);
+  background: linear-gradient(145deg, #fff4c7, #ebd88b);
+  filter: none;
+}
+
+.facility-progress-item.is-completed > i {
+  color: #715a1e;
+  background: #f4c84f;
+}
+
+/* Each visible facility improvement follows its restoration step, not raw level. */
+.football-campus-visual:not(.renovation-step-pitch-grass) .renovation-pitch {
+  background:
+    repeating-linear-gradient(90deg, rgba(255,255,255,.04) 0 12%, rgba(38,96,56,.05) 12% 24%),
+    #849d67;
+  filter: none;
+}
+
+.football-campus-visual:not(.renovation-step-stands-seats) .renovation-stands {
+  background: repeating-linear-gradient(0deg, #776f65 0 5px, #918679 5px 10px);
+  opacity: .48;
+}
+
+.football-campus-visual:not(.renovation-step-fitness-shell) .renovation-fitness {
+  color: rgba(255,255,255,.55);
+  background: #8d8778;
+  opacity: .55;
+}
+
+.football-campus-visual:not(.renovation-step-main-path) .renovation-path {
+  border-color: #968e7a;
+  opacity: .45;
+}
+
+.football-campus-visual:not(.renovation-step-floodlights) .renovation-lights {
+  opacity: .25;
+  filter: none;
+}
+
+.football-campus-visual:not(.renovation-step-clubhouse-landscape) .renovation-landscape {
+  opacity: .3;
+}
+
+.football-campus-visual.renovation-step-football-finale {
+  filter: saturate(1.12) brightness(1.04);
+}
+
 .renovation-action-panel.is-complete {
   background: linear-gradient(180deg, #fff3c3, #f4d987);
 }
@@ -3175,6 +3349,14 @@ body.campus-open {
     grid-template-columns: auto 1fr;
   }
 
+  .facility-progress-strip {
+    padding-block: 7px;
+  }
+
+  .facility-progress-item {
+    min-width: 112px;
+  }
+
   .renovation-action-button {
     grid-column: 1 / -1;
     width: 100%;
@@ -3183,6 +3365,15 @@ body.campus-open {
 }
 
 @media (max-width: 430px) {
+  .campus-hud-button {
+    min-height: 29px;
+    padding-block: 2px;
+  }
+
+  .campus-hud-button small {
+    display: none;
+  }
+
   .campus-screen-header p,
   .renovation-header p {
     display: none;

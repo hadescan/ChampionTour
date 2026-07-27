@@ -602,12 +602,25 @@
     const renovation = academyState.nextRenovation;
     const actionPanel = document.getElementById('renovationActionPanel');
     const actionButton = document.getElementById('renovationActionButton');
+    const facilityStrip = document.getElementById('facilityProgressStrip');
     document.querySelector('.sports-campus-screen').hidden = true;
     document.getElementById('footballRenovationScreen').hidden = false;
-    document.getElementById('footballCampusVisual').dataset.stage =
-      String(academyState.appliedLevel);
+    const campusVisual = document.getElementById('footballCampusVisual');
+    campusVisual.dataset.stage = String(academyState.appliedLevel);
+    Array.from(campusVisual.classList)
+      .filter((className) => className.startsWith('renovation-step-'))
+      .forEach((className) => campusVisual.classList.remove(className));
+    Academy.FOOTBALL_RENOVATIONS
+      .slice(0, Math.max(0, academyState.appliedLevel - 1))
+      .forEach((step) => campusVisual.classList.add(`renovation-step-${step.id}`));
     document.getElementById('renovationLevelValue').textContent =
       `${academyState.appliedLevel} / ${academyState.maxLevel}`;
+    facilityStrip.innerHTML = academyState.facilityProgress.map((facility) =>
+      `<span class="facility-progress-item is-${facility.status}">` +
+        `<i aria-hidden="true">${facility.status === 'completed' ? '✓' : facility.completed + 1}</i>` +
+        `<span><strong>${facility.name}</strong><small>${facility.completed}/${facility.total}</small></span>` +
+      `</span>`
+    ).join('');
 
     if (academyState.completed) {
       document.getElementById('footballRenovationSubtitle').textContent =
@@ -633,7 +646,7 @@
         : 'Siparişleri tamamla, XP kazan ve sıradaki yenilemeyi aç.';
     document.getElementById('renovationActionIcon').textContent = renovation?.icon || '⭐';
     document.getElementById('renovationActionKicker').textContent = renovation
-      ? `SEVİYE ${renovation.level} GELİŞTİRMESİ`
+      ? `${renovation.facility.toUpperCase()} • SEVİYE ${renovation.level}`
       : 'SIRADAKİ GELİŞTİRME KİLİTLİ';
     document.getElementById('renovationActionTitle').textContent =
       renovation?.title || `Seviye ${academyState.level + 1}'e ulaş`;
@@ -2083,6 +2096,10 @@
     document.getElementById('campusCloseButton').addEventListener(
       'click',
       closeSportsCampus
+    );
+    document.getElementById('campusHudButton').addEventListener(
+      'click',
+      () => openSportsCampus(false)
     );
     document.getElementById('campusBackButton').addEventListener('click', () => {
       renderCampusMap();
