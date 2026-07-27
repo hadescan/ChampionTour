@@ -917,6 +917,8 @@
   function updateOrderReadiness() {
     const orders = Progression.getOrders();
     const boardHighlights = new Map();
+    const ordersStrip = document.getElementById('ordersStrip');
+    let newlyReadyOrder = false;
 
     document.querySelectorAll('.order-card').forEach((card) => {
       const orderIndex = Number(card.dataset.orderIndex);
@@ -927,6 +929,11 @@
         : { requirements: [], partial: false, full: false };
       card.classList.toggle('order-partial', readiness.partial && !readiness.full);
       card.classList.toggle('order-ready', readiness.full);
+      if (readiness.full && card.dataset.wasReady !== 'true') {
+        newlyReadyOrder = true;
+      }
+      card.dataset.wasReady = readiness.full ? 'true' : 'false';
+      card.style.order = readiness.full ? '0' : '1';
       card.dataset.readiness = readiness.full
         ? 'full'
         : readiness.partial
@@ -965,6 +972,11 @@
         }
       });
     });
+
+    if (newlyReadyOrder && ordersStrip) {
+      ordersStrip.scrollLeft = 0;
+      updateOrdersScrollProgress();
+    }
 
     cellElements.forEach((cell, index) => {
       const item = state.cells[index];
