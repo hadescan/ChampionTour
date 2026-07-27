@@ -1,5 +1,5 @@
 # 04_PRODUCER_SYSTEM
-Version: 2.0
+Version: 2.1
 
 ## Football Academy Producers
 
@@ -14,11 +14,14 @@ Four permanent producers exist together on the board:
 
 - All four producers are present when Football Academy starts.
 - Every producer is clickable and consumes one Energy per production.
-- Every producer owns independent charges and cooldown state.
+- Producers have no charge or cooldown gate. Production is blocked only when
+  Energy is insufficient or the board has no empty cell.
+- Producers may be dragged to an empty cell or swapped with any board item.
+- Producers never merge and never disappear through item interactions.
 - Every producer creates only level-one items from its assigned chain.
 - Higher levels are created only by merging.
 - Items merge only when both `chainId` and `level` are identical.
-- Producer state is persisted.
+- Producer positions and all board items are persisted.
 
 ## Progression
 
@@ -35,4 +38,4 @@ the same level from different chains as interchangeable.
 ## Future Academies
 
 Each academy defines its own producer set and item chains in Sports Content.
-Energy, cooldown, merge and order engines remain shared.
+Energy, merge, order and board-save engines remain shared.

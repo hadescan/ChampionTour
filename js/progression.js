@@ -10,12 +10,6 @@ window.ChampionTour.Progression = (function () {
     xp: 0,
     rewardedLevels: []
   };
-  const producerUnits = Object.fromEntries(
-    Object.values(DATA.producers).map((definition) => [
-      definition.id,
-      { charges: definition.maxCharges, cooldownEndsAt: null }
-    ])
-  );
   const economy = { coins: 0, gems: 0, eventPoints: 0 };
   let orders = [];
 
@@ -45,23 +39,6 @@ window.ChampionTour.Progression = (function () {
           ? saved.producer.rewardedLevels.map(Number)
           : [];
       }
-      Object.entries(producerUnits).forEach(([id, unit]) => {
-        const definition = DATA.producers[id];
-        const savedUnit = saved.producerUnits?.[id];
-        if (savedUnit) {
-          unit.charges = Math.max(
-            0,
-            Math.min(definition.maxCharges, Number(savedUnit.charges) || 0)
-          );
-          unit.cooldownEndsAt = Number(savedUnit.cooldownEndsAt) || null;
-        } else if (id === 'ball_basket' && saved.producer) {
-          unit.charges = Math.max(
-            0,
-            Math.min(definition.maxCharges, Number(saved.producer.charges) || definition.maxCharges)
-          );
-          unit.cooldownEndsAt = Number(saved.producer.cooldownEndsAt) || null;
-        }
-      });
       Object.keys(economy).forEach((key) => {
         economy[key] = Math.max(0, Math.floor(Number(saved.economy?.[key]) || 0));
       });
@@ -79,7 +56,6 @@ window.ChampionTour.Progression = (function () {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
         producer,
-        producerUnits,
         economy,
         orders
       }));
@@ -213,53 +189,30 @@ window.ChampionTour.Progression = (function () {
   }
 
   function tick(now) {
-    let changed = false;
-    Object.entries(producerUnits).forEach(([id, unit]) => {
-      if (
-        unit.charges === 0 &&
-        Number.isFinite(unit.cooldownEndsAt) &&
-        now >= unit.cooldownEndsAt
-      ) {
-        unit.charges = DATA.producers[id].maxCharges;
-        unit.cooldownEndsAt = null;
-        changed = true;
-      }
-    });
-    if (changed) save();
-    return changed;
+    return false;
   }
 
   function canProduce(producerId = 'ball_basket', now = Date.now()) {
-    tick(now);
-    return (producerUnits[producerId]?.charges || 0) > 0;
+    return Boolean(DATA.producers[producerId]);
   }
 
   function consumeCharge(producerId = 'ball_basket', now = Date.now()) {
-    if (!canProduce(producerId, now)) return false;
-    const unit = producerUnits[producerId];
-    const definition = DATA.producers[producerId];
-    unit.charges -= 1;
-    if (unit.charges === 0) unit.cooldownEndsAt = now + definition.cooldownMs;
-    save();
-    return true;
+    return canProduce(producerId, now);
   }
 
   function getProducerState(producerId = 'ball_basket', now = Date.now()) {
     tick(now);
     const definition = DATA.producers[producerId] || DATA.producers.ball_basket;
-    const unit = producerUnits[definition.id];
     const levelData = DATA.producer.levels[producer.level];
     return {
       id: definition.id,
       name: definition.name,
       chainId: definition.chainId,
       symbol: definition.symbol || null,
-      charges: unit.charges,
-      maxCharges: definition.maxCharges,
-      cooldownEndsAt: unit.cooldownEndsAt,
-      cooldownRemainingMs: unit.cooldownEndsAt
-        ? Math.max(0, unit.cooldownEndsAt - now)
-        : 0,
+      charges: null,
+      maxCharges: null,
+      cooldownEndsAt: null,
+      cooldownRemainingMs: 0,
       level: producer.level,
       xp: producer.xp,
       xpToNext: levelData.xpToNext,

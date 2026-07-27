@@ -9,8 +9,8 @@ window.ChampionTour.GameData = Object.freeze({
       name: 'Top Zinciri',
       producerId: 'ball_basket',
       itemNames: Object.freeze([
-        null, 'Futbol Topu', 'Antrenman Topu', 'Maç Topu',
-        'Profesyonel Top', 'İmzalı Top', 'Koleksiyon Topu'
+        null, 'Antrenman Topu', 'Kaliteli Antrenman Topu', 'Maç Topu',
+        'Profesyonel Top', 'İmzalı Top', 'Şampiyonluk Topu'
       ]),
       symbols: Object.freeze([null, '⚽', '⚽', '⚽', '⚽', '⚽', '⚽'])
     }),
@@ -19,8 +19,8 @@ window.ChampionTour.GameData = Object.freeze({
       name: 'Malzeme Zinciri',
       producerId: 'equipment_locker',
       itemNames: Object.freeze([
-        null, 'Forma', 'Krampon', 'Tekmelik',
-        'Kaleci Eldiveni', 'Profesyonel Forma', 'Elit Ekipman Seti'
+        null, 'Futbol Çorabı', 'Krampon', 'Tekmelik',
+        'Forma', 'Kaleci Eldiveni', 'Profesyonel Ekipman Seti'
       ]),
       symbols: Object.freeze([null, '👕', '👟', '🛡', '🧤', '🎽', '⭐'])
     }),
@@ -30,7 +30,7 @@ window.ChampionTour.GameData = Object.freeze({
       producerId: 'training_cart',
       itemNames: Object.freeze([
         null, 'Koni', 'Antrenman Engeli', 'Mini Kale',
-        'Büyük Kale', 'Şut Hedefi', 'Profesyonel Antrenman İstasyonu'
+        'Koordinasyon Merdiveni', 'Şut Hedefi', 'Profesyonel Antrenman İstasyonu'
       ]),
       symbols: Object.freeze([null, '🔶', '🚧', '🥅', '🥅', '🎯', '🏟'])
     }),
@@ -39,8 +39,8 @@ window.ChampionTour.GameData = Object.freeze({
       name: 'Kupa Zinciri',
       producerId: 'trophy_cabinet',
       itemNames: Object.freeze([
-        null, 'Madalya', 'Bronz Kupa', 'Gümüş Kupa',
-        'Altın Kupa', 'Şampiyonluk Kupası', 'Efsaneler Kupası'
+        null, 'Madalya', 'Küçük Kupa', 'Bronz Kupa',
+        'Gümüş Kupa', 'Altın Kupa', 'Şampiyonluk Kupası'
       ]),
       symbols: Object.freeze([null, '🏅', '🏆', '🏆', '🏆', '🏆', '👑'])
     })
@@ -51,33 +51,22 @@ window.ChampionTour.GameData = Object.freeze({
       id: 'ball_basket',
       name: 'Top Sepeti',
       chainId: 'footballs',
-      artwork: 'assets/Football/Producer/producer_lv1.png',
-      maxCharges: 8,
-      cooldownMs: 30000
+      artwork: 'assets/Football/Producer/producer_lv1.png'
     }),
     equipment_locker: Object.freeze({
       id: 'equipment_locker',
       name: 'Malzeme Dolabı',
-      chainId: 'equipment',
-      symbol: '👕',
-      maxCharges: 8,
-      cooldownMs: 30000
+      chainId: 'equipment'
     }),
     training_cart: Object.freeze({
       id: 'training_cart',
       name: 'Antrenman Arabası',
-      chainId: 'training',
-      symbol: '🚧',
-      maxCharges: 8,
-      cooldownMs: 30000
+      chainId: 'training'
     }),
     trophy_cabinet: Object.freeze({
       id: 'trophy_cabinet',
       name: 'Kupa Dolabı',
-      chainId: 'trophies',
-      symbol: '🏆',
-      maxCharges: 8,
-      cooldownMs: 30000
+      chainId: 'trophies'
     })
   }),
 
@@ -91,8 +80,6 @@ window.ChampionTour.GameData = Object.freeze({
   producer: Object.freeze({
     id: 'football_academy',
     nameKey: 'producer.football_academy.name',
-    maxCharges: 8,
-    cooldownMs: 30000,
     energyCost: 1,
     maxLevel: 6,
     levels: Object.freeze([

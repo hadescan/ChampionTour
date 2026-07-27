@@ -20,6 +20,7 @@
   const PRODUCTION_COST = DATA.producer.energyCost;
   const REGEN_INTERVAL_MS = 2 * 60 * 1000;
   const STORAGE_KEY = 'championTour.prototype.energy.v1';
+  const BOARD_STORAGE_KEY = 'championTour.prototype.board.v2';
   const SHADOW_SOURCE = 'assets/Football/shadow.png';
   const DRAG_THRESHOLD = 7;
   const PRODUCER_PRESS_MS = 120;
@@ -81,37 +82,70 @@
 
   function itemSource(chainId, level) {
     if (chainId === 'footballs') return DATA.items[level].sprite;
-    const chain = DATA.chains[chainId];
-    const symbol = chain.symbols[level];
     const palettes = {
-      equipment: ['#65b9cf', '#f1d7a0'],
-      training: ['#f39a53', '#ffe19a'],
-      trophies: ['#d9a740', '#fff0a1']
+      equipment: ['#3b8eaa', '#9bd8df', '#fff0c6'],
+      training: ['#dc713d', '#f6b45f', '#fff0bd'],
+      trophies: ['#b77b25', '#edc151', '#fff4b3']
     };
-    const [primary, secondary] = palettes[chainId] || ['#69b98a', '#dff2bc'];
+    const [dark, primary, light] = palettes[chainId] || ['#397d68', '#69b98a', '#e8f5d0'];
+    const equipmentShapes = [
+      '',
+      '<path d="M39 18h45v48q0 8 9 10l17 5q8 3 5 12-4 14-23 14H61q-22 0-22-21z" fill="url(#g)"/><path d="M40 34h43M50 86q16 8 32 0" class="line"/>',
+      '<path d="M27 71q18 3 30-30l22 10-5 17 28 8q8 15-10 22H38q-20-3-11-27z" fill="url(#g)"/><path d="M44 72h28M50 62l9 7" class="line"/>',
+      '<path d="M39 27q25-12 50 0l-5 64q-20 18-40 0z" fill="url(#g)"/><path d="M50 42h28M45 58h38" class="line"/>',
+      '<path d="M33 36l20-15 11 12 11-12 20 15-12 18v50H45V54z" fill="url(#g)"/><path d="M54 36q10 10 20 0" class="line"/>',
+      '<path d="M37 76V39q0-14 11-14 8 0 8 13V22q0-10 9-10t9 10v15q0-11 9-11t9 11v34q0 28-27 34-23-4-28-29z" fill="url(#g)"/><path d="M48 66h34" class="line"/>',
+      '<path d="M25 48q39-28 78 0v50H25z" fill="url(#g)"/><path d="M44 48q0-24 20-24t20 24M35 65h58M64 66v32" class="line"/>'
+    ];
+    const trainingShapes = [
+      '',
+      '<path d="M52 21h24l23 79H29z" fill="url(#g)"/><path d="M40 72h48M46 51h36" class="line"/>',
+      '<path d="M27 37h12v59H27zm62 0h12v59H89zM35 49h58v13H35z" fill="url(#g)"/><path d="M31 80h66" class="line"/>',
+      '<path d="M29 23h70v81H29z" fill="none" stroke="url(#g)" stroke-width="9"/><path d="M29 44h70M29 64h70M29 84h70M46 23v81M64 23v81M82 23v81" class="line"/>',
+      '<path d="M24 34h80v68H24z" fill="none" stroke="url(#g)" stroke-width="9"/><path d="M28 97l72-58M100 97L28 39" class="line"/>',
+      '<circle cx="64" cy="63" r="44" fill="url(#g)"/><circle cx="64" cy="63" r="29" fill="none" class="line"/><circle cx="64" cy="63" r="12" fill="#fff2bd"/>',
+      '<path d="M18 38h92v66H18z" fill="none" stroke="url(#g)" stroke-width="9"/><circle cx="64" cy="68" r="22" fill="#fff2bd" opacity=".72"/><path d="M28 45l72 52M100 45L28 97" class="line"/>'
+    ];
+    const trophyShapes = [
+      '',
+      '<circle cx="64" cy="51" r="27" fill="url(#g)"/><path d="M48 72l-8 35 24-13 24 13-8-35" fill="url(#g)"/><path d="M64 38v26" class="line"/>',
+      '<path d="M39 24h50v32q0 29-25 34-25-5-25-34z" fill="url(#g)"/><path d="M39 37H24q0 27 22 28M89 37h15q0 27-22 28M64 89v15M45 106h38" class="line"/>',
+      '<path d="M35 20h58v38q0 31-29 36-29-5-29-36z" fill="url(#g)"/><path d="M35 34H19q0 31 24 33M93 34h16q0 31-24 33M64 93v13M42 108h44" class="line"/>',
+      '<path d="M31 18h66v42q0 34-33 39-33-5-33-39z" fill="url(#g)"/><path d="M31 32H15q0 35 26 38M97 32h16q0 35-26 38M64 98v10M39 110h50" class="line"/>',
+      '<path d="M25 18h78v45q0 35-39 42-39-7-39-42z" fill="url(#g)"/><path d="M25 33H10q0 36 25 42M103 33h15q0 36-25 42M64 104v7M35 113h58" class="line"/><path d="M64 33l7 14 16 2-12 11 3 16-14-8-14 8 3-16-12-11 16-2z" fill="#fff1a6"/>',
+      '<path d="M22 29l14-18 14 18 14-18 14 18 14-18 14 18-9 74H31z" fill="url(#g)"/><path d="M43 50h42M64 43v42M38 108h52" class="line"/>'
+    ];
+    const shape = {
+      equipment: equipmentShapes,
+      training: trainingShapes,
+      trophies: trophyShapes
+    }[chainId]?.[level] || '';
     const svg =
       `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">` +
       `<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">` +
-      `<stop stop-color="${secondary}"/><stop offset="1" stop-color="${primary}"/></linearGradient></defs>` +
-      `<ellipse cx="64" cy="104" rx="37" ry="9" fill="#31594b" opacity=".18"/>` +
-      `<path d="M29 27Q64 5 99 27L108 72Q100 106 64 110Q28 106 20 72Z" fill="url(#g)" stroke="#fff4c9" stroke-width="5"/>` +
-      `<circle cx="64" cy="62" r="31" fill="#fff" opacity=".36"/>` +
-      `<text x="64" y="78" text-anchor="middle" font-size="46">${symbol}</text>` +
-      `<circle cx="96" cy="27" r="14" fill="#fff4bd" stroke="${primary}" stroke-width="4"/>` +
-      `<text x="96" y="32" text-anchor="middle" font-family="Arial" font-size="14" font-weight="700" fill="#31545c">${level}</text>` +
+      `<stop stop-color="${light}"/><stop offset=".55" stop-color="${primary}"/><stop offset="1" stop-color="${dark}"/></linearGradient>` +
+      `<style>.line{fill:none;stroke:#fff7d4;stroke-width:5;stroke-linecap:round;stroke-linejoin:round}</style></defs>` +
+      `<ellipse cx="64" cy="111" rx="40" ry="8" fill="#31594b" opacity=".17"/>${shape}` +
       `</svg>`;
     return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
   }
 
   function producerSource(producerId = 'ball_basket') {
-    const producerState = Progression.getProducerState(producerId);
-    if (producerState.artwork && producerId === 'ball_basket') return producerState.artwork;
+    const shapes = {
+      ball_basket:
+        '<path d="M19 39h90l-8 70H27z" fill="url(#g)"/><path d="M28 45l72 57M100 45l-72 57M42 40l-9 67M62 40l2 69M84 40l10 67" class="line"/><circle cx="45" cy="43" r="19" fill="#fff5da" stroke="#4d8c7a" stroke-width="4"/><circle cx="78" cy="38" r="20" fill="#f6efe0" stroke="#4d8c7a" stroke-width="4"/><path d="M45 30l8 6-3 10H40l-3-10zM78 24l9 7-3 11H72l-4-11z" fill="#375e65"/>',
+      equipment_locker:
+        '<rect x="29" y="14" width="70" height="99" rx="12" fill="url(#g)"/><path d="M64 17v93M48 45h11M70 45h11" class="line"/><path d="M41 60l12-8 11 10 11-10 12 8-8 14v25H49V74z" fill="#f7e5b5"/>',
+      training_cart:
+        '<path d="M18 51h92l-9 45H28z" fill="url(#g)"/><path d="M31 50l11-30h14l9 30M67 50l9-37h13l7 37" class="line"/><circle cx="40" cy="105" r="10" fill="#365d62"/><circle cx="91" cy="105" r="10" fill="#365d62"/><path d="M38 40h55" class="line"/>',
+      trophy_cabinet:
+        '<rect x="22" y="12" width="84" height="104" rx="13" fill="url(#g)"/><rect x="31" y="22" width="66" height="73" rx="7" fill="#cce9e2" opacity=".72"/><path d="M64 23v72M31 59h66" class="line"/><path d="M40 34h17v13q0 10-9 13-9-3-9-13zM72 67h18v14q0 10-9 13-9-3-9-13z" fill="#f5cc58"/><path d="M34 101h60" class="line"/>'
+    };
     const svg =
       `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">` +
+      `<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f2d496"/><stop offset=".55" stop-color="#6db3a0"/><stop offset="1" stop-color="#387967"/></linearGradient><style>.line{fill:none;stroke:#fff1c0;stroke-width:5;stroke-linecap:round;stroke-linejoin:round}</style></defs>` +
       `<ellipse cx="64" cy="108" rx="44" ry="10" fill="#274f46" opacity=".2"/>` +
-      `<rect x="18" y="25" width="92" height="78" rx="20" fill="#e6b866" stroke="#fff0bb" stroke-width="6"/>` +
-      `<rect x="25" y="34" width="78" height="57" rx="13" fill="#5ba88e"/>` +
-      `<text x="64" y="78" text-anchor="middle" font-size="48">${producerState.symbol}</text>` +
+      `${shapes[producerId] || ''}` +
       `</svg>`;
     return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
   }
@@ -342,9 +376,7 @@
     document.getElementById('itemInfoProducer').textContent =
       window.t('producer.produces').replace('{item}', itemName(producerState.chainId, 1));
     document.getElementById('itemInfoRarity').textContent = '';
-    document.getElementById('itemInfoNext').textContent = producerState.cooldownRemainingMs > 0
-      ? `${window.t('producer.cooldown')} ${formatCountdown(producerState.cooldownRemainingMs)}`
-      : window.t('producer.ready');
+    document.getElementById('itemInfoNext').textContent = window.t('producer.ready');
     debugButton.hidden = !TESTING_MODE.enabled || producerState.isMaxLevel;
     debugButton.textContent = window.t('producer.progress.debug_xp').replace(
       '{amount}',
@@ -378,6 +410,60 @@
     panel.setAttribute('aria-hidden', 'false');
   }
 
+  function saveBoardState() {
+    try {
+      localStorage.setItem(BOARD_STORAGE_KEY, JSON.stringify({
+        version: 2,
+        cells: state.cells
+      }));
+    } catch (error) {
+      console.warn('Board kaydı yazılamadı.', error);
+    }
+  }
+
+  function loadBoardState() {
+    let saved = null;
+    try {
+      saved = JSON.parse(localStorage.getItem(BOARD_STORAGE_KEY));
+    } catch (error) {
+      console.warn('Board kaydı okunamadı; güvenli başlangıç kullanılacak.', error);
+    }
+    if (Array.isArray(saved?.cells) && saved.cells.length === CELL_COUNT) {
+      state.cells = saved.cells.map((item) => {
+        if (item?.type === 'producer' && DATA.producers[item.producerId]) {
+          return { type: 'producer', producerId: item.producerId };
+        }
+        if (item?.type === 'ball' && DATA.chains[item.chainId || 'footballs']) {
+          return {
+            type: 'ball',
+            chainId: item.chainId || 'footballs',
+            level: Math.max(1, Math.min(MAX_LEVEL, Number(item.level) || 1))
+          };
+        }
+        return null;
+      });
+    }
+
+    const presentProducerIds = new Set(
+      state.cells
+        .filter((item) => item?.type === 'producer')
+        .map((item) => item.producerId)
+    );
+    PRODUCER_STARTS.forEach(({ index: preferredIndex, producerId }) => {
+      if (presentProducerIds.has(producerId)) return;
+      const targetIndex = state.cells[preferredIndex] === null
+        ? preferredIndex
+        : state.cells.findIndex((item) => item === null);
+      if (targetIndex < 0) {
+        console.warn(`Board dolu olduğu için ${producerId} migration sırasında eklenemedi.`);
+        return;
+      }
+      state.cells[targetIndex] = { type: 'producer', producerId };
+      presentProducerIds.add(producerId);
+    });
+    saveBoardState();
+  }
+
   function createBoard() {
     boardElement = document.getElementById('board');
     boardElement.innerHTML = '';
@@ -396,9 +482,9 @@
     }
 
     createMergeSparkPool();
-    PRODUCER_STARTS.forEach(({ index, producerId }) => {
-      state.cells[index] = { type: 'producer', producerId };
-      renderCell(index);
+    loadBoardState();
+    state.cells.forEach((item, index) => {
+      if (item) renderCell(index);
     });
   }
 
@@ -443,34 +529,6 @@
       producerName.textContent = producerState.name;
       cell.appendChild(producerName);
 
-      const infoButton = document.createElement('button');
-      infoButton.className = 'producer-info-button';
-      infoButton.type = 'button';
-      infoButton.textContent = window.t('producer.info.symbol');
-      infoButton.setAttribute('aria-label', window.t('producer.info.open'));
-      infoButton.addEventListener('pointerdown', (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-      });
-      infoButton.addEventListener('pointerup', (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        showProducerInfo(index);
-      });
-      infoButton.addEventListener('click', (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        if (event.detail === 0) showProducerInfo(index);
-      });
-      cell.appendChild(infoButton);
-
-      const chargeBadge = document.createElement('span');
-      chargeBadge.className = 'producer-charge-badge';
-      cell.appendChild(chargeBadge);
-
-      const cooldown = document.createElement('span');
-      cooldown.className = 'producer-cooldown';
-      cell.appendChild(cooldown);
       if (index === selectedCellIndex) cell.classList.add('item-selected');
       updateProducerReadiness();
       return;
@@ -498,43 +556,9 @@
     cellElements.forEach((producerCell, index) => {
       const item = state.cells[index];
       if (item?.type !== 'producer') return;
-      const producerState = Progression.getProducerState(item.producerId);
       const energyReady =
-        TESTING_MODE.enabled && TESTING_MODE.bypassEnergy ||
         state.energy >= PRODUCTION_COST;
-      const producerReady =
-        TESTING_MODE.enabled && TESTING_MODE.bypassProducerCooldown ||
-        producerState.charges > 0;
-      const ready = energyReady && producerReady;
-      producerCell.classList.toggle('ready', ready);
-      producerCell.classList.toggle(
-        'cooling-down',
-        producerState.charges === 0 &&
-        !(TESTING_MODE.enabled && TESTING_MODE.bypassProducerCooldown)
-      );
-      const badge = producerCell.querySelector('.producer-charge-badge');
-      const cooldown = producerCell.querySelector('.producer-cooldown');
-      if (badge) {
-        badge.textContent = `${window.t('producer.charges')} ${producerState.charges}/${producerState.maxCharges}`;
-        badge.hidden = TESTING_MODE.enabled;
-      }
-      if (!cooldown) return;
-      const cooldownProgress = producerState.cooldownRemainingMs > 0
-        ? 1 - producerState.cooldownRemainingMs / DATA.producers[item.producerId].cooldownMs
-        : 1;
-      cooldown.style.setProperty(
-        '--cooldown-progress',
-        `${Math.max(0, Math.min(1, cooldownProgress)) * 360}deg`
-      );
-      cooldown.textContent = producerState.cooldownRemainingMs > 0
-        ? String(Math.ceil(producerState.cooldownRemainingMs / 1000))
-        : '';
-      cooldown.setAttribute(
-        'aria-label',
-        producerState.cooldownRemainingMs > 0
-          ? `${window.t('producer.cooldown')} ${formatCountdown(producerState.cooldownRemainingMs)}`
-          : window.t('producer.ready')
-      );
+      producerCell.classList.toggle('ready', energyReady);
     });
   }
 
@@ -1341,6 +1365,7 @@
       state.cells[index] = null;
       renderCell(index);
     });
+    saveBoardState();
     if (consumedIndices.includes(selectedCellIndex)) clearItemInfo();
     playRewardFlights(
       card,
@@ -1362,7 +1387,7 @@
     return true;
   }
 
-  function randomEmptyCell() {
+  function nearestEmptyCell(originIndex) {
     const availableCells = [];
 
     state.cells.forEach((item, index) => {
@@ -1372,7 +1397,16 @@
     });
 
     if (!availableCells.length) return -1;
-    return availableCells[Math.floor(Math.random() * availableCells.length)];
+    const originRow = Math.floor(originIndex / BOARD_COLUMNS);
+    const originColumn = originIndex % BOARD_COLUMNS;
+    return availableCells.sort((a, b) => {
+      const aRow = Math.floor(a / BOARD_COLUMNS);
+      const aColumn = a % BOARD_COLUMNS;
+      const bRow = Math.floor(b / BOARD_COLUMNS);
+      const bColumn = b % BOARD_COLUMNS;
+      return Math.hypot(aRow - originRow, aColumn - originColumn) -
+        Math.hypot(bRow - originRow, bColumn - originColumn);
+    })[0];
   }
 
   function createMergeSparkPool() {
@@ -1442,6 +1476,7 @@
 
         if (targetCell && state.cells[targetIndex] === null) {
           state.cells[targetIndex] = { type: 'ball', chainId, level: 1 };
+          saveBoardState();
           renderCell(targetIndex);
           adoptLandingVisual();
           targetCell.classList.add('spawn-landed');
@@ -1667,6 +1702,7 @@
           cellElements[targetIndex]?.classList.remove('spawn-reserved');
           if (state.cells[targetIndex] === null) {
             state.cells[targetIndex] = { type: 'ball', chainId, level: 1 };
+            saveBoardState();
             renderCell(targetIndex);
           }
           finishVisual();
@@ -1687,17 +1723,9 @@
     const producerId = producerItem.producerId;
     const producerState = Progression.getProducerState(producerId);
     const chainId = producerState.chainId;
-    const emptyIndex = randomEmptyCell();
+    const emptyIndex = nearestEmptyCell(producerIndex);
     if (emptyIndex === -1) {
       showToast(TEXT.boardFull);
-      return false;
-    }
-
-    if (
-      !(TESTING_MODE.enabled && TESTING_MODE.bypassProducerCooldown) &&
-      !Progression.canProduce(producerId)
-    ) {
-      showToast(`${window.t('producer.cooldown')} ${formatCountdown(producerState.cooldownRemainingMs)}`);
       return false;
     }
 
@@ -1706,9 +1734,6 @@
       return false;
     }
 
-    if (!(TESTING_MODE.enabled && TESTING_MODE.bypassProducerCooldown)) {
-      Progression.consumeCharge(producerId);
-    }
     producerCell.classList.remove('producer-pressed');
     void producerCell.offsetWidth;
     producerCell.classList.add('producer-pressed');
@@ -1716,9 +1741,6 @@
       () => producerCell.classList.remove('producer-pressed'),
       PRODUCER_PRESS_MS
     );
-    if (selectedCellIndex === Number(producerCell.dataset.index)) {
-      showProducerInfo(Number(producerCell.dataset.index));
-    }
     GameAudio.play('producer');
     pendingSpawnTargets.add(emptyIndex);
     cellElements[emptyIndex].classList.add('spawn-reserved');
@@ -1784,7 +1806,11 @@
       pointerId: event.pointerId,
       startX: event.clientX,
       startY: event.clientY,
-      moved: false
+      moved: false,
+      ghost: null,
+      target: null,
+      lastX: event.clientX,
+      lastY: event.clientY
     };
     window.addEventListener('pointermove', moveProducerPointer);
     window.addEventListener('pointerup', endProducerPointer);
@@ -1800,11 +1826,43 @@
         event.clientY - pointer.startY
       ) >= DRAG_THRESHOLD
     ) {
-      pointer.moved = true;
+      if (!pointer.moved) {
+        pointer.moved = true;
+        cellElements[pointer.producerIndex].classList.add('drag-source');
+        pointer.ghost = createGhost(
+          state.cells[pointer.producerIndex],
+          event.clientX,
+          event.clientY
+        );
+      } else {
+        moveGhost(
+          pointer.ghost,
+          event.clientX,
+          event.clientY,
+          pointer.lastX,
+          pointer.lastY
+        );
+      }
+      pointer.lastX = event.clientX;
+      pointer.lastY = event.clientY;
+      pointer.target?.classList.remove('drag-target', 'invalid-target');
+      pointer.target = cellFromPoint(event.clientX, event.clientY);
+      if (
+        pointer.target &&
+        Number(pointer.target.dataset.index) !== pointer.producerIndex
+      ) {
+        pointer.target.classList.add('drag-target');
+      }
     }
   }
 
   function finishProducerPointer() {
+    const pointer = state.producerPointer;
+    if (pointer) {
+      cellElements[pointer.producerIndex]?.classList.remove('drag-source');
+      pointer.target?.classList.remove('drag-target', 'invalid-target');
+      pointer.ghost?.remove();
+    }
     window.removeEventListener('pointermove', moveProducerPointer);
     window.removeEventListener('pointerup', endProducerPointer);
     window.removeEventListener('pointercancel', cancelProducerPointer);
@@ -1817,8 +1875,23 @@
     event.preventDefault();
     event.stopPropagation();
     const shouldProduce = !pointer.moved;
+    const target = pointer.moved
+      ? cellFromPoint(event.clientX, event.clientY)
+      : null;
+    const targetIndex = target ? Number(target.dataset.index) : pointer.producerIndex;
+    const producerIndex = pointer.producerIndex;
     finishProducerPointer();
-    if (shouldProduce) activateProducer(pointer.producerIndex);
+    if (shouldProduce) {
+      activateProducer(producerIndex);
+      return;
+    }
+    if (targetIndex === producerIndex || targetIndex < 0) return;
+    const targetItem = state.cells[targetIndex];
+    state.cells[targetIndex] = state.cells[producerIndex];
+    state.cells[producerIndex] = targetItem;
+    saveBoardState();
+    renderCell(producerIndex);
+    renderCell(targetIndex);
   }
 
   function cancelProducerPointer(event) {
@@ -2108,6 +2181,7 @@
       if (selectedCellIndex === fromIndex) selectedCellIndex = toIndex;
       state.cells[toIndex] = from;
       state.cells[fromIndex] = null;
+      saveBoardState();
       renderCell(fromIndex);
       renderCell(toIndex);
       return;
@@ -2155,6 +2229,7 @@
           chainId: from.chainId,
           level: nextLevel
         };
+        saveBoardState();
         if (selectedCellIndex === fromIndex || selectedCellIndex === toIndex) {
           selectedCellIndex = toIndex;
         }
