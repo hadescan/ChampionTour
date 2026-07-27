@@ -2154,265 +2154,6 @@ body {
   background: rgba(37,120,134,.6);
 }
 
-.academy-upgrade-overlay {
-  position: fixed;
-  z-index: 200;
-  inset: 0;
-  padding:
-    max(18px, env(safe-area-inset-top))
-    14px
-    max(18px, env(safe-area-inset-bottom));
-  display: grid;
-  place-items: center;
-  background:
-    radial-gradient(circle at 50% 22%, rgba(140,225,222,.25), transparent 38%),
-    rgba(25,63,65,.72);
-  backdrop-filter: blur(12px);
-  animation: academyOverlayIn 220ms ease-out both;
-}
-
-.academy-upgrade-overlay[hidden] { display: none; }
-
-.academy-upgrade-screen {
-  position: relative;
-  width: min(100%, 430px);
-  max-height: min(92dvh, 720px);
-  overflow: auto;
-  padding: 26px 18px 16px;
-  text-align: center;
-  border: 3px solid rgba(255,248,213,.96);
-  border-radius: 32px;
-  background:
-    radial-gradient(circle at 50% 0%, rgba(255,255,255,.9), transparent 32%),
-    linear-gradient(155deg, #fff8df, #ead09f);
-  box-shadow:
-    0 9px 0 rgba(94,68,39,.22),
-    0 28px 70px rgba(24,48,42,.36),
-    inset 0 2px 0 white;
-  animation: academyScreenIn 300ms cubic-bezier(.16,.85,.28,1.05) both;
-}
-
-.upgrade-celebration {
-  position: absolute;
-  top: -24px;
-  left: 50%;
-  width: 58px;
-  height: 58px;
-  display: grid;
-  place-items: center;
-  color: #fff4a5;
-  font-size: 27px;
-  border: 3px solid #fff2ac;
-  border-radius: 50%;
-  background: linear-gradient(145deg, #52b8c9, #277f9d);
-  box-shadow:
-    0 5px 0 #1d6982,
-    0 9px 20px rgba(39,87,91,.24),
-    inset 0 2px 0 rgba(255,255,255,.38);
-  transform: translateX(-50%);
-}
-
-.upgrade-kicker {
-  display: block;
-  margin-top: 10px;
-  color: #4a8b8f;
-  font-size: 8px;
-  font-weight: 950;
-  letter-spacing: 1.2px;
-}
-
-.academy-upgrade-screen h2 {
-  margin: 5px 0 0;
-  color: #396f64;
-  font-size: clamp(22px, 6vw, 29px);
-  line-height: 1.05;
-  letter-spacing: -.7px;
-}
-
-.academy-upgrade-screen > p {
-  max-width: 330px;
-  margin: 8px auto 12px;
-  color: #7d6954;
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 1.35;
-}
-
-.academy-level-banner {
-  width: max-content;
-  min-width: 118px;
-  margin: 0 auto 12px;
-  padding: 5px 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  color: #e8f8f5;
-  border: 2px solid rgba(255,234,144,.9);
-  border-radius: 999px;
-  background: linear-gradient(180deg, #42a8bb, #287d99);
-  box-shadow: 0 3px 0 #1d6680, inset 0 1px 0 rgba(255,255,255,.32);
-}
-
-.academy-level-banner span {
-  font-size: 7px;
-  font-weight: 900;
-  letter-spacing: .65px;
-}
-
-.academy-level-banner strong {
-  color: #fff3a4;
-  font-size: 18px;
-  line-height: 1;
-}
-
-.academy-upgrade-choices {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-}
-
-.academy-upgrade-choice {
-  min-width: 0;
-  min-height: 142px;
-  padding: 9px 6px 8px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  color: #6b5947;
-  font-family: inherit;
-  border: 2px solid rgba(255,255,255,.88);
-  border-radius: 20px;
-  background:
-    radial-gradient(circle at 50% 5%, rgba(255,255,255,.86), transparent 38%),
-    linear-gradient(155deg, #f7ecc8, #dcbd82);
-  box-shadow:
-    0 5px 0 rgba(115,81,41,.16),
-    0 9px 16px rgba(78,63,41,.12),
-    inset 0 2px 0 rgba(255,255,255,.76);
-  cursor: pointer;
-  transition: transform 120ms ease, filter 120ms ease, box-shadow 120ms ease;
-}
-
-.academy-upgrade-choice:hover {
-  filter: brightness(1.04);
-  transform: translateY(-2px);
-}
-
-.academy-upgrade-choice:active { transform: translateY(1px) scale(.97); }
-
-.academy-complete-message {
-  grid-column: 1 / -1;
-  padding: 20px 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  color: #715c46;
-  border: 2px solid rgba(255,246,190,.94);
-  border-radius: 22px;
-  background:
-    radial-gradient(circle at 50% 0%, rgba(255,255,255,.84), transparent 45%),
-    linear-gradient(145deg, #e6f0b8, #9fd482);
-  box-shadow:
-    0 6px 0 rgba(78,115,61,.16),
-    inset 0 2px 0 rgba(255,255,255,.68);
-}
-
-.academy-complete-message strong {
-  color: #39725d;
-  font-size: 17px;
-}
-
-.academy-complete-message span {
-  max-width: 290px;
-  font-size: 10px;
-  font-weight: 700;
-  line-height: 1.35;
-}
-
-.academy-return-button {
-  min-height: 38px;
-  margin-top: 5px;
-  padding: 0 18px;
-  color: white;
-  font: 900 11px/1 var(--font);
-  border: 2px solid rgba(255,249,209,.94);
-  border-radius: 999px;
-  background: linear-gradient(180deg, #59bd76, #328d58);
-  box-shadow: 0 4px 0 #287248, inset 0 2px 0 rgba(255,255,255,.34);
-  cursor: pointer;
-}
-
-.upgrade-choice-icon {
-  width: 48px;
-  height: 48px;
-  display: grid;
-  place-items: center;
-  flex: 0 0 auto;
-  font-size: 24px;
-  border: 2px solid rgba(255,246,196,.94);
-  border-radius: 16px;
-  background: linear-gradient(145deg, #62c2c5, #338e9d);
-  box-shadow:
-    0 3px 0 #287580,
-    inset 0 2px 0 rgba(255,255,255,.32);
-}
-
-.academy-upgrade-choice strong {
-  margin-top: 8px;
-  color: #3f746a;
-  font-size: 10px;
-  line-height: 1.05;
-}
-
-.academy-upgrade-choice small {
-  margin-top: 4px;
-  color: #8a735a;
-  font-size: 7.5px;
-  font-weight: 700;
-  line-height: 1.2;
-}
-
-.upgrade-choice-level {
-  margin-top: auto;
-  padding: 2px 6px;
-  color: #fff8d2;
-  font-size: 7px;
-  font-weight: 950;
-  border-radius: 999px;
-  background: #4b9176;
-}
-
-.academy-upgrade-footer {
-  margin-top: 13px;
-  padding-top: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  color: #7c6957;
-  font-size: 8px;
-  font-weight: 800;
-  border-top: 1px solid rgba(135,103,62,.14);
-}
-
-.academy-upgrade-footer strong {
-  flex: 0 0 auto;
-  color: #3d7f79;
-  font-size: 10px;
-}
-
-@keyframes academyOverlayIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes academyScreenIn {
-  from { opacity: 0; transform: translateY(20px) scale(.94); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
 .toast {
   position: fixed;
   z-index: 110;
@@ -2544,8 +2285,6 @@ body {
   .order-deliver-button,
   .cell.order-match .ball,
   .cell.order-match-partial .ball,
-  .academy-upgrade-overlay,
-  .academy-upgrade-screen,
   .reward-flight,
   .hud-capsule.reward-received,
   .drag-ghost,
@@ -2556,4 +2295,931 @@ body {
   .cell,
   .producer-cooldown,
   .energy-fill { transition: none !important; }
+}
+
+/* Sprint 8.3 — Sports Campus progression */
+body.campus-open {
+  overflow: hidden;
+}
+
+.sports-campus-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: grid;
+  place-items: center;
+  padding: clamp(10px, 2vw, 24px);
+  background:
+    radial-gradient(circle at 50% 12%, rgba(224, 250, 255, .32), transparent 34%),
+    linear-gradient(160deg, rgba(30, 91, 116, .93), rgba(21, 64, 83, .97));
+  backdrop-filter: blur(12px);
+  animation: campusOverlayIn 220ms ease-out both;
+}
+
+.sports-campus-overlay[hidden],
+.sports-campus-screen[hidden],
+.football-renovation-screen[hidden] {
+  display: none;
+}
+
+.sports-campus-screen,
+.football-renovation-screen {
+  width: min(1120px, 100%);
+  height: min(760px, calc(100dvh - 20px));
+  overflow: hidden;
+  border: 3px solid rgba(255, 248, 218, .8);
+  border-radius: clamp(24px, 4vw, 42px);
+  background:
+    radial-gradient(circle at 50% 0, rgba(255, 255, 255, .88), transparent 34%),
+    linear-gradient(180deg, #fff7dc, #f5dfb8);
+  box-shadow:
+    0 28px 70px rgba(12, 48, 62, .35),
+    inset 0 1px 0 #fff;
+  animation: campusScreenIn 300ms cubic-bezier(.18,.8,.3,1.03) both;
+}
+
+.sports-campus-screen {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+.campus-screen-header,
+.renovation-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: clamp(18px, 3vw, 30px) clamp(20px, 4vw, 42px);
+  color: #315263;
+  background:
+    radial-gradient(circle at 10% 0, rgba(255, 255, 255, .72), transparent 36%),
+    linear-gradient(135deg, #dff3dd, #c9e9d4);
+  border-bottom: 1px solid rgba(74, 123, 102, .16);
+}
+
+.campus-kicker {
+  display: block;
+  margin-bottom: 3px;
+  color: #39826a;
+  font-size: clamp(.64rem, 1.3vw, .78rem);
+  font-weight: 900;
+  letter-spacing: .16em;
+}
+
+.campus-screen-header h2,
+.renovation-header h2 {
+  margin: 0;
+  color: #264b5d;
+  font-size: clamp(1.55rem, 3.5vw, 2.55rem);
+  line-height: 1;
+  text-shadow: 0 2px 0 rgba(255, 255, 255, .7);
+}
+
+.campus-screen-header p,
+.renovation-header p {
+  margin: 7px 0 0;
+  color: #55717b;
+  font-size: clamp(.78rem, 1.5vw, 1rem);
+}
+
+.campus-level-chip,
+.renovation-level {
+  flex: none;
+  min-width: 92px;
+  padding: 10px 16px;
+  border: 2px solid rgba(255, 255, 255, .7);
+  border-radius: 20px;
+  color: #fff;
+  text-align: center;
+  background: linear-gradient(180deg, #5ec695, #329d70);
+  box-shadow: 0 7px 16px rgba(42, 121, 86, .18), inset 0 2px 0 rgba(255,255,255,.35);
+}
+
+.campus-level-chip small {
+  display: block;
+  font-size: .58rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
+.campus-level-chip strong {
+  display: block;
+  font-size: 1.5rem;
+  line-height: 1.05;
+}
+
+.campus-map {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(10px, 2vw, 20px);
+  overflow: auto;
+  padding: clamp(16px, 3vw, 32px);
+  background:
+    radial-gradient(circle at 50% 45%, rgba(255,255,255,.52), transparent 43%),
+    repeating-linear-gradient(35deg, rgba(106, 152, 104, .025) 0 2px, transparent 2px 6px),
+    linear-gradient(145deg, #f7e9c9, #ead2aa);
+}
+
+.campus-academy-card {
+  position: relative;
+  min-height: 190px;
+  overflow: hidden;
+  padding: 0;
+  border: 2px solid rgba(129, 105, 67, .18);
+  border-radius: 25px;
+  color: #385361;
+  text-align: left;
+  background: #f9edcf;
+  box-shadow: 0 9px 20px rgba(91, 66, 38, .12), inset 0 2px 0 rgba(255,255,255,.8);
+  cursor: pointer;
+  transition: transform 150ms ease-out, box-shadow 150ms ease-out;
+}
+
+.campus-academy-card:not(:disabled):hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 25px rgba(67, 80, 52, .18), inset 0 2px 0 rgba(255,255,255,.9);
+}
+
+.campus-academy-card:not(:disabled):active {
+  transform: scale(.98);
+}
+
+.campus-academy-card.is-active {
+  border-color: #72ba7b;
+}
+
+.campus-academy-card.is-completed {
+  border-color: #e9b94c;
+}
+
+.campus-academy-card.is-available {
+  border-color: #83b6dc;
+  box-shadow: 0 0 0 4px rgba(92, 179, 228, .12), 0 9px 20px rgba(91, 66, 38, .12);
+}
+
+.campus-academy-card.is-locked {
+  filter: grayscale(.88) saturate(.4);
+  opacity: .68;
+  cursor: not-allowed;
+}
+
+.campus-academy-art {
+  position: relative;
+  display: block;
+  height: 88px;
+  overflow: hidden;
+  background: linear-gradient(#97d7eb 0 48%, #8fc083 48%);
+}
+
+.campus-academy-card.is-locked .campus-academy-art {
+  background: linear-gradient(#afb7b8 0 48%, #9fa596 48%);
+}
+
+.campus-academy-icon {
+  position: absolute;
+  z-index: 2;
+  top: 13px;
+  left: 17px;
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border: 3px solid rgba(255,255,255,.75);
+  border-radius: 50%;
+  font-size: 1.55rem;
+  background: rgba(255,255,255,.82);
+  box-shadow: 0 5px 10px rgba(34,66,69,.16);
+}
+
+.campus-facility-shape {
+  position: absolute;
+  right: 19px;
+  bottom: 0;
+  width: 45%;
+  height: 61%;
+  border-radius: 12px 12px 0 0;
+  background: linear-gradient(135deg, #f3be69, #ce814d);
+  box-shadow: inset 0 5px 0 rgba(255,255,255,.24), -7px 5px 0 rgba(66,108,74,.16);
+}
+
+.campus-facility-shape::before {
+  content: "";
+  position: absolute;
+  top: 14px;
+  left: 15%;
+  width: 70%;
+  height: 14px;
+  border-radius: 4px;
+  background: rgba(44, 92, 113, .55);
+}
+
+.campus-academy-copy {
+  display: block;
+  min-height: 101px;
+  padding: 13px 44px 18px 17px;
+}
+
+.campus-academy-copy small {
+  display: block;
+  margin-bottom: 2px;
+  color: #5c9672;
+  font-size: .61rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
+.campus-academy-card.is-locked .campus-academy-copy small {
+  color: #727b78;
+}
+
+.campus-academy-copy strong {
+  display: block;
+  color: #334f5d;
+  font-size: clamp(.92rem, 1.8vw, 1.12rem);
+}
+
+.campus-academy-copy span {
+  display: block;
+  margin-top: 5px;
+  color: #7a766c;
+  font-size: clamp(.68rem, 1.2vw, .78rem);
+  line-height: 1.25;
+}
+
+.campus-card-status {
+  position: absolute;
+  right: 13px;
+  bottom: 28px;
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  font-weight: 900;
+  background: #5bae7a;
+  box-shadow: 0 4px 8px rgba(54, 99, 72, .22);
+}
+
+.campus-academy-card.is-locked .campus-card-status {
+  background: #7e8887;
+  font-size: .75rem;
+}
+
+.campus-card-progress {
+  position: absolute;
+  right: 12px;
+  bottom: 9px;
+  left: 12px;
+  height: 7px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: rgba(109, 88, 56, .14);
+}
+
+.campus-card-progress i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #63bd7a, #a5d962);
+}
+
+.campus-screen-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px clamp(20px, 4vw, 42px);
+  color: #60746e;
+  font-size: .82rem;
+  font-weight: 800;
+  background: #fff5d9;
+  border-top: 1px solid rgba(129, 105, 67, .12);
+}
+
+.campus-close-button,
+.campus-back-button,
+.renovation-action-button {
+  border: 0;
+  color: #fff;
+  font: inherit;
+  font-weight: 900;
+  cursor: pointer;
+  background: linear-gradient(180deg, #67c88c, #319a69);
+  box-shadow: 0 6px 0 #267a55, 0 9px 15px rgba(36, 102, 71, .2), inset 0 2px 0 rgba(255,255,255,.35);
+}
+
+.campus-close-button {
+  padding: 10px 20px;
+  border-radius: 16px;
+}
+
+.campus-close-button:active,
+.campus-back-button:active,
+.renovation-action-button:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 3px 0 #267a55, 0 5px 10px rgba(36, 102, 71, .16);
+}
+
+.football-renovation-screen {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+.renovation-header {
+  justify-content: flex-start;
+  padding-block: 15px;
+}
+
+.renovation-header > div {
+  flex: 1;
+}
+
+.campus-back-button {
+  flex: none;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.renovation-level {
+  min-width: 82px;
+  font-size: 1rem;
+}
+
+.football-campus-visual {
+  position: relative;
+  min-height: 280px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 10%, rgba(255,255,255,.72), transparent 38%),
+    linear-gradient(#9bd6e8 0 45%, #a8bb81 45% 100%);
+  filter: saturate(.72);
+  isolation: isolate;
+}
+
+.football-campus-visual::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+  background: linear-gradient(115deg, transparent 25%, rgba(255,255,255,.42) 46%, transparent 62%);
+  opacity: 0;
+  transform: translateX(-90%);
+}
+
+.football-campus-visual.is-renovating::after {
+  animation: renovationReveal 420ms ease-out both;
+}
+
+.renovation-building {
+  position: absolute;
+  z-index: 5;
+  top: 19%;
+  left: 12%;
+  width: 25%;
+  height: 36%;
+  border-radius: 12px 12px 3px 3px;
+  background: linear-gradient(135deg, #caa678, #a87a55);
+  box-shadow: inset 0 5px 0 rgba(255,255,255,.22), 0 12px 20px rgba(45,69,51,.22);
+  transition: filter 300ms ease-out, background 300ms ease-out;
+}
+
+.football-campus-visual[data-stage="30"] .renovation-building,
+.football-campus-visual[data-stage="29"] .renovation-building {
+  background: linear-gradient(135deg, #f2cf79, #d68b4d);
+}
+
+.renovation-roof {
+  position: absolute;
+  top: -14%;
+  left: -5%;
+  width: 72%;
+  height: 17%;
+  border-radius: 6px 12px 2px 2px;
+  background: #765d51;
+  transform: skewX(-12deg);
+}
+
+.football-campus-visual[data-stage="1"] .renovation-roof {
+  width: 37%;
+  opacity: .55;
+}
+
+.renovation-sign {
+  position: absolute;
+  top: 22%;
+  left: 36%;
+  display: grid;
+  width: 32%;
+  height: 25%;
+  place-items: center;
+  border-radius: 6px;
+  color: #e8d9bb;
+  font-weight: 900;
+  background: #677778;
+}
+
+.renovation-pitch {
+  position: absolute;
+  z-index: 4;
+  right: 8%;
+  bottom: 7%;
+  width: 50%;
+  height: 48%;
+  border: 4px solid rgba(239,239,201,.45);
+  border-radius: 50% / 18%;
+  background:
+    repeating-linear-gradient(90deg, rgba(255,255,255,.04) 0 12%, rgba(38,96,56,.05) 12% 24%),
+    #849d67;
+  box-shadow: 0 12px 25px rgba(43,75,46,.22), inset 0 0 20px rgba(61,72,48,.3);
+  transform: perspective(450px) rotateX(22deg);
+  transition: background 300ms ease-out, filter 300ms ease-out;
+}
+
+.football-campus-visual[data-stage="4"] .renovation-pitch,
+.football-campus-visual[data-stage="5"] .renovation-pitch,
+.football-campus-visual[data-stage="6"] .renovation-pitch,
+.football-campus-visual[data-stage="7"] .renovation-pitch,
+.football-campus-visual[data-stage="8"] .renovation-pitch,
+.football-campus-visual[data-stage="9"] .renovation-pitch,
+.football-campus-visual[data-stage="10"] .renovation-pitch,
+.football-campus-visual[data-stage="11"] .renovation-pitch,
+.football-campus-visual[data-stage="12"] .renovation-pitch,
+.football-campus-visual[data-stage="13"] .renovation-pitch,
+.football-campus-visual[data-stage="14"] .renovation-pitch,
+.football-campus-visual[data-stage="15"] .renovation-pitch,
+.football-campus-visual[data-stage="16"] .renovation-pitch,
+.football-campus-visual[data-stage="17"] .renovation-pitch,
+.football-campus-visual[data-stage="18"] .renovation-pitch,
+.football-campus-visual[data-stage="19"] .renovation-pitch,
+.football-campus-visual[data-stage="20"] .renovation-pitch,
+.football-campus-visual[data-stage="21"] .renovation-pitch,
+.football-campus-visual[data-stage="22"] .renovation-pitch,
+.football-campus-visual[data-stage="23"] .renovation-pitch,
+.football-campus-visual[data-stage="24"] .renovation-pitch,
+.football-campus-visual[data-stage="25"] .renovation-pitch,
+.football-campus-visual[data-stage="26"] .renovation-pitch,
+.football-campus-visual[data-stage="27"] .renovation-pitch,
+.football-campus-visual[data-stage="28"] .renovation-pitch,
+.football-campus-visual[data-stage="29"] .renovation-pitch,
+.football-campus-visual[data-stage="30"] .renovation-pitch {
+  background:
+    repeating-linear-gradient(90deg, rgba(255,255,255,.07) 0 12%, rgba(30,120,58,.06) 12% 24%),
+    #58ad68;
+  filter: saturate(1.1);
+}
+
+.renovation-pitch-circle {
+  position: absolute;
+  top: 31%;
+  left: 40%;
+  width: 19%;
+  aspect-ratio: 1;
+  border: 2px solid rgba(255,255,225,.7);
+  border-radius: 50%;
+  opacity: .25;
+}
+
+.football-campus-visual[data-stage="5"] .renovation-pitch-circle,
+.football-campus-visual[data-stage="6"] .renovation-pitch-circle,
+.football-campus-visual[data-stage="7"] .renovation-pitch-circle,
+.football-campus-visual[data-stage="8"] .renovation-pitch-circle,
+.football-campus-visual[data-stage="9"] .renovation-pitch-circle,
+.football-campus-visual[data-stage="10"] .renovation-pitch-circle,
+.football-campus-visual[data-stage="11"] .renovation-pitch-circle,
+.football-campus-visual[data-stage="12"] .renovation-pitch-circle,
+.football-campus-visual[data-stage="13"] .renovation-pitch-circle,
+.football-campus-visual[data-stage="14"] .renovation-pitch-circle,
+.football-campus-visual[data-stage="15"] .renovation-pitch-circle,
+.football-campus-visual[data-stage="16"] .renovation-pitch-circle,
+.football-campus-visual[data-stage="17"] .renovation-pitch-circle,
+.football-campus-visual[data-stage="18"] .renovation-pitch-circle,
+.football-campus-visual[data-stage="19"] .renovation-pitch-circle,
+.football-campus-visual[data-stage="20"] .renovation-pitch-circle,
+.football-campus-visual[data-stage="21"] .renovation-pitch-circle,
+.football-campus-visual[data-stage="22"] .renovation-pitch-circle,
+.football-campus-visual[data-stage="23"] .renovation-pitch-circle,
+.football-campus-visual[data-stage="24"] .renovation-pitch-circle,
+.football-campus-visual[data-stage="25"] .renovation-pitch-circle,
+.football-campus-visual[data-stage="26"] .renovation-pitch-circle,
+.football-campus-visual[data-stage="27"] .renovation-pitch-circle,
+.football-campus-visual[data-stage="28"] .renovation-pitch-circle,
+.football-campus-visual[data-stage="29"] .renovation-pitch-circle,
+.football-campus-visual[data-stage="30"] .renovation-pitch-circle {
+  opacity: 1;
+}
+
+.renovation-goal {
+  position: absolute;
+  right: 4%;
+  top: 27%;
+  width: 12%;
+  height: 30%;
+  border: 3px solid #e5e2cf;
+  opacity: .35;
+}
+
+.football-campus-visual[data-stage="6"] .renovation-goal,
+.football-campus-visual[data-stage="7"] .renovation-goal,
+.football-campus-visual[data-stage="8"] .renovation-goal,
+.football-campus-visual[data-stage="9"] .renovation-goal,
+.football-campus-visual[data-stage="10"] .renovation-goal,
+.football-campus-visual[data-stage="11"] .renovation-goal,
+.football-campus-visual[data-stage="12"] .renovation-goal,
+.football-campus-visual[data-stage="13"] .renovation-goal,
+.football-campus-visual[data-stage="14"] .renovation-goal,
+.football-campus-visual[data-stage="15"] .renovation-goal,
+.football-campus-visual[data-stage="16"] .renovation-goal,
+.football-campus-visual[data-stage="17"] .renovation-goal,
+.football-campus-visual[data-stage="18"] .renovation-goal,
+.football-campus-visual[data-stage="19"] .renovation-goal,
+.football-campus-visual[data-stage="20"] .renovation-goal,
+.football-campus-visual[data-stage="21"] .renovation-goal,
+.football-campus-visual[data-stage="22"] .renovation-goal,
+.football-campus-visual[data-stage="23"] .renovation-goal,
+.football-campus-visual[data-stage="24"] .renovation-goal,
+.football-campus-visual[data-stage="25"] .renovation-goal,
+.football-campus-visual[data-stage="26"] .renovation-goal,
+.football-campus-visual[data-stage="27"] .renovation-goal,
+.football-campus-visual[data-stage="28"] .renovation-goal,
+.football-campus-visual[data-stage="29"] .renovation-goal,
+.football-campus-visual[data-stage="30"] .renovation-goal {
+  opacity: 1;
+}
+
+.renovation-stands {
+  position: absolute;
+  z-index: 3;
+  top: 22%;
+  right: 11%;
+  width: 39%;
+  height: 13%;
+  border-radius: 8px 8px 3px 3px;
+  background: repeating-linear-gradient(0deg, #776f65 0 5px, #918679 5px 10px);
+  opacity: .48;
+  transform: skewX(-8deg);
+}
+
+.football-campus-visual[data-stage="8"] .renovation-stands,
+.football-campus-visual[data-stage="9"] .renovation-stands,
+.football-campus-visual[data-stage="10"] .renovation-stands,
+.football-campus-visual[data-stage="11"] .renovation-stands,
+.football-campus-visual[data-stage="12"] .renovation-stands,
+.football-campus-visual[data-stage="13"] .renovation-stands,
+.football-campus-visual[data-stage="14"] .renovation-stands,
+.football-campus-visual[data-stage="15"] .renovation-stands,
+.football-campus-visual[data-stage="16"] .renovation-stands,
+.football-campus-visual[data-stage="17"] .renovation-stands,
+.football-campus-visual[data-stage="18"] .renovation-stands,
+.football-campus-visual[data-stage="19"] .renovation-stands,
+.football-campus-visual[data-stage="20"] .renovation-stands,
+.football-campus-visual[data-stage="21"] .renovation-stands,
+.football-campus-visual[data-stage="22"] .renovation-stands,
+.football-campus-visual[data-stage="23"] .renovation-stands,
+.football-campus-visual[data-stage="24"] .renovation-stands,
+.football-campus-visual[data-stage="25"] .renovation-stands,
+.football-campus-visual[data-stage="26"] .renovation-stands,
+.football-campus-visual[data-stage="27"] .renovation-stands,
+.football-campus-visual[data-stage="28"] .renovation-stands,
+.football-campus-visual[data-stage="29"] .renovation-stands,
+.football-campus-visual[data-stage="30"] .renovation-stands {
+  opacity: 1;
+  background: repeating-linear-gradient(0deg, #e5b04e 0 5px, #4a91bb 5px 10px);
+}
+
+.renovation-fitness {
+  position: absolute;
+  z-index: 5;
+  bottom: 12%;
+  left: 25%;
+  display: grid;
+  width: 15%;
+  height: 20%;
+  place-items: center;
+  border-radius: 7px;
+  color: rgba(255,255,255,.55);
+  font-size: .72rem;
+  font-weight: 900;
+  background: #8d8778;
+  opacity: .55;
+}
+
+.football-campus-visual[data-stage="12"] .renovation-fitness,
+.football-campus-visual[data-stage="13"] .renovation-fitness,
+.football-campus-visual[data-stage="14"] .renovation-fitness,
+.football-campus-visual[data-stage="15"] .renovation-fitness,
+.football-campus-visual[data-stage="16"] .renovation-fitness,
+.football-campus-visual[data-stage="17"] .renovation-fitness,
+.football-campus-visual[data-stage="18"] .renovation-fitness,
+.football-campus-visual[data-stage="19"] .renovation-fitness,
+.football-campus-visual[data-stage="20"] .renovation-fitness,
+.football-campus-visual[data-stage="21"] .renovation-fitness,
+.football-campus-visual[data-stage="22"] .renovation-fitness,
+.football-campus-visual[data-stage="23"] .renovation-fitness,
+.football-campus-visual[data-stage="24"] .renovation-fitness,
+.football-campus-visual[data-stage="25"] .renovation-fitness,
+.football-campus-visual[data-stage="26"] .renovation-fitness,
+.football-campus-visual[data-stage="27"] .renovation-fitness,
+.football-campus-visual[data-stage="28"] .renovation-fitness,
+.football-campus-visual[data-stage="29"] .renovation-fitness,
+.football-campus-visual[data-stage="30"] .renovation-fitness {
+  color: #fff;
+  background: linear-gradient(135deg, #67a5bc, #3d758d);
+  opacity: 1;
+}
+
+.renovation-path {
+  position: absolute;
+  z-index: 2;
+  bottom: -15%;
+  left: 8%;
+  width: 61%;
+  height: 44%;
+  border-radius: 50%;
+  border: 13px solid #968e7a;
+  opacity: .45;
+  transform: rotate(-8deg);
+}
+
+.football-campus-visual[data-stage="15"] .renovation-path,
+.football-campus-visual[data-stage="16"] .renovation-path,
+.football-campus-visual[data-stage="17"] .renovation-path,
+.football-campus-visual[data-stage="18"] .renovation-path,
+.football-campus-visual[data-stage="19"] .renovation-path,
+.football-campus-visual[data-stage="20"] .renovation-path,
+.football-campus-visual[data-stage="21"] .renovation-path,
+.football-campus-visual[data-stage="22"] .renovation-path,
+.football-campus-visual[data-stage="23"] .renovation-path,
+.football-campus-visual[data-stage="24"] .renovation-path,
+.football-campus-visual[data-stage="25"] .renovation-path,
+.football-campus-visual[data-stage="26"] .renovation-path,
+.football-campus-visual[data-stage="27"] .renovation-path,
+.football-campus-visual[data-stage="28"] .renovation-path,
+.football-campus-visual[data-stage="29"] .renovation-path,
+.football-campus-visual[data-stage="30"] .renovation-path {
+  border-color: #e6c58f;
+  opacity: 1;
+}
+
+.renovation-lights {
+  position: absolute;
+  z-index: 7;
+  inset: 16% 7% auto 44%;
+  display: flex;
+  justify-content: space-between;
+  opacity: .25;
+}
+
+.renovation-lights i {
+  position: relative;
+  display: block;
+  width: 4px;
+  height: 135px;
+  background: #52636b;
+}
+
+.renovation-lights i::before {
+  content: "";
+  position: absolute;
+  top: -4px;
+  left: -13px;
+  width: 30px;
+  height: 10px;
+  border-radius: 4px;
+  background: #68767b;
+}
+
+.football-campus-visual[data-stage="19"] .renovation-lights,
+.football-campus-visual[data-stage="20"] .renovation-lights,
+.football-campus-visual[data-stage="21"] .renovation-lights,
+.football-campus-visual[data-stage="22"] .renovation-lights,
+.football-campus-visual[data-stage="23"] .renovation-lights,
+.football-campus-visual[data-stage="24"] .renovation-lights,
+.football-campus-visual[data-stage="25"] .renovation-lights,
+.football-campus-visual[data-stage="26"] .renovation-lights,
+.football-campus-visual[data-stage="27"] .renovation-lights,
+.football-campus-visual[data-stage="28"] .renovation-lights,
+.football-campus-visual[data-stage="29"] .renovation-lights,
+.football-campus-visual[data-stage="30"] .renovation-lights {
+  opacity: 1;
+  filter: drop-shadow(0 0 9px rgba(255,245,173,.8));
+}
+
+.renovation-landscape {
+  position: absolute;
+  z-index: 6;
+  right: 2%;
+  bottom: 3%;
+  left: 3%;
+  display: flex;
+  justify-content: space-between;
+  opacity: .3;
+}
+
+.renovation-landscape i {
+  display: block;
+  width: 38px;
+  height: 38px;
+  border-radius: 50% 50% 45% 45%;
+  background: #607d58;
+  box-shadow: 0 12px 0 -7px #695a48;
+}
+
+.football-campus-visual[data-stage="24"] .renovation-landscape,
+.football-campus-visual[data-stage="25"] .renovation-landscape,
+.football-campus-visual[data-stage="26"] .renovation-landscape,
+.football-campus-visual[data-stage="27"] .renovation-landscape,
+.football-campus-visual[data-stage="28"] .renovation-landscape,
+.football-campus-visual[data-stage="29"] .renovation-landscape,
+.football-campus-visual[data-stage="30"] .renovation-landscape {
+  opacity: 1;
+}
+
+.football-campus-visual[data-stage="30"] {
+  filter: saturate(1.12) brightness(1.04);
+}
+
+.renovation-action-panel {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: clamp(12px, 2vw, 20px);
+  padding: clamp(14px, 2.5vw, 24px) clamp(18px, 3.5vw, 36px);
+  background: linear-gradient(180deg, #fff8e2, #f6e6bd);
+  border-top: 1px solid rgba(129, 105, 67, .15);
+}
+
+.renovation-action-panel.is-complete {
+  background: linear-gradient(180deg, #fff3c3, #f4d987);
+}
+
+.renovation-action-icon {
+  display: grid;
+  width: clamp(54px, 8vw, 70px);
+  aspect-ratio: 1;
+  place-items: center;
+  border: 3px solid #fff;
+  border-radius: 20px;
+  font-size: clamp(1.5rem, 3vw, 2.15rem);
+  background: linear-gradient(145deg, #dff3d9, #b9dda9);
+  box-shadow: 0 7px 14px rgba(72, 101, 60, .18);
+}
+
+.renovation-action-copy small {
+  display: block;
+  color: #4d9870;
+  font-size: .62rem;
+  font-weight: 900;
+  letter-spacing: .09em;
+}
+
+.renovation-action-copy strong {
+  display: block;
+  margin-top: 2px;
+  color: #304f5b;
+  font-size: clamp(.95rem, 2vw, 1.25rem);
+}
+
+.renovation-action-copy p {
+  margin: 4px 0 0;
+  color: #746f63;
+  font-size: clamp(.68rem, 1.4vw, .84rem);
+}
+
+.renovation-action-button {
+  min-width: 178px;
+  padding: 12px 19px;
+  border-radius: 18px;
+}
+
+.renovation-action-button span,
+.renovation-action-button small {
+  display: block;
+}
+
+.renovation-action-button small {
+  margin-top: 2px;
+  font-size: .6rem;
+  opacity: .78;
+}
+
+.renovation-action-button:disabled {
+  filter: grayscale(.8);
+  opacity: .55;
+  cursor: default;
+}
+
+@keyframes campusOverlayIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes campusScreenIn {
+  from { opacity: 0; transform: translateY(12px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes renovationReveal {
+  0% { opacity: 0; transform: translateX(-90%); }
+  42% { opacity: .75; }
+  100% { opacity: 0; transform: translateX(90%); }
+}
+
+@media (max-width: 720px) {
+  .sports-campus-overlay {
+    padding: 0;
+  }
+
+  .sports-campus-screen,
+  .football-renovation-screen {
+    height: 100dvh;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .campus-map {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+    padding: 12px;
+  }
+
+  .campus-academy-card {
+    min-height: 169px;
+    border-radius: 20px;
+  }
+
+  .campus-academy-art {
+    height: 72px;
+  }
+
+  .campus-academy-copy {
+    min-height: 96px;
+    padding: 10px 35px 17px 12px;
+  }
+
+  .campus-screen-footer {
+    padding: 10px 14px;
+  }
+
+  .football-campus-visual {
+    min-height: 0;
+  }
+
+  .renovation-action-panel {
+    grid-template-columns: auto 1fr;
+  }
+
+  .renovation-action-button {
+    grid-column: 1 / -1;
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 430px) {
+  .campus-screen-header p,
+  .renovation-header p {
+    display: none;
+  }
+
+  .campus-level-chip {
+    min-width: 70px;
+    padding-inline: 10px;
+  }
+
+  .campus-screen-footer > span {
+    max-width: 55%;
+    font-size: .67rem;
+  }
+
+  .renovation-header {
+    gap: 10px;
+    padding-inline: 12px;
+  }
+
+  .campus-back-button {
+    width: 40px;
+    height: 40px;
+  }
+
+  .renovation-level {
+    min-width: 66px;
+    padding: 9px 8px;
+    font-size: .78rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sports-campus-overlay,
+  .sports-campus-screen,
+  .football-renovation-screen,
+  .football-campus-visual.is-renovating::after {
+    animation-duration: 1ms !important;
+  }
 }

@@ -519,91 +519,160 @@
     const world = document.getElementById('academyWorld');
     if (!world) return;
 
-    Object.entries(academyState.improvements).forEach(([key, level]) => {
-      const maxLevel = Academy.IMPROVEMENTS[key].maxLevel;
-      world.style.setProperty(`--${key}-progress`, String(level / maxLevel));
-      world.dataset[key] = String(level);
+    const appliedRenovations = Academy.FOOTBALL_RENOVATIONS.slice(
+      0,
+      Math.max(0, academyState.appliedLevel - 1)
+    );
+    const zones = ['pitch', 'stands', 'clubhouse', 'fitness', 'paths', 'landscape', 'lighting'];
+    zones.forEach((zone) => {
+      const zoneSteps = Academy.FOOTBALL_RENOVATIONS.filter(
+        (renovation) => renovation.zone === zone
+      );
+      const completeSteps = appliedRenovations.filter(
+        (renovation) => renovation.zone === zone
+      );
+      const progress = zoneSteps.length ? completeSteps.length / zoneSteps.length : 0;
+      world.style.setProperty(`--${zone}-progress`, String(progress));
+      world.dataset[zone] = String(completeSteps.length);
     });
-    world.dataset.level = String(academyState.level);
+    world.dataset.level = String(academyState.appliedLevel);
     world.classList.toggle('academy-completed', academyState.completed);
     document.body.classList.toggle('football-academy-completed', academyState.completed);
   }
 
-  function closeAcademyUpgradeScreen() {
-    document.getElementById('academyUpgradeOverlay').hidden = true;
+  function closeSportsCampus() {
+    const academyState = Academy.getState();
+    if (academyState.pendingRenovations > 0) return;
+    document.getElementById('sportsCampusOverlay').hidden = true;
+    document.body.classList.remove('campus-open');
   }
 
-  function renderAcademyUpgradeScreen(showCompletion = false) {
+  function showCampusMap() {
+    document.querySelector('.sports-campus-screen').hidden = false;
+    document.getElementById('footballRenovationScreen').hidden = true;
+  }
+
+  function renderCampusMap() {
     const academyState = Academy.getState();
-    const overlay = document.getElementById('academyUpgradeOverlay');
-    const title = document.getElementById('academyUpgradeTitle');
-    const level = document.getElementById('academyUpgradeLevel');
-    const choicesRoot = document.getElementById('academyUpgradeChoices');
-    const completionText = document.getElementById('academyCompletionText');
-    const levelProgress = document.getElementById('academyLevelProgress');
+    const grid = document.getElementById('campusAcademyGrid');
+    const closeButton = document.getElementById('campusCloseButton');
+    document.getElementById('campusLevelValue').textContent = String(academyState.level);
+    document.getElementById('campusProgressText').textContent = academyState.completed
+      ? 'Football Academy tamamlandı • Basketball Academy açıldı'
+      : `Football Academy • ${academyState.appliedLevel} / ${academyState.maxLevel}`;
+    closeButton.hidden = academyState.pendingRenovations > 0;
+    grid.innerHTML = '';
 
-    level.textContent = String(academyState.level);
-    levelProgress.textContent = `${academyState.level} / ${academyState.maxLevel}`;
+    Academy.getAcademies().forEach((academy) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = `campus-academy-card is-${academy.status}`;
+      button.dataset.academyId = academy.id;
+      button.disabled = academy.status === 'locked';
+      button.innerHTML =
+        `<span class="campus-academy-art campus-art-${academy.theme}" aria-hidden="true">` +
+          `<span class="campus-academy-icon">${academy.icon}</span>` +
+          `<span class="campus-facility-shape"></span>` +
+        `</span>` +
+        `<span class="campus-academy-copy">` +
+          `<small>${academy.status === 'completed' ? 'TAMAMLANDI' : academy.status === 'active' ? 'AKTİF AKADEMİ' : academy.status === 'available' ? 'YENİ AKADEMİ' : 'KİLİTLİ'}</small>` +
+          `<strong>${academy.name}</strong>` +
+          `<span>${academy.description}</span>` +
+        `</span>` +
+        `<span class="campus-card-status" aria-hidden="true">${academy.status === 'completed' ? '✓' : academy.status === 'locked' ? '🔒' : '›'}</span>` +
+        (academy.id === 'football'
+          ? `<span class="campus-card-progress"><i style="width:${Math.round(academy.progress * 100)}%"></i></span>`
+          : '');
+      button.addEventListener('click', () => {
+        if (academy.id === 'football') {
+          renderFootballRenovation();
+        } else if (academy.status === 'available') {
+          Academy.setActiveAcademy(academy.id);
+          showToast('Basketball Academy bir sonraki spor yolculuğuna hazır');
+        } else {
+          showToast('Önce mevcut akademiyi tamamla');
+        }
+      });
+      grid.appendChild(button);
+    });
+  }
 
-    if (showCompletion || academyState.completed) {
-      title.textContent = 'Football Academy tamamlandı!';
-      title.nextElementSibling.textContent =
-        'Küçük tesisin artık yaşayan, dünya standartlarında bir futbol kampüsü.';
-      completionText.textContent = 'Sıradaki dünya: Basketball Academy';
-      choicesRoot.innerHTML =
-        '<div class="academy-complete-message">' +
-          '<strong>🏆 Tamamlanmış Kampüs</strong>' +
-          '<span>Football Academy gelişmeye devam eden kalıcı dünyan olarak korunacak.</span>' +
-          '<button type="button" class="academy-return-button">Kampüse dön</button>' +
-        '</div>';
-      choicesRoot.querySelector('.academy-return-button').addEventListener(
-        'click',
-        closeAcademyUpgradeScreen
-      );
-      overlay.hidden = false;
+  function renderFootballRenovation() {
+    const academyState = Academy.getState();
+    const renovation = academyState.nextRenovation;
+    const actionPanel = document.getElementById('renovationActionPanel');
+    const actionButton = document.getElementById('renovationActionButton');
+    document.querySelector('.sports-campus-screen').hidden = true;
+    document.getElementById('footballRenovationScreen').hidden = false;
+    document.getElementById('footballCampusVisual').dataset.stage =
+      String(academyState.appliedLevel);
+    document.getElementById('renovationLevelValue').textContent =
+      `${academyState.appliedLevel} / ${academyState.maxLevel}`;
+
+    if (academyState.completed) {
+      document.getElementById('footballRenovationSubtitle').textContent =
+        'Dünya standartlarında, yaşayan ve ışıl ışıl bir futbol akademisi.';
+      document.getElementById('renovationActionIcon').textContent = '🏆';
+      document.getElementById('renovationActionKicker').textContent = 'AKADEMİ TAMAMLANDI';
+      document.getElementById('renovationActionTitle').textContent = 'Şampiyonların evi hazır';
+      document.getElementById('renovationActionDescription').textContent =
+        'Basketball Academy artık Spor Kampüsü ekranında açıldı.';
+      actionButton.innerHTML = '<span>Spor Kampüsüne dön</span><small>Yeni akademiyi gör</small>';
+      actionButton.onclick = () => {
+        renderCampusMap();
+        showCampusMap();
+      };
+      actionPanel.classList.add('is-complete');
       return;
     }
 
-    title.textContent = 'Akademin büyümeye hazır!';
-    title.nextElementSibling.textContent =
-      'Yeni seviyeni kampüste görünür bir gelişmeye dönüştür.';
-    completionText.textContent = 'Football Academy yolculuğu devam ediyor.';
-    choicesRoot.innerHTML = '';
-
-    Academy.getUpgradeChoices().forEach((choice) => {
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = 'academy-upgrade-choice';
-      button.dataset.upgradeKey = choice.key;
-      button.innerHTML =
-        `<span class="upgrade-choice-icon" aria-hidden="true">${choice.icon}</span>` +
-        `<strong>${choice.name}</strong>` +
-        `<small>${choice.description}</small>` +
-        `<span class="upgrade-choice-level">Aşama ${choice.nextLevel}/${choice.maxLevel}</span>`;
-      button.addEventListener('click', () => {
-        const result = Academy.applyUpgrade(choice.key);
-        if (!result) return;
-        renderAcademyWorld();
-        renderPlayerProgression();
-        showToast(`${choice.name} geliştirildi`);
-        if (result.state.completed) {
-          renderAcademyUpgradeScreen(true);
-        } else if (result.state.pendingUpgrades > 0) {
-          renderAcademyUpgradeScreen();
-        } else {
-          closeAcademyUpgradeScreen();
+    actionPanel.classList.remove('is-complete');
+    document.getElementById('footballRenovationSubtitle').textContent =
+      renovation
+        ? 'Yeni seviyeni tek, anlamlı bir kampüs geliştirmesine dönüştür.'
+        : 'Siparişleri tamamla, XP kazan ve sıradaki yenilemeyi aç.';
+    document.getElementById('renovationActionIcon').textContent = renovation?.icon || '⭐';
+    document.getElementById('renovationActionKicker').textContent = renovation
+      ? `SEVİYE ${renovation.level} GELİŞTİRMESİ`
+      : 'SIRADAKİ GELİŞTİRME KİLİTLİ';
+    document.getElementById('renovationActionTitle').textContent =
+      renovation?.title || `Seviye ${academyState.level + 1}'e ulaş`;
+    document.getElementById('renovationActionDescription').textContent =
+      renovation?.description || 'Yeni bir sipariş tamamlayarak akademi XP’si kazan.';
+    actionButton.disabled = !renovation;
+    actionButton.innerHTML = renovation
+      ? '<span>Geliştirmeyi yap</span><small>Tek kampüs yenilemesi</small>'
+      : '<span>Henüz hazır değil</span><small>Oyuna dön ve XP kazan</small>';
+    actionButton.onclick = renovation
+      ? () => {
+          const result = Academy.applyNextRenovation();
+          if (!result) return;
+          document.getElementById('footballCampusVisual').classList.add('is-renovating');
+          window.setTimeout(() => {
+            document.getElementById('footballCampusVisual').classList.remove('is-renovating');
+            renderAcademyWorld();
+            renderPlayerProgression();
+            showToast(`${result.renovation.title} tamamlandı`);
+            renderFootballRenovation();
+          }, 420);
         }
-      });
-      choicesRoot.appendChild(button);
-    });
+      : () => closeSportsCampus();
+  }
+
+  function openSportsCampus(openRenovation = false) {
+    renderCampusMap();
+    const overlay = document.getElementById('sportsCampusOverlay');
     overlay.hidden = false;
+    document.body.classList.add('campus-open');
+    if (openRenovation) renderFootballRenovation();
+    else showCampusMap();
   }
 
   function handleAcademyProgress(academyProgress) {
     renderAcademyWorld();
     renderPlayerProgression();
     if (!academyProgress?.levelUps?.length) return;
-    window.setTimeout(() => renderAcademyUpgradeScreen(), 260);
+    window.setTimeout(() => openSportsCampus(false), 180);
   }
 
   function renderEconomy() {
@@ -2011,6 +2080,14 @@
     applyTranslations();
     loadEnergy();
     createBoard();
+    document.getElementById('campusCloseButton').addEventListener(
+      'click',
+      closeSportsCampus
+    );
+    document.getElementById('campusBackButton').addEventListener('click', () => {
+      renderCampusMap();
+      showCampusMap();
+    });
     document.getElementById('producerXpDebug').addEventListener('click', () => {
       if (!TESTING_MODE.enabled) return;
       const result = Progression.addProducerXp(TESTING_MODE.producerXpIncrement);
@@ -2026,8 +2103,8 @@
     renderAcademyWorld();
     renderEnergy();
     clearItemInfo();
-    if (Academy.getState().pendingUpgrades > 0) {
-      window.setTimeout(() => renderAcademyUpgradeScreen(), 320);
+    if (Academy.getState().pendingRenovations > 0) {
+      window.setTimeout(() => openSportsCampus(false), 320);
     }
     window.setInterval(() => {
       energyTick();

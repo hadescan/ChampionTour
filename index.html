@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <meta name="theme-color" content="#67b9d8">
   <title>Champion Tour — Futbol Birleştirme Prototipi</title>
-  <link rel="stylesheet" href="style.css?v=sprint-8-2-academy">
+  <link rel="stylesheet" href="style.css?v=sprint-8-3-campus-2">
 </head>
 <body>
   <div class="scene" aria-hidden="true">
@@ -127,29 +127,74 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <div class="academy-upgrade-overlay" id="academyUpgradeOverlay" hidden>
-    <section class="academy-upgrade-screen" role="dialog" aria-modal="true" aria-labelledby="academyUpgradeTitle">
-      <div class="upgrade-celebration" aria-hidden="true">✦</div>
-      <span class="upgrade-kicker">FOOTBALL ACADEMY</span>
-      <h2 id="academyUpgradeTitle">Akademin büyümeye hazır!</h2>
-      <p>Yeni seviyeni kampüste görünür bir gelişmeye dönüştür.</p>
-      <div class="academy-level-banner">
-        <span>AKADEMİ SEVİYESİ</span>
-        <strong id="academyUpgradeLevel">2</strong>
+  <div class="sports-campus-overlay" id="sportsCampusOverlay" hidden>
+    <section class="sports-campus-screen" role="dialog" aria-modal="true" aria-labelledby="sportsCampusTitle">
+      <header class="campus-screen-header">
+        <div>
+          <span class="campus-kicker">CHAMPION TOUR</span>
+          <h2 id="sportsCampusTitle">Spor Kampüsü</h2>
+          <p>Akademilerini yenile, geleceğin şampiyonlarını yetiştir.</p>
+        </div>
+        <div class="campus-level-chip">
+          <small>KAMPÜS SEVİYESİ</small>
+          <strong id="campusLevelValue">1</strong>
+        </div>
+      </header>
+      <div class="campus-map" id="campusAcademyGrid" aria-label="Spor akademileri"></div>
+      <footer class="campus-screen-footer">
+        <span id="campusProgressText">Football Academy yenileniyor</span>
+        <button type="button" class="campus-close-button" id="campusCloseButton">Oyuna dön</button>
+      </footer>
+    </section>
+
+    <section class="football-renovation-screen" id="footballRenovationScreen" role="dialog" aria-modal="true" aria-labelledby="footballRenovationTitle" hidden>
+      <header class="renovation-header">
+        <button type="button" class="campus-back-button" id="campusBackButton" aria-label="Spor Kampüsüne dön">‹</button>
+        <div>
+          <span class="campus-kicker">SPOR KAMPÜSÜ</span>
+          <h2 id="footballRenovationTitle">Football Academy</h2>
+          <p id="footballRenovationSubtitle">Eski tesisi adım adım şampiyonların akademisine dönüştür.</p>
+        </div>
+        <strong class="renovation-level" id="renovationLevelValue">1 / 30</strong>
+      </header>
+
+      <div class="football-campus-visual" id="footballCampusVisual" data-stage="1" aria-label="Football Academy yenileme görünümü">
+        <div class="renovation-sky"></div>
+        <div class="renovation-building">
+          <span class="renovation-roof"></span>
+          <span class="renovation-sign">CT</span>
+        </div>
+        <div class="renovation-pitch">
+          <span class="renovation-pitch-circle"></span>
+          <span class="renovation-goal"></span>
+        </div>
+        <div class="renovation-stands"></div>
+        <div class="renovation-fitness">FIT</div>
+        <div class="renovation-path"></div>
+        <div class="renovation-lights"><i></i><i></i></div>
+        <div class="renovation-landscape"><i></i><i></i><i></i></div>
       </div>
-      <div class="academy-upgrade-choices" id="academyUpgradeChoices"></div>
-      <div class="academy-upgrade-footer">
-        <span id="academyCompletionText">Football Academy yolculuğu devam ediyor.</span>
-        <strong id="academyLevelProgress">2 / 30</strong>
+
+      <div class="renovation-action-panel" id="renovationActionPanel">
+        <span class="renovation-action-icon" id="renovationActionIcon" aria-hidden="true">🏠</span>
+        <div class="renovation-action-copy">
+          <small id="renovationActionKicker">SEVİYE 2 GELİŞTİRMESİ</small>
+          <strong id="renovationActionTitle">Kulüp binası çatısı</strong>
+          <p id="renovationActionDescription">Eksik çatıyı tamamla.</p>
+        </div>
+        <button type="button" class="renovation-action-button" id="renovationActionButton">
+          <span>Geliştirmeyi yap</span>
+          <small>Tek kampüs yenilemesi</small>
+        </button>
       </div>
     </section>
   </div>
 
   <script src="js/i18n.js"></script>
   <script src="js/game-data.js"></script>
-  <script src="js/progression.js?v=sprint-8-2-academy"></script>
-  <script src="js/academy.js?v=sprint-8-2-academy"></script>
+  <script src="js/progression.js?v=sprint-8-3-campus-2"></script>
+  <script src="js/academy.js?v=sprint-8-3-campus-2"></script>
   <script src="js/audio.js"></script>
-  <script src="script.js?v=sprint-8-2-academy"></script>
+  <script src="script.js?v=sprint-8-3-campus-2"></script>
 </body>
 </html>
