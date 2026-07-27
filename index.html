@@ -5,51 +5,89 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <meta name="theme-color" content="#67b9d8">
   <title>Champion Tour — Futbol Birleştirme Prototipi</title>
-  <link rel="stylesheet" href="style.css?v=sprint-5-spawn-motion-correction">
+  <link rel="stylesheet" href="style.css?v=sprint-8-2-academy">
 </head>
 <body>
   <div class="scene" aria-hidden="true">
     <div class="sun"></div>
     <div class="cloud cloud-a"></div>
     <div class="cloud cloud-b"></div>
-    <div class="academy">
-      <div class="academy-roof"></div>
-      <div class="academy-badge">CT</div>
+    <div class="academy-world" id="academyWorld">
+      <div class="academy-horizon"></div>
+      <div class="campus-road road-main"></div>
+      <div class="campus-road road-side"></div>
+      <div class="academy-field field-main">
+        <span class="field-circle"></span>
+        <span class="field-goal goal-a"></span>
+        <span class="field-goal goal-b"></span>
+      </div>
+      <div class="academy-field field-training"></div>
+      <div class="academy-stands stands-left"></div>
+      <div class="academy-stands stands-right"></div>
+      <div class="academy-building clubhouse">
+        <span class="building-sign">CT</span>
+      </div>
+      <div class="academy-building fitness-center">
+        <span class="building-sign">FIT</span>
+      </div>
+      <div class="campus-trees trees-left"><i></i><i></i><i></i></div>
+      <div class="campus-trees trees-right"><i></i><i></i><i></i></div>
+      <div class="campus-lights lights-left"><i></i><i></i></div>
+      <div class="campus-lights lights-right"><i></i><i></i></div>
     </div>
-    <div class="pitch"></div>
   </div>
 
   <main class="game">
-    <header class="game-header">
-      <div class="brand">
-        <span class="brand-kicker" data-i18n="prototype.kicker"></span>
-        <h1>Champion Tour</h1>
-      </div>
+    <h1 class="visually-hidden">Champion Tour</h1>
+    <header class="game-header" data-i18n-aria="resources.title">
+      <section class="player-level-card hud-capsule" aria-label="Oyuncu seviyesi ve deneyimi">
+        <div class="level-ring" id="playerXpRing" aria-hidden="true">
+          <svg viewBox="0 0 48 48">
+            <circle class="level-ring-track" cx="24" cy="24" r="20"></circle>
+            <circle class="level-ring-progress" cx="24" cy="24" r="20"></circle>
+          </svg>
+          <span id="playerLevelValue">1</span>
+        </div>
+        <div class="level-copy">
+          <small>SEVİYE</small>
+          <strong id="xpValue">0 / 100 XP</strong>
+        </div>
+      </section>
 
-      <section class="energy-card" data-i18n-aria="energy.label">
-        <div class="energy-symbol" aria-hidden="true">⚡</div>
+      <section class="energy-card hud-capsule" data-i18n-aria="energy.label">
+        <span class="hud-icon energy-symbol" aria-hidden="true">
+          <svg viewBox="0 0 32 32"><path d="M18.3 2.8 7.6 17.3h7.1l-1 11.9 10.7-15h-7.1z"></path></svg>
+        </span>
         <div class="energy-content">
           <div class="energy-row">
-            <span data-i18n="energy.label"></span>
-            <strong id="energyValue">100 / 100</strong>
+            <strong id="energyValue">100</strong>
+            <span class="energy-maximum">/ 100</span>
           </div>
           <div class="energy-track" aria-hidden="true">
             <span class="energy-fill" id="energyFill"></span>
           </div>
-          <div class="energy-timer">
-            <span data-i18n="energy.next_label"></span>
+          <div class="energy-timer" id="energyTimerRow">
+            <span>Sonraki</span>
             <strong id="energyTimer"></strong>
           </div>
         </div>
       </section>
-    </header>
 
-    <section class="resource-bar" data-i18n-aria="resources.title">
-      <span class="resource-pill resource-coins">● <strong id="coinValue">0</strong></span>
-      <span class="resource-pill resource-xp">★ <strong id="xpValue">0</strong></span>
-      <span class="resource-pill resource-gems">◆ <strong id="gemValue">0</strong></span>
-      <span class="resource-pill resource-event">⚑ <strong id="eventValue">0</strong></span>
-    </section>
+      <section class="resource-pill resource-coins hud-capsule" aria-label="Altın">
+        <span class="hud-icon resource-icon" aria-hidden="true">
+          <svg viewBox="0 0 32 32"><ellipse cx="16" cy="17" rx="11" ry="10"/><ellipse class="icon-detail" cx="16" cy="15" rx="8.2" ry="7.4"/><path class="icon-detail" d="M13.3 11.8h4.3a2.1 2.1 0 0 1 0 4.2h-3.1a2.1 2.1 0 0 0 0 4.2h4.1M16 9.9v12"/></svg>
+        </span>
+        <span class="resource-copy"><small>ALTIN</small><strong id="coinValue">0</strong></span>
+      </section>
+
+      <section class="resource-pill resource-gems hud-capsule" aria-label="Elmas">
+        <span class="hud-icon resource-icon" aria-hidden="true">
+          <svg viewBox="0 0 32 32"><path d="M8 6.5h16l5 7.1L16 27 3 13.6z"/><path class="icon-detail" d="m8 6.5 4 7.1 4-7.1 4 7.1 4-7.1M3 13.6h26M12 13.6 16 27l4-13.4"/></svg>
+        </span>
+        <span class="resource-copy"><small>ELMAS</small><strong id="gemValue">0</strong></span>
+      </section>
+      <span id="eventValue" hidden>0</span>
+    </header>
 
     <section class="orders-strip" id="ordersStrip" data-i18n-aria="orders.title"></section>
 
@@ -89,10 +127,29 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+  <div class="academy-upgrade-overlay" id="academyUpgradeOverlay" hidden>
+    <section class="academy-upgrade-screen" role="dialog" aria-modal="true" aria-labelledby="academyUpgradeTitle">
+      <div class="upgrade-celebration" aria-hidden="true">✦</div>
+      <span class="upgrade-kicker">FOOTBALL ACADEMY</span>
+      <h2 id="academyUpgradeTitle">Akademin büyümeye hazır!</h2>
+      <p>Yeni seviyeni kampüste görünür bir gelişmeye dönüştür.</p>
+      <div class="academy-level-banner">
+        <span>AKADEMİ SEVİYESİ</span>
+        <strong id="academyUpgradeLevel">2</strong>
+      </div>
+      <div class="academy-upgrade-choices" id="academyUpgradeChoices"></div>
+      <div class="academy-upgrade-footer">
+        <span id="academyCompletionText">Football Academy yolculuğu devam ediyor.</span>
+        <strong id="academyLevelProgress">2 / 30</strong>
+      </div>
+    </section>
+  </div>
+
   <script src="js/i18n.js"></script>
   <script src="js/game-data.js"></script>
-  <script src="js/progression.js"></script>
+  <script src="js/progression.js?v=sprint-8-2-academy"></script>
+  <script src="js/academy.js?v=sprint-8-2-academy"></script>
   <script src="js/audio.js"></script>
-  <script src="script.js?v=continuous-spawn-handoff"></script>
+  <script src="script.js?v=sprint-8-2-academy"></script>
 </body>
 </html>

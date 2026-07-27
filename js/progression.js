@@ -129,11 +129,45 @@ window.ChampionTour.Progression = (function () {
   }
 
   function normalizeOrder(order) {
-    const level = Math.max(1, Math.min(DATA.maxItemLevel, Number(order?.level) || 1));
-    return {
+    const rawItems = (Array.isArray(order?.items) && order.items.length
+      ? order.items
+      : [{ level: order?.level, quantity: order?.quantity }]).slice(0, 2);
+    const quantityByLevel = new Map();
+
+    rawItems.forEach((item) => {
+      const level = Math.max(
+        1,
+        Math.min(DATA.maxItemLevel, Number(item?.level) || 1)
+      );
+      const quantity = Math.max(1, Math.floor(Number(item?.quantity) || 1));
+      quantityByLevel.set(level, (quantityByLevel.get(level) || 0) + quantity);
+    });
+
+    const items = Array.from(quantityByLevel, ([level, quantity]) => ({
       level,
-      quantity: 1,
-      rewards: { ...DATA.orders.rewards[level] }
+      quantity
+    }));
+    const rewards = items.reduce(
+      (total, item) => {
+        const levelReward = DATA.orders.rewards[item.level];
+        total.coins += levelReward.coins * item.quantity;
+        total.xp += levelReward.xp * item.quantity;
+        total.gems += levelReward.gems * item.quantity;
+        total.eventPoints += levelReward.eventPoints * item.quantity;
+        return total;
+      },
+      { coins: 0, xp: 0, gems: 0, eventPoints: 0 }
+    );
+    const primary = items[0];
+
+    return {
+      level: primary.level,
+      quantity: primary.quantity,
+      items,
+      customerId: ['coach', 'captain', 'scout'].includes(order?.customerId)
+        ? order.customerId
+        : null,
+      rewards
     };
   }
 
@@ -147,12 +181,45 @@ window.ChampionTour.Progression = (function () {
     return 1;
   }
 
-  function createOrder() {
-    return normalizeOrder({ level: rollOrderLevel() });
+  function createOrder(forcedItemCount = 0) {
+    const multiItemRoll = Math.random();
+    const itemCount = forcedItemCount > 0
+      ? Math.max(1, Math.min(2, forcedItemCount))
+      : producer.level >= 2 && multiItemRoll < 0.5
+          ? 2
+          : 1;
+    const levels = [];
+
+    while (levels.length < itemCount) {
+      let level = rollOrderLevel();
+      let attempts = 0;
+      while (levels.includes(level) && attempts < 6) {
+        level = rollOrderLevel();
+        attempts += 1;
+      }
+      if (levels.includes(level)) {
+        level = Array.from(
+          { length: DATA.maxItemLevel },
+          (_, index) => index + 1
+        ).find((candidate) => !levels.includes(candidate));
+      }
+      levels.push(level);
+    }
+
+    return normalizeOrder({
+      items: levels.map((level) => ({ level, quantity: 1 }))
+    });
   }
 
   function ensureOrders() {
     while (orders.length < DATA.orders.slotCount) orders.push(createOrder());
+    if (
+      producer.level >= 2 &&
+      orders.length > 1 &&
+      !orders.some((order) => order.items.length > 1)
+    ) {
+      orders[1] = createOrder(2);
+    }
     save();
   }
 
@@ -208,14 +275,32 @@ window.ChampionTour.Progression = (function () {
     return orders.map((order) => ({
       level: order.level,
       quantity: order.quantity,
+      items: order.items.map((item) => ({ ...item })),
+      customerId: order.customerId,
       rewards: { ...order.rewards }
     }));
   }
 
-  function fulfillOrder(slotIndex, itemLevel) {
+  function fulfillOrder(slotIndex, deliveredItems) {
     ensureOrders();
     const order = orders[slotIndex];
-    if (!order || order.level !== itemLevel) return null;
+    if (!order) return null;
+
+    const deliveredLevels = Array.isArray(deliveredItems)
+      ? deliveredItems.map(Number)
+      : [Number(deliveredItems)];
+    const deliveredCounts = deliveredLevels.reduce((counts, level) => {
+      counts.set(level, (counts.get(level) || 0) + 1);
+      return counts;
+    }, new Map());
+    const requirementsMet = order.items.every(
+      (item) => (deliveredCounts.get(item.level) || 0) >= item.quantity
+    );
+    const expectedItemCount = order.items.reduce(
+      (total, item) => total + item.quantity,
+      0
+    );
+    if (!requirementsMet || deliveredLevels.length !== expectedItemCount) return null;
 
     economy.coins += order.rewards.coins;
     economy.gems += order.rewards.gems;
@@ -223,6 +308,7 @@ window.ChampionTour.Progression = (function () {
     const producerProgress = applyProducerXp(order.rewards.xp);
     const completed = {
       level: order.level,
+      items: order.items.map((item) => ({ ...item })),
       rewards: { ...order.rewards },
       producerProgress
     };

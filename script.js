@@ -6,6 +6,7 @@
   const CELL_COUNT = BOARD_COLUMNS * BOARD_ROWS;
   const DATA = window.ChampionTour.GameData;
   const Progression = window.ChampionTour.Progression;
+  const Academy = window.ChampionTour.AcademyProgression;
   const GameAudio = window.ChampionTour.Audio;
   const TESTING_MODE = DATA.testing;
   const INITIAL_PRODUCER_INDEX =
@@ -21,18 +22,24 @@
   const PRODUCER_PRESS_MS = 120;
   const PRODUCER_EXIT_HOLD_MS = 50;
   const PRODUCER_MIN_FLIGHT_MS = 190;
-  const PRODUCER_MAX_FLIGHT_MS = 250;
-  const PRODUCER_FLIGHT_MS_PER_CELL = 12;
+  const PRODUCER_MAX_FLIGHT_MS = 280;
+  const PRODUCER_FLIGHT_MS_PER_CELL = 15;
   const PRODUCER_LANDING_MS = 110;
   const PRODUCER_SPAWN_FALLBACK_MS = 120;
   const SPAWN_VISUAL_STAGGER_MS = 65;
   const MAX_ACTIVE_SPAWN_VISUALS = 3;
-  const MERGE_DEPARTURE_MS = 180;
+  const MERGE_DEPARTURE_MS = 105;
+  const MERGE_SPARKS_MS = 320;
   const DRAG_FOLLOW_OFFSET = 4;
   const DRAG_MAX_TILT = 3;
   const DROP_SETTLE_MS = 100;
   const INVALID_DROP_MS = 150;
-  const MERGE_ANTICIPATION_MS = 90;
+  const MERGE_ANTICIPATION_MS = 55;
+  const ORDER_DELIVERY_MS = 180;
+  const ORDER_CARD_RESOLVE_MS = 310;
+  const ORDER_REWARD_START_MS = 105;
+  const ORDER_REWARD_FLIGHT_MS = 470;
+  const ORDER_COUNTER_PULSE_MS = 240;
 
   const TEXT = {
     emptyCell: window.t('board.empty_cell'),
@@ -66,6 +73,8 @@
   const spawnVisualQueue = [];
   let activeSpawnVisuals = 0;
   let nextSpawnVisualStartAt = 0;
+  let orderReadinessScheduled = false;
+  const counterAnimations = new Map();
 
   function ballSource(level) {
     return DATA.items[level].sprite;
@@ -180,15 +189,18 @@
   function renderEnergy() {
     const value = document.getElementById('energyValue');
     const timer = document.getElementById('energyTimer');
+    const timerRow = document.getElementById('energyTimerRow');
     const fill = document.getElementById('energyFill');
 
-    value.textContent = `${state.energy} / ${MAX_ENERGY}`;
+    value.textContent = String(state.energy);
     fill.style.width = `${(state.energy / MAX_ENERGY) * 100}%`;
 
     if (state.energy >= MAX_ENERGY) {
-      timer.textContent = TEXT.full;
+      timer.textContent = '';
+      timerRow.hidden = true;
     } else {
       timer.textContent = formatCountdown(state.nextEnergyAt - Date.now());
+      timerRow.hidden = false;
     }
 
     updateProducerReadiness();
@@ -355,6 +367,7 @@
   }
 
   function renderCell(index, animationClass) {
+    scheduleOrderReadinessUpdate();
     const cell = cellElements[index];
     const item = state.cells[index];
     cell.className = 'cell';
@@ -483,49 +496,516 @@
     }
   }
 
+  function renderPlayerProgression() {
+    const academyState = Academy.getState();
+    const requiredXp = Math.max(1, Number(academyState.xpToNext) || 1);
+    const levelValue = document.getElementById('playerLevelValue');
+    const xpValue = document.getElementById('xpValue');
+    const xpRing = document.getElementById('playerXpRing');
+
+    levelValue.textContent = String(academyState.level);
+    xpValue.textContent = academyState.completed
+      ? 'TAMAMLANDI'
+      : `${academyState.xp} / ${requiredXp} XP`;
+    xpRing.style.setProperty('--xp-progress', String(academyState.progress));
+    document.querySelector('.player-level-card')?.setAttribute(
+      'aria-label',
+      `Football Academy seviye ${academyState.level}`
+    );
+  }
+
+  function renderAcademyWorld() {
+    const academyState = Academy.getState();
+    const world = document.getElementById('academyWorld');
+    if (!world) return;
+
+    Object.entries(academyState.improvements).forEach(([key, level]) => {
+      const maxLevel = Academy.IMPROVEMENTS[key].maxLevel;
+      world.style.setProperty(`--${key}-progress`, String(level / maxLevel));
+      world.dataset[key] = String(level);
+    });
+    world.dataset.level = String(academyState.level);
+    world.classList.toggle('academy-completed', academyState.completed);
+    document.body.classList.toggle('football-academy-completed', academyState.completed);
+  }
+
+  function closeAcademyUpgradeScreen() {
+    document.getElementById('academyUpgradeOverlay').hidden = true;
+  }
+
+  function renderAcademyUpgradeScreen(showCompletion = false) {
+    const academyState = Academy.getState();
+    const overlay = document.getElementById('academyUpgradeOverlay');
+    const title = document.getElementById('academyUpgradeTitle');
+    const level = document.getElementById('academyUpgradeLevel');
+    const choicesRoot = document.getElementById('academyUpgradeChoices');
+    const completionText = document.getElementById('academyCompletionText');
+    const levelProgress = document.getElementById('academyLevelProgress');
+
+    level.textContent = String(academyState.level);
+    levelProgress.textContent = `${academyState.level} / ${academyState.maxLevel}`;
+
+    if (showCompletion || academyState.completed) {
+      title.textContent = 'Football Academy tamamlandı!';
+      title.nextElementSibling.textContent =
+        'Küçük tesisin artık yaşayan, dünya standartlarında bir futbol kampüsü.';
+      completionText.textContent = 'Sıradaki dünya: Basketball Academy';
+      choicesRoot.innerHTML =
+        '<div class="academy-complete-message">' +
+          '<strong>🏆 Tamamlanmış Kampüs</strong>' +
+          '<span>Football Academy gelişmeye devam eden kalıcı dünyan olarak korunacak.</span>' +
+          '<button type="button" class="academy-return-button">Kampüse dön</button>' +
+        '</div>';
+      choicesRoot.querySelector('.academy-return-button').addEventListener(
+        'click',
+        closeAcademyUpgradeScreen
+      );
+      overlay.hidden = false;
+      return;
+    }
+
+    title.textContent = 'Akademin büyümeye hazır!';
+    title.nextElementSibling.textContent =
+      'Yeni seviyeni kampüste görünür bir gelişmeye dönüştür.';
+    completionText.textContent = 'Football Academy yolculuğu devam ediyor.';
+    choicesRoot.innerHTML = '';
+
+    Academy.getUpgradeChoices().forEach((choice) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'academy-upgrade-choice';
+      button.dataset.upgradeKey = choice.key;
+      button.innerHTML =
+        `<span class="upgrade-choice-icon" aria-hidden="true">${choice.icon}</span>` +
+        `<strong>${choice.name}</strong>` +
+        `<small>${choice.description}</small>` +
+        `<span class="upgrade-choice-level">Aşama ${choice.nextLevel}/${choice.maxLevel}</span>`;
+      button.addEventListener('click', () => {
+        const result = Academy.applyUpgrade(choice.key);
+        if (!result) return;
+        renderAcademyWorld();
+        renderPlayerProgression();
+        showToast(`${choice.name} geliştirildi`);
+        if (result.state.completed) {
+          renderAcademyUpgradeScreen(true);
+        } else if (result.state.pendingUpgrades > 0) {
+          renderAcademyUpgradeScreen();
+        } else {
+          closeAcademyUpgradeScreen();
+        }
+      });
+      choicesRoot.appendChild(button);
+    });
+    overlay.hidden = false;
+  }
+
+  function handleAcademyProgress(academyProgress) {
+    renderAcademyWorld();
+    renderPlayerProgression();
+    if (!academyProgress?.levelUps?.length) return;
+    window.setTimeout(() => renderAcademyUpgradeScreen(), 260);
+  }
+
   function renderEconomy() {
     const economy = Progression.getEconomy();
     document.getElementById('coinValue').textContent = String(economy.coins);
-    document.getElementById('xpValue').textContent = String(economy.xp);
     document.getElementById('gemValue').textContent = String(economy.gems);
     document.getElementById('eventValue').textContent = String(economy.eventPoints);
+    renderPlayerProgression();
+  }
+
+  function findOrderItem(level) {
+    return state.cells.findIndex(
+      (item, index) =>
+        item?.type === 'ball' &&
+        item.level === level &&
+        !cellElements[index]?.classList.contains('merge-resolving')
+    );
+  }
+
+  function orderRequirements(order) {
+    const source = Array.isArray(order?.items) && order.items.length
+      ? order.items
+      : [{ level: order?.level, quantity: order?.quantity }];
+    const quantitiesByLevel = new Map();
+
+    source.forEach((requirement) => {
+      const level = Math.max(
+        1,
+        Math.min(MAX_LEVEL, Number(requirement?.level) || 1)
+      );
+      const quantity = Math.max(1, Math.floor(Number(requirement?.quantity) || 1));
+      quantitiesByLevel.set(level, (quantitiesByLevel.get(level) || 0) + quantity);
+    });
+
+    return Array.from(quantitiesByLevel, ([level, quantity]) => ({
+      level,
+      quantity
+    }));
+  }
+
+  function boardItemCount(level) {
+    return state.cells.reduce(
+      (count, item, index) =>
+        count + Number(
+          item?.type === 'ball' &&
+          item.level === level &&
+          !cellElements[index]?.classList.contains('merge-resolving')
+        ),
+      0
+    );
+  }
+
+  function analyzeOrderReadiness(order) {
+    const requirements = orderRequirements(order).map((requirement) => ({
+      ...requirement,
+      available: boardItemCount(requirement.level)
+    }));
+    const availableItems = requirements.reduce(
+      (total, requirement) =>
+        total + Math.min(requirement.available, requirement.quantity),
+      0
+    );
+    return {
+      requirements,
+      partial: availableItems > 0,
+      full:
+        requirements.length > 0 &&
+        requirements.every(
+          (requirement) => requirement.available >= requirement.quantity
+        )
+    };
+  }
+
+  function updateOrderReadiness() {
+    const orders = Progression.getOrders();
+    const boardHighlights = new Map();
+
+    document.querySelectorAll('.order-card').forEach((card) => {
+      const orderIndex = Number(card.dataset.orderIndex);
+      const order = orders[orderIndex];
+      const presenting = card.classList.contains('order-presenting');
+      const readiness = order && !presenting
+        ? analyzeOrderReadiness(order)
+        : { requirements: [], partial: false, full: false };
+      card.classList.toggle('order-partial', readiness.partial && !readiness.full);
+      card.classList.toggle('order-ready', readiness.full);
+      card.dataset.readiness = readiness.full
+        ? 'full'
+        : readiness.partial
+          ? 'partial'
+          : 'none';
+
+      card.querySelectorAll('.order-item-chip').forEach((chip) => {
+        const requirement = readiness.requirements.find(
+          (candidate) => candidate.level === Number(chip.dataset.level)
+        );
+        const itemReady = Boolean(requirement?.available);
+        chip.classList.toggle(
+          'item-partial',
+          readiness.partial && !readiness.full && itemReady
+        );
+        chip.classList.toggle('item-ready', readiness.full && itemReady);
+      });
+
+      const deliverButton = card.querySelector('.order-deliver-button');
+      if (deliverButton) {
+        deliverButton.hidden = !readiness.full;
+        deliverButton.disabled = !readiness.full;
+      }
+
+      readiness.requirements.forEach((requirement) => {
+        if (!requirement.available) return;
+        const current = boardHighlights.get(requirement.level);
+        if (readiness.full || current !== 'full') {
+          boardHighlights.set(
+            requirement.level,
+            readiness.full ? 'full' : 'partial'
+          );
+        }
+      });
+    });
+
+    cellElements.forEach((cell, index) => {
+      const item = state.cells[index];
+      const highlight = item?.type === 'ball'
+        ? boardHighlights.get(item.level)
+        : null;
+      cell.classList.toggle('order-match-partial', highlight === 'partial');
+      cell.classList.toggle('order-match', highlight === 'full');
+    });
+  }
+
+  function scheduleOrderReadinessUpdate() {
+    if (orderReadinessScheduled) return;
+    orderReadinessScheduled = true;
+    queueMicrotask(() => {
+      orderReadinessScheduled = false;
+      updateOrderReadiness();
+    });
+  }
+
+  function fulfillReadyOrder(orderIndex) {
+    const card = document.querySelector(
+      `.order-card[data-order-index="${orderIndex}"]`
+    );
+    const order = Progression.getOrders()[orderIndex];
+    if (!card || !order || card.classList.contains('order-presenting')) return;
+
+    const readiness = analyzeOrderReadiness(order);
+    if (!readiness.full) {
+      scheduleOrderReadinessUpdate();
+      return;
+    }
+
+    const fromIndex = findOrderItem(readiness.requirements[0].level);
+    if (fromIndex < 0) {
+      scheduleOrderReadinessUpdate();
+      return;
+    }
+
+    const sourceCell = cellElements[fromIndex];
+    const sourceRect = sourceCell.getBoundingClientRect();
+    const deliveryGhost = createGhost(
+      state.cells[fromIndex],
+      sourceRect.left + sourceRect.width / 2,
+      sourceRect.top + sourceRect.height / 2
+    );
+    tryFulfillOrder(fromIndex, orderIndex, deliveryGhost);
+  }
+
+  function collectOrderItemIndices(readiness, preferredIndex = -1) {
+    const collected = [];
+
+    readiness.requirements.forEach((requirement) => {
+      const matches = state.cells
+        .map((item, index) => ({ item, index }))
+        .filter(
+          ({ item, index }) =>
+            item?.type === 'ball' &&
+            item.level === requirement.level &&
+            !collected.includes(index) &&
+            !cellElements[index]?.classList.contains('merge-resolving')
+        )
+        .map(({ index }) => index);
+
+      if (matches.includes(preferredIndex)) {
+        matches.splice(matches.indexOf(preferredIndex), 1);
+        matches.unshift(preferredIndex);
+      }
+      collected.push(...matches.slice(0, requirement.quantity));
+    });
+
+    return collected;
+  }
+
+  function createCustomerPortrait(order, index) {
+    const customerKeys = ['coach', 'captain', 'scout'];
+    const customerKey = order.customerId || customerKeys[index % customerKeys.length];
+    const portraitSources = {
+      coach: 'assets/UI/Customers/customer_coach.png',
+      captain: 'assets/UI/Customers/customer_player.png',
+      scout: 'assets/UI/Customers/customer_scout.png'
+    };
+    const portrait = document.createElement('div');
+    portrait.className = `customer-portrait customer-${customerKey}`;
+    portrait.dataset.customer = customerKey;
+    portrait.setAttribute('aria-hidden', 'true');
+    const image = document.createElement('img');
+    image.src = portraitSources[customerKey] || portraitSources.coach;
+    image.alt = '';
+    image.draggable = false;
+    portrait.appendChild(image);
+    return portrait;
+  }
+
+  function customerName(order, index) {
+    const customerKeys = ['coach', 'captain', 'scout'];
+    const customerKey = order.customerId || customerKeys[index % customerKeys.length];
+    return {
+      coach: 'Koç Emre',
+      captain: 'Maya',
+      scout: 'Derya'
+    }[customerKey];
+  }
+
+  function createOrderCard(order, index) {
+    const card = document.createElement('article');
+    card.className = 'order-card';
+    card.dataset.orderIndex = String(index);
+    card.appendChild(createCustomerPortrait(order, index));
+
+    const requirements = orderRequirements(order);
+    if (requirements.length > 1) card.classList.add('multi-requirement');
+
+    const customer = document.createElement('strong');
+    customer.className = 'order-customer-name';
+    customer.textContent = customerName(order, index);
+    card.appendChild(customer);
+
+    const items = document.createElement('div');
+    items.className = 'order-items';
+    if (requirements.length > 1) items.classList.add('multi-item');
+
+    requirements.forEach((requirement) => {
+      const chip = document.createElement('span');
+      chip.className = 'order-item-chip';
+      chip.dataset.level = String(requirement.level);
+
+      const image = document.createElement('img');
+      image.src = ballSource(requirement.level);
+      image.alt = itemName(requirement.level);
+      chip.appendChild(image);
+
+      if (requirement.quantity > 1) {
+        const itemQuantity = document.createElement('small');
+        itemQuantity.className = 'order-item-quantity';
+        itemQuantity.textContent = `×${requirement.quantity}`;
+        chip.appendChild(itemQuantity);
+      }
+      items.appendChild(chip);
+    });
+    card.appendChild(items);
+
+    const quantity = document.createElement('strong');
+    quantity.className = 'order-quantity';
+    quantity.textContent = `×${requirements[0].quantity}`;
+    quantity.hidden = requirements.length > 1;
+    card.appendChild(quantity);
+
+    const rewards = document.createElement('span');
+    rewards.className = 'order-rewards';
+    rewards.innerHTML =
+      `<span class="order-reward order-reward-coins">` +
+        `<i aria-hidden="true"></i><strong>${order.rewards.coins}</strong>` +
+      `</span>` +
+      `<span class="order-reward order-reward-xp">` +
+        `<i aria-hidden="true">★</i><strong>${order.rewards.xp}</strong>` +
+      `</span>`;
+    card.appendChild(rewards);
+
+    const deliverButton = document.createElement('button');
+    deliverButton.className = 'order-deliver-button';
+    deliverButton.type = 'button';
+    deliverButton.textContent = '✓';
+    deliverButton.hidden = true;
+    deliverButton.disabled = true;
+    deliverButton.setAttribute('aria-label', 'Siparişi teslim et');
+    deliverButton.addEventListener('pointerdown', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+    });
+    deliverButton.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      fulfillReadyOrder(index);
+    });
+    card.appendChild(deliverButton);
+
+    card.setAttribute(
+      'aria-label',
+      requirements
+        .map(
+          (requirement) =>
+            `${itemName(requirement.level)}, ` +
+            `${window.t('orders.quantity')} ${requirement.quantity}`
+        )
+        .join('; ')
+    );
+    return card;
   }
 
   function renderOrders() {
     const root = document.getElementById('ordersStrip');
-    const orders = Progression.getOrders();
     root.innerHTML = '';
-
-    orders.forEach((order, index) => {
-      const card = document.createElement('article');
-      card.className = 'order-card';
-      card.dataset.orderIndex = String(index);
-
-      const image = document.createElement('img');
-      image.src = ballSource(order.level);
-      image.alt = itemName(order.level);
-      card.appendChild(image);
-
-      const quantity = document.createElement('strong');
-      quantity.className = 'order-quantity';
-      quantity.textContent = `×${order.quantity}`;
-      card.appendChild(quantity);
-
-      const rewards = document.createElement('span');
-      rewards.className = 'order-rewards';
-      rewards.textContent = `● ${order.rewards.coins}  ★ ${order.rewards.xp}`;
-      card.appendChild(rewards);
-
-      card.setAttribute(
-        'aria-label',
-        `${itemName(order.level)}, ${window.t('orders.quantity')} ${order.quantity}`
-      );
-      root.appendChild(card);
+    Progression.getOrders().forEach((order, index) => {
+      root.appendChild(createOrderCard(order, index));
     });
+    scheduleOrderReadinessUpdate();
   }
 
-  function playRewardFlights(orderCard, rewards) {
+  function renderOrderSlot(index) {
+    const root = document.getElementById('ordersStrip');
+    const currentCard = root.querySelector(
+      `.order-card[data-order-index="${index}"]`
+    );
+    const nextOrder = Progression.getOrders()[index];
+    if (!currentCard || !nextOrder) {
+      renderOrders();
+      return;
+    }
+
+    const nextCard = createOrderCard(nextOrder, index);
+    nextCard.classList.add('order-entering');
+    currentCard.replaceWith(nextCard);
+    window.setTimeout(() => nextCard.classList.remove('order-entering'), 260);
+    scheduleOrderReadinessUpdate();
+  }
+
+  function animateCounterValue(target, endValue) {
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const startValue = Number.parseInt(target.textContent, 10) || 0;
+    const finalValue = Math.max(0, Math.floor(Number(endValue) || 0));
+    const activeAnimation = counterAnimations.get(target.id);
+    if (activeAnimation) cancelAnimationFrame(activeAnimation.frame);
+
+    if (reducedMotion || startValue === finalValue) {
+      target.textContent = String(finalValue);
+      counterAnimations.delete(target.id);
+      return;
+    }
+
+    const duration = Math.min(360, Math.max(210, Math.abs(finalValue - startValue) * 7));
+    const startedAt = performance.now();
+    const animation = { frame: 0, target: finalValue };
+    counterAnimations.set(target.id, animation);
+
+    const tick = (now) => {
+      const progress = Math.min(1, (now - startedAt) / duration);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      target.textContent = String(
+        Math.round(startValue + (finalValue - startValue) * eased)
+      );
+      if (progress < 1 && counterAnimations.get(target.id) === animation) {
+        animation.frame = requestAnimationFrame(tick);
+      } else {
+        target.textContent = String(finalValue);
+        if (counterAnimations.get(target.id) === animation) {
+          counterAnimations.delete(target.id);
+        }
+      }
+    };
+    animation.frame = requestAnimationFrame(tick);
+  }
+
+  function pulseRewardCounter(targetId, displayedValue) {
+    const target = document.getElementById(targetId);
+    const pill = target?.closest('.hud-capsule, .resource-pill, .player-level-card');
+    if (!target || !pill) return;
+
+    const economy = Progression.getEconomy();
+    const economyKey = {
+      coinValue: 'coins',
+      xpValue: 'xp',
+      gemValue: 'gems',
+      eventValue: 'eventPoints'
+    }[targetId];
+    const resolvedValue = displayedValue ?? economy[economyKey];
+    if (targetId === 'coinValue') animateCounterValue(target, resolvedValue);
+    else if (targetId === 'xpValue') renderPlayerProgression();
+    else target.textContent = String(resolvedValue);
+    pill.classList.remove('reward-received');
+    void pill.offsetWidth;
+    pill.classList.add('reward-received');
+    window.setTimeout(
+      () => pill.classList.remove('reward-received'),
+      ORDER_COUNTER_PULSE_MS
+    );
+  }
+
+  function playRewardFlights(orderCard, rewards, rewardTotals, onXpArrive) {
     const sourceRect = orderCard.getBoundingClientRect();
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const targets = [
       ['coins', 'coinValue', '●'],
       ['xp', 'xpValue', '★'],
@@ -535,18 +1015,61 @@
 
     targets.forEach(([rewardKey, targetId, symbol], index) => {
       if (!rewards[rewardKey]) return;
-      const targetRect = document.getElementById(targetId).getBoundingClientRect();
+      const target = document.getElementById(targetId);
+      if (!target || target.hidden) return;
+      if (reducedMotion) {
+        pulseRewardCounter(targetId, rewardTotals[rewardKey]);
+        if (rewardKey === 'xp') onXpArrive?.();
+        return;
+      }
+      const targetRect = target.getBoundingClientRect();
       const flight = document.createElement('span');
-      flight.className = 'reward-flight';
-      flight.textContent = symbol;
+      flight.className = `reward-flight reward-${rewardKey}`;
+      flight.innerHTML =
+        `<span class="reward-flight-symbol">${symbol}</span>` +
+        `<strong>+${rewards[rewardKey]}</strong>`;
+      flight.setAttribute('aria-hidden', 'true');
       flight.style.left = `${sourceRect.left + sourceRect.width / 2}px`;
       flight.style.top = `${sourceRect.top + sourceRect.height / 2}px`;
       flight.style.setProperty('--reward-x', `${targetRect.left + targetRect.width / 2 - (sourceRect.left + sourceRect.width / 2)}px`);
       flight.style.setProperty('--reward-y', `${targetRect.top + targetRect.height / 2 - (sourceRect.top + sourceRect.height / 2)}px`);
-      flight.style.setProperty('--reward-delay', `${index * 35}ms`);
+      const rewardDelay = ORDER_REWARD_START_MS + index * 40;
+      flight.style.setProperty('--reward-delay', `${rewardDelay}ms`);
       document.body.appendChild(flight);
-      window.setTimeout(() => flight.remove(), 620);
+      window.setTimeout(() => {
+        pulseRewardCounter(targetId, rewardTotals[rewardKey]);
+        if (rewardKey === 'xp') onXpArrive?.();
+      }, rewardDelay + ORDER_REWARD_FLIGHT_MS - 35);
+      window.setTimeout(
+        () => flight.remove(),
+        rewardDelay + ORDER_REWARD_FLIGHT_MS + 40
+      );
     });
+  }
+
+  function playOrderDelivery(ghost, card, itemLevel) {
+    if (!ghost) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      ghost.remove();
+      return;
+    }
+    const image = card.querySelector(
+      `.order-item-chip[data-level="${itemLevel}"] img`
+    );
+    const imageRect = image?.getBoundingClientRect() || card.getBoundingClientRect();
+    const ghostX = Number.parseFloat(ghost.style.left);
+    const ghostY = Number.parseFloat(ghost.style.top);
+    ghost.style.setProperty(
+      '--order-delivery-x',
+      `${imageRect.left + imageRect.width / 2 - ghostX}px`
+    );
+    ghost.style.setProperty(
+      '--order-delivery-y',
+      `${imageRect.top + imageRect.height / 2 - ghostY}px`
+    );
+    ghost.style.setProperty('--drag-tilt', '0deg');
+    ghost.classList.add('order-delivery');
+    window.setTimeout(() => ghost.remove(), ORDER_DELIVERY_MS);
   }
 
   function playProducerUpgrade(levelUps) {
@@ -584,7 +1107,8 @@
       );
       flight.style.setProperty('--reward-delay', '180ms');
       document.body.appendChild(flight);
-      window.setTimeout(() => flight.remove(), 900);
+      window.setTimeout(() => pulseRewardCounter('gemValue'), 615);
+      window.setTimeout(() => flight.remove(), 700);
     }
 
     const finalLevel = levelUps[levelUps.length - 1].level;
@@ -596,26 +1120,90 @@
     showToast(`${message}${rewardMessage}`);
   }
 
-  function tryFulfillOrder(fromIndex, orderIndex) {
+  function tryFulfillOrder(fromIndex, orderIndex, deliveryGhost) {
     const item = state.cells[fromIndex];
     const card = document.querySelector(`.order-card[data-order-index="${orderIndex}"]`);
-    const completed = Progression.fulfillOrder(orderIndex, item?.level);
-    if (!completed) {
+    if (!card || card.classList.contains('order-presenting')) {
+      deliveryGhost?.remove();
+      return false;
+    }
+    const order = Progression.getOrders()[orderIndex];
+    const readiness = order ? analyzeOrderReadiness(order) : null;
+    const itemMatchesOrder = readiness?.requirements.some(
+      (requirement) => requirement.level === item?.level
+    );
+    if (!readiness?.full || !itemMatchesOrder) {
+      deliveryGhost?.remove();
       showToast(window.t('orders.wrong_item'));
+      scheduleOrderReadinessUpdate();
       return false;
     }
 
-    state.cells[fromIndex] = null;
-    if (selectedCellIndex === fromIndex) clearItemInfo();
-    renderCell(fromIndex);
-    playRewardFlights(card, completed.rewards);
-    playProducerUpgrade(completed.producerProgress);
+    const consumedIndices = collectOrderItemIndices(readiness, fromIndex);
+    const requiredItemCount = readiness.requirements.reduce(
+      (total, requirement) => total + requirement.quantity,
+      0
+    );
+    if (consumedIndices.length !== requiredItemCount) {
+      deliveryGhost?.remove();
+      scheduleOrderReadinessUpdate();
+      return false;
+    }
+
+    const deliveries = consumedIndices.map((index) => {
+      const sourceItem = state.cells[index];
+      if (index === fromIndex && deliveryGhost) {
+        return { ghost: deliveryGhost, level: sourceItem.level };
+      }
+      const sourceRect = cellElements[index].getBoundingClientRect();
+      return {
+        ghost: createGhost(
+          sourceItem,
+          sourceRect.left + sourceRect.width / 2,
+          sourceRect.top + sourceRect.height / 2
+        ),
+        level: sourceItem.level
+      };
+    });
+    const deliveredLevels = consumedIndices.map(
+      (index) => state.cells[index].level
+    );
+    const completed = Progression.fulfillOrder(orderIndex, deliveredLevels);
+    if (!completed) {
+      deliveries.forEach((delivery) => delivery.ghost?.remove());
+      showToast(window.t('orders.wrong_item'));
+      return false;
+    }
+    const academyProgress = Academy.addXp(completed.rewards.xp);
+
+    card.classList.remove('order-target');
+    card.classList.add('order-presenting', 'order-complete');
+    deliveries.forEach((delivery) => {
+      playOrderDelivery(delivery.ghost, card, delivery.level);
+    });
+    const rewardTotals = Progression.getEconomy();
+    consumedIndices.forEach((index) => {
+      state.cells[index] = null;
+      renderCell(index);
+    });
+    if (consumedIndices.includes(selectedCellIndex)) clearItemInfo();
+    playRewardFlights(
+      card,
+      completed.rewards,
+      rewardTotals,
+      () => {
+        playProducerUpgrade(completed.producerProgress);
+        handleAcademyProgress(academyProgress);
+      }
+    );
     GameAudio.play('reward');
-    card.classList.add('order-complete');
+    const orderResolveDelay =
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        ? 40
+        : ORDER_CARD_RESOLVE_MS;
     window.setTimeout(() => {
-      renderOrders();
-      renderEconomy();
-    }, 260);
+      renderOrderSlot(orderIndex);
+    }, orderResolveDelay);
     return true;
   }
 
@@ -652,11 +1240,11 @@
   }
 
   function playMergeSparks(cell) {
-    mergeSparksElement.remove();
-    mergeSparksElement.classList.remove('is-active');
-    cell.appendChild(mergeSparksElement);
-    void mergeSparksElement.offsetWidth;
-    mergeSparksElement.classList.add('is-active');
+    const sparks = mergeSparksElement.cloneNode(true);
+    cell.appendChild(sparks);
+    void sparks.offsetWidth;
+    sparks.classList.add('is-active');
+    window.setTimeout(() => sparks.remove(), MERGE_SPARKS_MS);
   }
 
   function createProducerLaunch(targetIndex, onComplete) {
@@ -750,6 +1338,8 @@
     );
     const motionDuration = PRODUCER_EXIT_HOLD_MS + flightDuration;
     const connectionOffset = PRODUCER_EXIT_HOLD_MS / motionDuration;
+    const pushOffset = connectionOffset + (1 - connectionOffset) * .18;
+    const cruiseOffset = connectionOffset + (1 - connectionOffset) * .68;
     launch = document.createElement('div');
     content = document.createElement('div');
 
@@ -783,14 +1373,22 @@
         {
           offset: connectionOffset,
           transform: 'translate(-50%, -50%) translate3d(0, 0, 0)',
-          easing: 'cubic-bezier(.16, .82, .24, 1)'
+          easing: 'cubic-bezier(.42, 0, .58, 1)'
         },
         {
-          offset: .45,
+          offset: pushOffset,
           transform:
             `translate(-50%, -50%) translate3d(` +
-            `${travelX * .72 + perpendicularX * arcHeight}px, ` +
-            `${travelY * .72 + perpendicularY * arcHeight}px, 0)`,
+            `${travelX * .1 + perpendicularX * arcHeight * .45}px, ` +
+            `${travelY * .1 + perpendicularY * arcHeight * .45}px, 0)`,
+          easing: 'cubic-bezier(.22, .61, .36, 1)'
+        },
+        {
+          offset: cruiseOffset,
+          transform:
+            `translate(-50%, -50%) translate3d(` +
+            `${travelX * .7 + perpendicularX * arcHeight}px, ` +
+            `${travelY * .7 + perpendicularY * arcHeight}px, 0)`,
           easing: 'cubic-bezier(.2, .72, .28, 1)'
         },
         {
@@ -822,6 +1420,16 @@
           transform: 'scale(.9)',
           easing: 'cubic-bezier(.18, .76, .26, 1)'
         },
+        {
+          offset: pushOffset,
+          transform: 'scale(.94)',
+          easing: 'cubic-bezier(.2, .72, .28, 1)'
+        },
+        {
+          offset: cruiseOffset,
+          transform: 'scale(.98)',
+          easing: 'cubic-bezier(.2, .72, .28, 1)'
+        },
         { offset: 1, transform: 'scale(1)' }
       ],
       {
@@ -842,7 +1450,19 @@
           offset: connectionOffset,
           transform: 'translateX(-50%) scale(.82)',
           opacity: .12,
-          easing: 'cubic-bezier(.16, .82, .24, 1)'
+          easing: 'cubic-bezier(.42, 0, .58, 1)'
+        },
+        {
+          offset: pushOffset,
+          transform: 'translateX(-50%) scale(.7)',
+          opacity: .1,
+          easing: 'cubic-bezier(.22, .61, .36, 1)'
+        },
+        {
+          offset: cruiseOffset,
+          transform: 'translateX(-50%) scale(.84)',
+          opacity: .22,
+          easing: 'cubic-bezier(.2, .72, .28, 1)'
         },
         {
           offset: 1,
@@ -1107,6 +1727,7 @@
   function isValidTarget(fromIndex, toIndex) {
     if (fromIndex === toIndex) return false;
     if (pendingSpawnTargets.has(toIndex)) return false;
+    if (cellElements[toIndex].classList.contains('merge-resolving')) return false;
     const from = state.cells[fromIndex];
     const to = state.cells[toIndex];
     if (!to) return true;
@@ -1182,8 +1803,10 @@
       : null;
     const toIndex = target ? Number(target.dataset.index) : fromIndex;
     const orderIndex = orderCard ? Number(orderCard.dataset.orderIndex) : -1;
+    const orderAvailable =
+      orderCard && !orderCard.classList.contains('order-presenting');
     const orderMatches = orderCard
-      ? Progression.getOrders()[orderIndex]?.level === item.level
+      ? orderAvailable && Progression.getOrders()[orderIndex]?.level === item.level
       : false;
     const invalidDrop = wasMoved && (
       (!target && !orderCard) ||
@@ -1191,7 +1814,7 @@
       (target && toIndex === fromIndex) ||
       (target && !isValidTarget(fromIndex, toIndex))
     );
-    finishPointer(invalidDrop);
+    const deliveryGhost = finishPointer(invalidDrop, Boolean(orderMatches));
 
     if (!wasMoved) {
       if (item.type === 'ball') handleItemTap(fromIndex, item);
@@ -1199,7 +1822,8 @@
     }
 
     if (orderCard) {
-      if (orderMatches) tryFulfillOrder(fromIndex, orderIndex);
+      if (orderMatches) tryFulfillOrder(fromIndex, orderIndex, deliveryGhost);
+      else if (!orderAvailable) return;
       else showToast(window.t('orders.wrong_item'));
       return;
     }
@@ -1232,6 +1856,7 @@
     state.cells.forEach((candidate, index) => {
       if (
         index === fromIndex ||
+        cellElements[index].classList.contains('merge-resolving') ||
         candidate?.type !== 'ball' ||
         candidate.level !== from.level
       ) return;
@@ -1258,15 +1883,18 @@
     finishPointer(true);
   }
 
-  function finishPointer(invalidDrop = false) {
+  function finishPointer(invalidDrop = false, preserveGhost = false) {
     if (!state.drag) return;
     const dragState = state.drag;
+    let retainedGhost = null;
     const sourceCell = cellElements[dragState.fromIndex];
     sourceCell.classList.remove('drag-source');
     clearTarget();
 
     if (dragState.ghost && dragState.item.type === 'ball') {
-      if (invalidDrop) {
+      if (preserveGhost) {
+        retainedGhost = dragState.ghost;
+      } else if (invalidDrop) {
         const sourceRect = sourceCell.getBoundingClientRect();
         const ghostX = Number.parseFloat(dragState.ghost.style.left);
         const ghostY = Number.parseFloat(dragState.ghost.style.top);
@@ -1292,12 +1920,17 @@
     window.removeEventListener('pointerup', endPointer);
     window.removeEventListener('pointercancel', cancelPointer);
     state.drag = null;
+    return retainedGhost;
   }
 
   function dropItem(fromIndex, toIndex) {
     const from = state.cells[fromIndex];
     const to = state.cells[toIndex];
     if (!from) return;
+    if (
+      cellElements[fromIndex].classList.contains('merge-resolving') ||
+      cellElements[toIndex].classList.contains('merge-resolving')
+    ) return;
 
     if (!to) {
       if (selectedCellIndex === fromIndex) selectedCellIndex = toIndex;
@@ -1322,17 +1955,20 @@
       const deltaX = toRect.left + toRect.width / 2 - (fromRect.left + fromRect.width / 2);
       const deltaY = toRect.top + toRect.height / 2 - (fromRect.top + fromRect.height / 2);
       const distance = Math.hypot(deltaX, deltaY) || 1;
-      const shiftX = deltaX / distance * 5;
-      const shiftY = deltaY / distance * 5;
+      const shiftX = deltaX / distance * 6;
+      const shiftY = deltaY / distance * 6;
       const targetEcho = toCell.querySelector('.ball-wrap').cloneNode(true);
 
       fromCell.style.setProperty('--merge-shift-x', `${shiftX}px`);
       fromCell.style.setProperty('--merge-shift-y', `${shiftY}px`);
+      toCell.style.setProperty('--merge-shift-x', `${-shiftX}px`);
+      toCell.style.setProperty('--merge-shift-y', `${-shiftY}px`);
       targetEcho.style.setProperty('--merge-shift-x', `${-shiftX}px`);
       targetEcho.style.setProperty('--merge-shift-y', `${-shiftY}px`);
       targetEcho.classList.add('merge-echo', 'merge-away');
 
-      boardElement.classList.add('merge-resolving');
+      fromCell.classList.add('merge-resolving');
+      toCell.classList.add('merge-resolving');
       fromCell.classList.add('merge-anticipation');
       toCell.classList.add('merge-anticipation');
       window.setTimeout(() => {
@@ -1354,7 +1990,6 @@
         window.setTimeout(() => {
           targetEcho.remove();
           renderCell(fromIndex);
-          boardElement.classList.remove('merge-resolving');
         }, MERGE_DEPARTURE_MS);
       }, MERGE_ANTICIPATION_MS);
       return;
@@ -1379,15 +2014,21 @@
     document.getElementById('producerXpDebug').addEventListener('click', () => {
       if (!TESTING_MODE.enabled) return;
       const result = Progression.addProducerXp(TESTING_MODE.producerXpIncrement);
+      const academyResult = Academy.addXp(TESTING_MODE.producerXpIncrement);
       playProducerUpgrade(result.levelUps);
+      handleAcademyProgress(academyResult);
       renderEconomy();
       const producerIndex = state.cells.findIndex((item) => item?.type === 'producer');
       if (!result.levelUps.length && producerIndex >= 0) showProducerInfo(producerIndex);
     });
     renderOrders();
     renderEconomy();
+    renderAcademyWorld();
     renderEnergy();
     clearItemInfo();
+    if (Academy.getState().pendingUpgrades > 0) {
+      window.setTimeout(() => renderAcademyUpgradeScreen(), 320);
+    }
     window.setInterval(() => {
       energyTick();
       Progression.tick(Date.now());
