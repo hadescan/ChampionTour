@@ -4,6 +4,9 @@ Version: 2.1
 ## Shared Rules
 
 - Every item has a `chainId` and level.
+- Chain definitions are the central catalogue used by producers, board
+  rendering, the information panel and Orders.
+- Every chain declares its unlock level and order-eligible levels.
 - Only identical chain and identical level may merge.
 - Default chain length is level 1–6.
 - Producers generate only level-one items.

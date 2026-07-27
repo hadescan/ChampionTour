@@ -12,6 +12,8 @@ window.ChampionTour.Progression = (function () {
   };
   const economy = { coins: 0, gems: 0, eventPoints: 0 };
   let orders = [];
+  let loadedExistingOrders = false;
+  const recentPrimaryChains = [];
 
   function normalizeProducerProgress() {
     producer.level = Math.max(1, Math.min(DATA.producer.maxLevel, producer.level));
@@ -44,6 +46,7 @@ window.ChampionTour.Progression = (function () {
       });
       if (Array.isArray(saved.orders) && saved.orders.length === DATA.orders.slotCount) {
         orders = saved.orders.map(normalizeOrder);
+        loadedExistingOrders = true;
       }
       normalizeProducerProgress();
     } catch (error) {
@@ -145,26 +148,79 @@ window.ChampionTour.Progression = (function () {
     };
   }
 
-  function rollOrderLevel() {
-    const roll = Math.random();
+  function accessibleMaxItemLevel() {
+    if (producer.level <= 2) return 2;
+    if (producer.level <= 4) return 4;
+    return DATA.maxItemLevel;
+  }
+
+  function rollOrderLevel(maxLevel = accessibleMaxItemLevel()) {
+    const totalWeight = DATA.orders.levelWeights
+      .slice(1, maxLevel + 1)
+      .reduce((sum, weight) => sum + weight, 0);
+    const roll = Math.random() * totalWeight;
     let cumulative = 0;
-    for (let level = 1; level <= DATA.maxItemLevel; level += 1) {
+    for (let level = 1; level <= maxLevel; level += 1) {
       cumulative += DATA.orders.levelWeights[level];
       if (roll <= cumulative) return level;
     }
-    return 1;
+    return maxLevel;
   }
 
-  function createOrder(forcedItemCount = 0) {
+  function activeChainIds() {
+    return Object.values(DATA.chains)
+      .filter((chain) => (
+        chain.unlockLevel <= producer.level &&
+        DATA.producers[chain.producerId]?.unlockLevel <= producer.level
+      ))
+      .map((chain) => chain.id);
+  }
+
+  function selectBalancedChain(excludedChainIds = []) {
+    const available = activeChainIds().filter(
+      (chainId) => !excludedChainIds.includes(chainId)
+    );
+    const candidates = available.length ? available : activeChainIds();
+    const activeCounts = new Map(candidates.map((chainId) => [chainId, 0]));
+    orders.forEach((order) => {
+      order.items.forEach((item) => {
+        if (activeCounts.has(item.chainId)) {
+          activeCounts.set(item.chainId, activeCounts.get(item.chainId) + 1);
+        }
+      });
+    });
+    recentPrimaryChains.forEach((chainId, index) => {
+      if (activeCounts.has(chainId)) {
+        activeCounts.set(chainId, activeCounts.get(chainId) + 3 - index);
+      }
+    });
+    const minimum = Math.min(...activeCounts.values());
+    const leastRepresented = candidates.filter(
+      (chainId) => activeCounts.get(chainId) === minimum
+    );
+    return leastRepresented[Math.floor(Math.random() * leastRepresented.length)];
+  }
+
+  function createOrder(forcedItemCount = 0, preferredPrimaryChain = null) {
     const itemCount = forcedItemCount > 0
       ? Math.max(1, Math.min(2, forcedItemCount))
       : producer.level >= 2 && Math.random() < .5 ? 2 : 1;
-    const chainIds = Object.keys(DATA.chains);
     const items = [];
     while (items.length < itemCount) {
+      const shouldMixChains = items.length > 0 && Math.random() < .55;
+      const chainId = items.length === 0 && activeChainIds().includes(preferredPrimaryChain)
+        ? preferredPrimaryChain
+        : selectBalancedChain(
+          shouldMixChains ? [items[0].chainId] : []
+        );
+      const chain = DATA.chains[chainId];
+      const maxLevel = Math.min(
+        accessibleMaxItemLevel(),
+        Math.max(...chain.orderEligibleLevels)
+      );
       const candidate = {
-        chainId: chainIds[Math.floor(Math.random() * chainIds.length)],
-        level: rollOrderLevel(),
+        chainId,
+        level: rollOrderLevel(maxLevel),
         quantity: 1
       };
       if (!items.some(
@@ -173,17 +229,25 @@ window.ChampionTour.Progression = (function () {
         items.push(candidate);
       }
     }
+    recentPrimaryChains.unshift(items[0].chainId);
+    recentPrimaryChains.splice(3);
     return normalizeOrder({ items });
   }
 
   function ensureOrders() {
-    while (orders.length < DATA.orders.slotCount) orders.push(createOrder());
+    const chainIds = activeChainIds();
+    while (orders.length < DATA.orders.slotCount) {
+      const preferredChain = !loadedExistingOrders
+        ? chainIds[orders.length % chainIds.length]
+        : null;
+      orders.push(createOrder(0, preferredChain));
+    }
     if (
       producer.level >= 2 &&
       orders.length > 1 &&
       !orders.some((order) => order.items.length > 1)
     ) {
-      orders[1] = createOrder(2);
+      orders[1] = createOrder(2, chainIds[1 % chainIds.length]);
     }
     save();
   }

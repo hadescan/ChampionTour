@@ -8,6 +8,8 @@ window.ChampionTour.GameData = Object.freeze({
       id: 'footballs',
       name: 'Top Zinciri',
       producerId: 'ball_basket',
+      unlockLevel: 1,
+      orderEligibleLevels: Object.freeze([1, 2, 3, 4, 5, 6]),
       itemNames: Object.freeze([
         null, 'Antrenman Topu', 'Kaliteli Antrenman Topu', 'Maç Topu',
         'Profesyonel Top', 'İmzalı Top', 'Şampiyonluk Topu'
@@ -18,6 +20,8 @@ window.ChampionTour.GameData = Object.freeze({
       id: 'equipment',
       name: 'Malzeme Zinciri',
       producerId: 'equipment_locker',
+      unlockLevel: 1,
+      orderEligibleLevels: Object.freeze([1, 2, 3, 4, 5, 6]),
       itemNames: Object.freeze([
         null, 'Futbol Çorabı', 'Krampon', 'Tekmelik',
         'Forma', 'Kaleci Eldiveni', 'Profesyonel Ekipman Seti'
@@ -28,6 +32,8 @@ window.ChampionTour.GameData = Object.freeze({
       id: 'training',
       name: 'Antrenman Zinciri',
       producerId: 'training_cart',
+      unlockLevel: 1,
+      orderEligibleLevels: Object.freeze([1, 2, 3, 4, 5, 6]),
       itemNames: Object.freeze([
         null, 'Koni', 'Antrenman Engeli', 'Mini Kale',
         'Koordinasyon Merdiveni', 'Şut Hedefi', 'Profesyonel Antrenman İstasyonu'
@@ -36,8 +42,10 @@ window.ChampionTour.GameData = Object.freeze({
     }),
     trophies: Object.freeze({
       id: 'trophies',
-      name: 'Kupa Zinciri',
+      name: 'Başarı Zinciri',
       producerId: 'trophy_cabinet',
+      unlockLevel: 1,
+      orderEligibleLevels: Object.freeze([1, 2, 3, 4, 5, 6]),
       itemNames: Object.freeze([
         null, 'Madalya', 'Küçük Kupa', 'Bronz Kupa',
         'Gümüş Kupa', 'Altın Kupa', 'Şampiyonluk Kupası'
@@ -51,22 +59,30 @@ window.ChampionTour.GameData = Object.freeze({
       id: 'ball_basket',
       name: 'Top Sepeti',
       chainId: 'footballs',
+      unlockLevel: 1,
+      description: 'Futbol topu zincirinden nesneler üretir.',
       artwork: 'assets/Football/Producer/producer_lv1.png'
     }),
     equipment_locker: Object.freeze({
       id: 'equipment_locker',
       name: 'Malzeme Dolabı',
-      chainId: 'equipment'
+      chainId: 'equipment',
+      unlockLevel: 1,
+      description: 'Giyilebilir futbol ekipmanı zincirinden nesneler üretir.'
     }),
     training_cart: Object.freeze({
       id: 'training_cart',
       name: 'Antrenman Arabası',
-      chainId: 'training'
+      chainId: 'training',
+      unlockLevel: 1,
+      description: 'Saha ve antrenman ekipmanı zincirinden nesneler üretir.'
     }),
     trophy_cabinet: Object.freeze({
       id: 'trophy_cabinet',
       name: 'Kupa Dolabı',
-      chainId: 'trophies'
+      chainId: 'trophies',
+      unlockLevel: 1,
+      description: 'Madalya ve kupa zincirinden nesneler üretir.'
     })
   }),
 

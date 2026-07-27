@@ -2239,28 +2239,6 @@ body.campus-open {
   overflow: hidden;
 }
 
-.producer-name-tag {
-  position: absolute;
-  z-index: 8;
-  right: 2px;
-  bottom: 1px;
-  left: 2px;
-  overflow: hidden;
-  padding: 2px 3px;
-  color: #fffbe8;
-  font-size: clamp(5px, 1.2vw, 7px);
-  font-weight: 900;
-  line-height: 1;
-  text-align: center;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  border: 1px solid rgba(255, 246, 194, .72);
-  border-radius: 999px;
-  background: rgba(42, 104, 82, .86);
-  box-shadow: 0 2px 5px rgba(35, 65, 51, .18);
-  pointer-events: none;
-}
-
 .producer-cell[data-producer-id="equipment_locker"] .producer-image,
 .producer-cell[data-producer-id="training_cart"] .producer-image,
 .producer-cell[data-producer-id="trophy_cabinet"] .producer-image {
@@ -3389,15 +3367,6 @@ body.campus-open {
 
 .producer-image {
   transform: scale(1.76);
-}
-
-.producer-name-tag {
-  right: 4px;
-  bottom: 2px;
-  left: 4px;
-  padding-block: 3px;
-  border-color: rgba(233, 255, 244, .74);
-  background: rgba(31, 105, 84, .91);
 }
 
 .order-item-chip img {

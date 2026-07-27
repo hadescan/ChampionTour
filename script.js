@@ -10,10 +10,10 @@
   const GameAudio = window.ChampionTour.Audio;
   const TESTING_MODE = DATA.testing;
   const PRODUCER_STARTS = Object.freeze([
-    Object.freeze({ index: 24, producerId: 'ball_basket' }),
-    Object.freeze({ index: 25, producerId: 'equipment_locker' }),
-    Object.freeze({ index: 31, producerId: 'training_cart' }),
-    Object.freeze({ index: 32, producerId: 'trophy_cabinet' })
+    Object.freeze({ index: 8, producerId: 'ball_basket' }),
+    Object.freeze({ index: 12, producerId: 'equipment_locker' }),
+    Object.freeze({ index: 50, producerId: 'training_cart' }),
+    Object.freeze({ index: 54, producerId: 'trophy_cabinet' })
   ]);
   const MAX_LEVEL = DATA.maxItemLevel;
   const MAX_ENERGY = 100;
@@ -69,6 +69,7 @@
   let toastTimer;
   let mergeSparksElement;
   let selectedItemLevel = null;
+  let selectedItemChainId = null;
   let selectedCellIndex = -1;
   let itemInfoTimer;
   let lastItemTapIndex = -1;
@@ -290,8 +291,10 @@
   }
 
   function itemDescription(chainId, level) {
-    if (chainId === 'footballs') return window.t(`item.football.lv${level}.description`);
-    return `${DATA.chains[chainId].name} • ${level}. seviye futbol akademisi ekipmanı.`;
+    if (level >= MAX_LEVEL) {
+      return `${itemName(chainId, level)}, ${DATA.chains[chainId].name.toLocaleLowerCase('tr-TR')} içindeki en yüksek seviyedir.`;
+    }
+    return `İki ${itemName(chainId, level)} birleştirerek ${itemName(chainId, level + 1)} oluştur.`;
   }
 
   function selectCell(index) {
@@ -318,12 +321,14 @@
     clearTimeout(itemInfoTimer);
     if (
       selectedItemLevel === level &&
+      selectedItemChainId === chainId &&
       selectedCellIndex === index &&
       panel.classList.contains('is-visible')
     ) return;
 
     function reveal() {
       selectedItemLevel = level;
+      selectedItemChainId = chainId;
       name.textContent = itemName(chainId, level);
       description.textContent = itemDescription(chainId, level);
       icon.src = itemSource(chainId, level);
@@ -333,7 +338,7 @@
         '{producer}',
         DATA.producers[DATA.chains[chainId].producerId].name
       );
-      rarityElement.textContent = window.t(definition.rarityKey);
+      rarityElement.textContent = DATA.chains[chainId].name;
       nextElement.textContent = definition.nextLevel
         ? window.t('item.info.next').replace('{item}', itemName(chainId, definition.nextLevel))
         : window.t('item.info.max');
@@ -362,22 +367,20 @@
     const debugButton = document.getElementById('producerXpDebug');
     clearTimeout(itemInfoTimer);
     selectedItemLevel = null;
+    selectedItemChainId = null;
     selectCell(index);
     document.getElementById('itemInfoIcon').src = producerSource(producerId);
     document.getElementById('itemInfoIcon').alt = producerState.name;
     document.getElementById('itemInfoName').textContent = producerState.name;
     document.getElementById('itemInfoLevel').textContent =
       window.t('producer.progress.level').replace('{level}', String(producerState.level));
-    document.getElementById('itemInfoDescription').textContent = producerState.isMaxLevel
-      ? window.t('producer.progress.max')
-      : window.t('producer.progress.xp')
-        .replace('{current}', String(producerState.xp))
-        .replace('{required}', String(producerState.xpToNext));
-    document.getElementById('itemInfoProducer').textContent =
-      window.t('producer.produces').replace('{item}', itemName(producerState.chainId, 1));
+    document.getElementById('itemInfoDescription').textContent =
+      DATA.producers[producerId].description;
+    document.getElementById('itemInfoProducer').textContent = 'Üretici';
     document.getElementById('itemInfoRarity').textContent = '';
-    document.getElementById('itemInfoNext').textContent = window.t('producer.ready');
-    debugButton.hidden = !TESTING_MODE.enabled || producerState.isMaxLevel;
+    document.getElementById('itemInfoNext').textContent =
+      'Üretmek için dokun. Taşımak için sürükle.';
+    debugButton.hidden = true;
     debugButton.textContent = window.t('producer.progress.debug_xp').replace(
       '{amount}',
       String(TESTING_MODE.producerXpIncrement)
@@ -390,6 +393,7 @@
   function clearItemInfo() {
     clearTimeout(itemInfoTimer);
     selectedItemLevel = null;
+    selectedItemChainId = null;
     if (selectedCellIndex >= 0) {
       cellElements[selectedCellIndex]?.classList.remove('item-selected');
       selectedCellIndex = -1;
@@ -524,11 +528,6 @@
       producerImage.addEventListener('pointerdown', beginProducerPointer);
       producerWrapper.appendChild(producerImage);
       cell.appendChild(producerWrapper);
-      const producerName = document.createElement('span');
-      producerName.className = 'producer-name-tag';
-      producerName.textContent = producerState.name;
-      cell.appendChild(producerName);
-
       if (index === selectedCellIndex) cell.classList.add('item-selected');
       updateProducerReadiness();
       return;
@@ -1882,6 +1881,7 @@
     const producerIndex = pointer.producerIndex;
     finishProducerPointer();
     if (shouldProduce) {
+      showProducerInfo(producerIndex);
       activateProducer(producerIndex);
       return;
     }
