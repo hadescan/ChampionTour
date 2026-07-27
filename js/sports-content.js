@@ -62,42 +62,42 @@ window.ChampionTour.SportsContent = (function () {
       ])
     }),
     Object.freeze({
-      id: 'football-boots',
-      name: 'Krampon Zinciri',
-      producerTheme: 'Ekipman Dolabı',
+      id: 'equipment',
+      name: 'Malzeme Zinciri',
+      producerTheme: 'Malzeme Dolabı',
       items: Object.freeze([
-        'Eski Krampon',
-        'Temel Krampon',
-        'Antrenman Kramponu',
-        'Profesyonel Krampon',
-        'Elit Krampon',
-        'Altın Maç Kramponu'
+        'Forma',
+        'Krampon',
+        'Tekmelik',
+        'Kaleci Eldiveni',
+        'Profesyonel Forma',
+        'Elit Ekipman Seti'
       ])
     }),
     Object.freeze({
-      id: 'referee-equipment',
-      name: 'Hakem Ekipmanı Zinciri',
-      producerTheme: 'Teknik Ekip Bölmesi',
-      items: Object.freeze([
-        'Düdük',
-        'Sarı Kart',
-        'Kırmızı Kart',
-        'Hakem Not Defteri',
-        'Hakem Seti',
-        'Profesyonel Hakem Seti'
-      ])
-    }),
-    Object.freeze({
-      id: 'training-equipment',
-      name: 'Antrenman Ekipmanı Zinciri',
+      id: 'training',
+      name: 'Antrenman Zinciri',
       producerTheme: 'Antrenman Arabası',
       items: Object.freeze([
         'Koni',
-        'İşaret Diski',
-        'Çeviklik Merdiveni',
-        'Antrenman Direği',
+        'Antrenman Engeli',
         'Mini Kale',
-        'Profesyonel Antrenman Seti'
+        'Büyük Kale',
+        'Şut Hedefi',
+        'Profesyonel Antrenman İstasyonu'
+      ])
+    }),
+    Object.freeze({
+      id: 'trophies',
+      name: 'Kupa Zinciri',
+      producerTheme: 'Kupa Dolabı',
+      items: Object.freeze([
+        'Madalya',
+        'Bronz Kupa',
+        'Gümüş Kupa',
+        'Altın Kupa',
+        'Şampiyonluk Kupası',
+        'Efsaneler Kupası'
       ])
     })
   ]);
@@ -110,12 +110,12 @@ window.ChampionTour.SportsContent = (function () {
       icon: '⚽',
       theme: 'football',
       description: 'Şampiyonların yetişeceği futbol tesisini yeniden kur.',
-      producer: Object.freeze({
-        id: 'football-equipment-station',
-        name: 'Football Equipment Station',
-        rule: 'single-evolving-producer',
-        chainIds: Object.freeze(footballChains.map((chain) => chain.id))
-      }),
+      producers: Object.freeze([
+        Object.freeze({ id: 'ball_basket', name: 'Top Sepeti', chainId: 'footballs' }),
+        Object.freeze({ id: 'equipment_locker', name: 'Malzeme Dolabı', chainId: 'equipment' }),
+        Object.freeze({ id: 'training_cart', name: 'Antrenman Arabası', chainId: 'training' }),
+        Object.freeze({ id: 'trophy_cabinet', name: 'Kupa Dolabı', chainId: 'trophies' })
+      ]),
       chains: footballChains,
       renovations: Object.freeze(footballRenovations)
     }),

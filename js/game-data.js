@@ -3,10 +3,88 @@ window.ChampionTour = window.ChampionTour || {};
 window.ChampionTour.GameData = Object.freeze({
   maxItemLevel: 6,
 
+  chains: Object.freeze({
+    footballs: Object.freeze({
+      id: 'footballs',
+      name: 'Top Zinciri',
+      producerId: 'ball_basket',
+      itemNames: Object.freeze([
+        null, 'Futbol Topu', 'Antrenman Topu', 'Maç Topu',
+        'Profesyonel Top', 'İmzalı Top', 'Koleksiyon Topu'
+      ]),
+      symbols: Object.freeze([null, '⚽', '⚽', '⚽', '⚽', '⚽', '⚽'])
+    }),
+    equipment: Object.freeze({
+      id: 'equipment',
+      name: 'Malzeme Zinciri',
+      producerId: 'equipment_locker',
+      itemNames: Object.freeze([
+        null, 'Forma', 'Krampon', 'Tekmelik',
+        'Kaleci Eldiveni', 'Profesyonel Forma', 'Elit Ekipman Seti'
+      ]),
+      symbols: Object.freeze([null, '👕', '👟', '🛡', '🧤', '🎽', '⭐'])
+    }),
+    training: Object.freeze({
+      id: 'training',
+      name: 'Antrenman Zinciri',
+      producerId: 'training_cart',
+      itemNames: Object.freeze([
+        null, 'Koni', 'Antrenman Engeli', 'Mini Kale',
+        'Büyük Kale', 'Şut Hedefi', 'Profesyonel Antrenman İstasyonu'
+      ]),
+      symbols: Object.freeze([null, '🔶', '🚧', '🥅', '🥅', '🎯', '🏟'])
+    }),
+    trophies: Object.freeze({
+      id: 'trophies',
+      name: 'Kupa Zinciri',
+      producerId: 'trophy_cabinet',
+      itemNames: Object.freeze([
+        null, 'Madalya', 'Bronz Kupa', 'Gümüş Kupa',
+        'Altın Kupa', 'Şampiyonluk Kupası', 'Efsaneler Kupası'
+      ]),
+      symbols: Object.freeze([null, '🏅', '🏆', '🏆', '🏆', '🏆', '👑'])
+    })
+  }),
+
+  producers: Object.freeze({
+    ball_basket: Object.freeze({
+      id: 'ball_basket',
+      name: 'Top Sepeti',
+      chainId: 'footballs',
+      artwork: 'assets/Football/Producer/producer_lv1.png',
+      maxCharges: 8,
+      cooldownMs: 30000
+    }),
+    equipment_locker: Object.freeze({
+      id: 'equipment_locker',
+      name: 'Malzeme Dolabı',
+      chainId: 'equipment',
+      symbol: '👕',
+      maxCharges: 8,
+      cooldownMs: 30000
+    }),
+    training_cart: Object.freeze({
+      id: 'training_cart',
+      name: 'Antrenman Arabası',
+      chainId: 'training',
+      symbol: '🚧',
+      maxCharges: 8,
+      cooldownMs: 30000
+    }),
+    trophy_cabinet: Object.freeze({
+      id: 'trophy_cabinet',
+      name: 'Kupa Dolabı',
+      chainId: 'trophies',
+      symbol: '🏆',
+      maxCharges: 8,
+      cooldownMs: 30000
+    })
+  }),
+
   testing: Object.freeze({
     enabled: true,
-    bypassEnergy: true,
-    bypassProducerCooldown: true,
+    bypassEnergy: false,
+    bypassProducerCooldown: false,
     producerXpIncrement: 25
   }),
 

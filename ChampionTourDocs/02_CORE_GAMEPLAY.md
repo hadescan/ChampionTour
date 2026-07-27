@@ -53,7 +53,7 @@ The player should never leave without feeling progress.
 # Merge Board Rules
 
 - Fixed grid layout.
-- One active producer.
+- Four active Football Academy producers.
 - Drag & drop merge.
 - Double-click merge.
 - No accidental merges.
@@ -63,10 +63,10 @@ The player should never leave without feeling progress.
 
 # Producer Interaction
 
-The producer is the heart of gameplay.
+The active academy's producers are the heart of gameplay.
 
 Player actions:
-1. Tap producer.
+1. Choose and tap a producer.
 2. Receive an item.
 3. Place item on board.
 4. Merge with identical items.

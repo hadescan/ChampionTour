@@ -69,7 +69,7 @@ without embedding sport-specific rules.
 Adding a sport requires:
 
 1. One academy content definition.
-2. One evolving producer definition.
+2. The academy's producer definitions.
 3. Sport-specific item chains.
 4. A sequential restoration plan.
 5. Sport-specific presentation assets.

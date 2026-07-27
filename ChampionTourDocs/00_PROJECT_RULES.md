@@ -58,13 +58,13 @@ Lv4
 Lv5
 Lv6
 
-Rules
+Football Academy Rules
 
-- Only one producer exists.
-- Level up replaces the previous producer.
-- Old producer disappears.
-- Position never changes.
-- No duplicate producers.
+- Four producer families exist together on the board.
+- Ball Basket, Equipment Locker, Training Cart and Trophy Cabinet are permanent.
+- Each producer generates only its documented chain.
+- Every producer uses Energy and has independent charges/cooldown.
+- Producer progression remains shared across the active academy.
 
 Rewards
 

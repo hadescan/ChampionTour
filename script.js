@@ -9,9 +9,12 @@
   const Academy = window.ChampionTour.AcademyProgression;
   const GameAudio = window.ChampionTour.Audio;
   const TESTING_MODE = DATA.testing;
-  const INITIAL_PRODUCER_INDEX =
-    Math.floor(BOARD_ROWS / 2) * BOARD_COLUMNS +
-    Math.floor(BOARD_COLUMNS / 2);
+  const PRODUCER_STARTS = Object.freeze([
+    Object.freeze({ index: 24, producerId: 'ball_basket' }),
+    Object.freeze({ index: 25, producerId: 'equipment_locker' }),
+    Object.freeze({ index: 31, producerId: 'training_cart' }),
+    Object.freeze({ index: 32, producerId: 'trophy_cabinet' })
+  ]);
   const MAX_LEVEL = DATA.maxItemLevel;
   const MAX_ENERGY = 100;
   const PRODUCTION_COST = DATA.producer.energyCost;
@@ -76,12 +79,41 @@
   let orderReadinessScheduled = false;
   const counterAnimations = new Map();
 
-  function ballSource(level) {
-    return DATA.items[level].sprite;
+  function itemSource(chainId, level) {
+    if (chainId === 'footballs') return DATA.items[level].sprite;
+    const chain = DATA.chains[chainId];
+    const symbol = chain.symbols[level];
+    const palettes = {
+      equipment: ['#65b9cf', '#f1d7a0'],
+      training: ['#f39a53', '#ffe19a'],
+      trophies: ['#d9a740', '#fff0a1']
+    };
+    const [primary, secondary] = palettes[chainId] || ['#69b98a', '#dff2bc'];
+    const svg =
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">` +
+      `<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">` +
+      `<stop stop-color="${secondary}"/><stop offset="1" stop-color="${primary}"/></linearGradient></defs>` +
+      `<ellipse cx="64" cy="104" rx="37" ry="9" fill="#31594b" opacity=".18"/>` +
+      `<path d="M29 27Q64 5 99 27L108 72Q100 106 64 110Q28 106 20 72Z" fill="url(#g)" stroke="#fff4c9" stroke-width="5"/>` +
+      `<circle cx="64" cy="62" r="31" fill="#fff" opacity=".36"/>` +
+      `<text x="64" y="78" text-anchor="middle" font-size="46">${symbol}</text>` +
+      `<circle cx="96" cy="27" r="14" fill="#fff4bd" stroke="${primary}" stroke-width="4"/>` +
+      `<text x="96" y="32" text-anchor="middle" font-family="Arial" font-size="14" font-weight="700" fill="#31545c">${level}</text>` +
+      `</svg>`;
+    return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
   }
 
-  function producerSource() {
-    return Progression.getProducerState().artwork;
+  function producerSource(producerId = 'ball_basket') {
+    const producerState = Progression.getProducerState(producerId);
+    if (producerState.artwork && producerId === 'ball_basket') return producerState.artwork;
+    const svg =
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">` +
+      `<ellipse cx="64" cy="108" rx="44" ry="10" fill="#274f46" opacity=".2"/>` +
+      `<rect x="18" y="25" width="92" height="78" rx="20" fill="#e6b866" stroke="#fff0bb" stroke-width="6"/>` +
+      `<rect x="25" y="34" width="78" height="57" rx="13" fill="#5ba88e"/>` +
+      `<text x="64" y="78" text-anchor="middle" font-size="48">${producerState.symbol}</text>` +
+      `</svg>`;
+    return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
   }
 
   function applyTranslations() {
@@ -219,12 +251,13 @@
     toastTimer = setTimeout(() => toast.classList.remove('show'), 1500);
   }
 
-  function itemName(level) {
-    return window.t(`item.football.lv${level}`);
+  function itemName(chainId, level) {
+    return DATA.chains[chainId]?.itemNames[level] || window.t(`item.football.lv${level}`);
   }
 
-  function itemDescription(level) {
-    return window.t(`item.football.lv${level}.description`);
+  function itemDescription(chainId, level) {
+    if (chainId === 'footballs') return window.t(`item.football.lv${level}.description`);
+    return `${DATA.chains[chainId].name} • ${level}. seviye futbol akademisi ekipmanı.`;
   }
 
   function selectCell(index) {
@@ -235,7 +268,7 @@
     cellElements[index]?.classList.add('item-selected');
   }
 
-  function showItemInfo(level, index = selectedCellIndex) {
+  function showItemInfo(level, index = selectedCellIndex, chainId = 'footballs') {
     const panel = document.getElementById('itemInfoPanel');
     const name = document.getElementById('itemInfoName');
     const description = document.getElementById('itemInfoDescription');
@@ -257,18 +290,18 @@
 
     function reveal() {
       selectedItemLevel = level;
-      name.textContent = itemName(level);
-      description.textContent = itemDescription(level);
-      icon.src = ballSource(level);
-      icon.alt = itemName(level);
+      name.textContent = itemName(chainId, level);
+      description.textContent = itemDescription(chainId, level);
+      icon.src = itemSource(chainId, level);
+      icon.alt = itemName(chainId, level);
       levelElement.textContent = window.t('item.info.level').replace('{level}', String(level));
       producerElement.textContent = window.t('item.info.from').replace(
         '{producer}',
-        window.t(`producer.${definition.producerId}.name`)
+        DATA.producers[DATA.chains[chainId].producerId].name
       );
       rarityElement.textContent = window.t(definition.rarityKey);
       nextElement.textContent = definition.nextLevel
-        ? window.t('item.info.next').replace('{item}', itemName(definition.nextLevel))
+        ? window.t('item.info.next').replace('{item}', itemName(chainId, definition.nextLevel))
         : window.t('item.info.max');
       panel.setAttribute('aria-hidden', 'false');
       panel.classList.remove('is-empty');
@@ -290,14 +323,15 @@
 
   function showProducerInfo(index) {
     const panel = document.getElementById('itemInfoPanel');
-    const producerState = Progression.getProducerState();
+    const producerId = state.cells[index]?.producerId || 'ball_basket';
+    const producerState = Progression.getProducerState(producerId);
     const debugButton = document.getElementById('producerXpDebug');
     clearTimeout(itemInfoTimer);
     selectedItemLevel = null;
     selectCell(index);
-    document.getElementById('itemInfoIcon').src = producerState.artwork;
-    document.getElementById('itemInfoIcon').alt = window.t('producer.football_academy.name');
-    document.getElementById('itemInfoName').textContent = window.t('producer.football_academy.name');
+    document.getElementById('itemInfoIcon').src = producerSource(producerId);
+    document.getElementById('itemInfoIcon').alt = producerState.name;
+    document.getElementById('itemInfoName').textContent = producerState.name;
     document.getElementById('itemInfoLevel').textContent =
       window.t('producer.progress.level').replace('{level}', String(producerState.level));
     document.getElementById('itemInfoDescription').textContent = producerState.isMaxLevel
@@ -306,7 +340,7 @@
         .replace('{current}', String(producerState.xp))
         .replace('{required}', String(producerState.xpToNext));
     document.getElementById('itemInfoProducer').textContent =
-      window.t('producer.produces').replace('{item}', itemName(1));
+      window.t('producer.produces').replace('{item}', itemName(producerState.chainId, 1));
     document.getElementById('itemInfoRarity').textContent = '';
     document.getElementById('itemInfoNext').textContent = producerState.cooldownRemainingMs > 0
       ? `${window.t('producer.cooldown')} ${formatCountdown(producerState.cooldownRemainingMs)}`
@@ -362,8 +396,10 @@
     }
 
     createMergeSparkPool();
-    state.cells[INITIAL_PRODUCER_INDEX] = { type: 'producer' };
-    renderCell(INITIAL_PRODUCER_INDEX);
+    PRODUCER_STARTS.forEach(({ index, producerId }) => {
+      state.cells[index] = { type: 'producer', producerId };
+      renderCell(index);
+    });
   }
 
   function renderCell(index, animationClass) {
@@ -386,20 +422,26 @@
 
     if (item.type === 'producer') {
       cell.classList.add('producer-cell');
-      cell.setAttribute('aria-label', TEXT.producer);
+      const producerState = Progression.getProducerState(item.producerId);
+      cell.dataset.producerId = item.producerId;
+      cell.setAttribute('aria-label', producerState.name);
       const producerWrapper = document.createElement('div');
       producerWrapper.className = 'producer-wrap';
       producerWrapper.appendChild(createItemShadow());
 
       const producerImage = document.createElement('img');
       producerImage.className = 'producer-image';
-      producerImage.src = producerSource();
+      producerImage.src = producerSource(item.producerId);
       producerImage.alt = '';
       producerImage.draggable = false;
       producerImage.setAttribute('aria-hidden', 'true');
       producerImage.addEventListener('pointerdown', beginProducerPointer);
       producerWrapper.appendChild(producerImage);
       cell.appendChild(producerWrapper);
+      const producerName = document.createElement('span');
+      producerName.className = 'producer-name-tag';
+      producerName.textContent = producerState.name;
+      cell.appendChild(producerName);
 
       const infoButton = document.createElement('button');
       infoButton.className = 'producer-info-button';
@@ -441,44 +483,44 @@
 
     const image = document.createElement('img');
     image.className = 'ball';
-    image.src = ballSource(item.level);
-    image.alt = TEXT.ballLevel(item.level);
+    image.src = itemSource(item.chainId, item.level);
+    image.alt = itemName(item.chainId, item.level);
     image.draggable = false;
     image.style.background = 'transparent';
     image.style.objectFit = 'contain';
     wrapper.appendChild(image);
     cell.appendChild(wrapper);
     if (index === selectedCellIndex) cell.classList.add('item-selected');
-    cell.setAttribute('aria-label', TEXT.ballLevel(item.level));
+    cell.setAttribute('aria-label', itemName(item.chainId, item.level));
   }
 
   function updateProducerReadiness() {
-    const producerCell = cellElements.find((cell, index) => state.cells[index]?.type === 'producer');
-    if (!producerCell) return;
-    const producerState = Progression.getProducerState();
-    const energyReady =
-      TESTING_MODE.enabled && TESTING_MODE.bypassEnergy ||
-      state.energy >= PRODUCTION_COST;
-    const producerReady =
-      TESTING_MODE.enabled && TESTING_MODE.bypassProducerCooldown ||
-      producerState.charges > 0;
-    const ready = energyReady && producerReady;
-    producerCell.classList.toggle('ready', ready);
-    producerCell.classList.toggle(
-      'cooling-down',
-      producerState.charges === 0 &&
-      !(TESTING_MODE.enabled && TESTING_MODE.bypassProducerCooldown)
-    );
-
-    const badge = producerCell.querySelector('.producer-charge-badge');
-    const cooldown = producerCell.querySelector('.producer-cooldown');
-    if (badge) {
-      badge.textContent = `${window.t('producer.charges')} ${producerState.charges}/${producerState.maxCharges}`;
-      badge.hidden = TESTING_MODE.enabled;
-    }
-    if (cooldown) {
+    cellElements.forEach((producerCell, index) => {
+      const item = state.cells[index];
+      if (item?.type !== 'producer') return;
+      const producerState = Progression.getProducerState(item.producerId);
+      const energyReady =
+        TESTING_MODE.enabled && TESTING_MODE.bypassEnergy ||
+        state.energy >= PRODUCTION_COST;
+      const producerReady =
+        TESTING_MODE.enabled && TESTING_MODE.bypassProducerCooldown ||
+        producerState.charges > 0;
+      const ready = energyReady && producerReady;
+      producerCell.classList.toggle('ready', ready);
+      producerCell.classList.toggle(
+        'cooling-down',
+        producerState.charges === 0 &&
+        !(TESTING_MODE.enabled && TESTING_MODE.bypassProducerCooldown)
+      );
+      const badge = producerCell.querySelector('.producer-charge-badge');
+      const cooldown = producerCell.querySelector('.producer-cooldown');
+      if (badge) {
+        badge.textContent = `${window.t('producer.charges')} ${producerState.charges}/${producerState.maxCharges}`;
+        badge.hidden = TESTING_MODE.enabled;
+      }
+      if (!cooldown) return;
       const cooldownProgress = producerState.cooldownRemainingMs > 0
-        ? 1 - producerState.cooldownRemainingMs / DATA.producer.cooldownMs
+        ? 1 - producerState.cooldownRemainingMs / DATA.producers[item.producerId].cooldownMs
         : 1;
       cooldown.style.setProperty(
         '--cooldown-progress',
@@ -493,7 +535,7 @@
           ? `${window.t('producer.cooldown')} ${formatCountdown(producerState.cooldownRemainingMs)}`
           : window.t('producer.ready')
       );
-    }
+    });
   }
 
   function renderPlayerProgression() {
@@ -696,10 +738,11 @@
     renderPlayerProgression();
   }
 
-  function findOrderItem(level) {
+  function findOrderItem(chainId, level) {
     return state.cells.findIndex(
       (item, index) =>
         item?.type === 'ball' &&
+        item.chainId === chainId &&
         item.level === level &&
         !cellElements[index]?.classList.contains('merge-resolving')
     );
@@ -708,29 +751,36 @@
   function orderRequirements(order) {
     const source = Array.isArray(order?.items) && order.items.length
       ? order.items
-      : [{ level: order?.level, quantity: order?.quantity }];
-    const quantitiesByLevel = new Map();
+      : [{ chainId: order?.chainId || 'footballs', level: order?.level, quantity: order?.quantity }];
+    const quantitiesByItem = new Map();
 
     source.forEach((requirement) => {
+      const chainId = DATA.chains[requirement?.chainId]
+        ? requirement.chainId
+        : 'footballs';
       const level = Math.max(
         1,
         Math.min(MAX_LEVEL, Number(requirement?.level) || 1)
       );
       const quantity = Math.max(1, Math.floor(Number(requirement?.quantity) || 1));
-      quantitiesByLevel.set(level, (quantitiesByLevel.get(level) || 0) + quantity);
+      const key = `${chainId}:${level}`;
+      const current = quantitiesByItem.get(key);
+      quantitiesByItem.set(key, {
+        chainId,
+        level,
+        quantity: (current?.quantity || 0) + quantity
+      });
     });
 
-    return Array.from(quantitiesByLevel, ([level, quantity]) => ({
-      level,
-      quantity
-    }));
+    return Array.from(quantitiesByItem.values());
   }
 
-  function boardItemCount(level) {
+  function boardItemCount(chainId, level) {
     return state.cells.reduce(
       (count, item, index) =>
         count + Number(
           item?.type === 'ball' &&
+          item.chainId === chainId &&
           item.level === level &&
           !cellElements[index]?.classList.contains('merge-resolving')
         ),
@@ -741,7 +791,7 @@
   function analyzeOrderReadiness(order) {
     const requirements = orderRequirements(order).map((requirement) => ({
       ...requirement,
-      available: boardItemCount(requirement.level)
+      available: boardItemCount(requirement.chainId, requirement.level)
     }));
     const availableItems = requirements.reduce(
       (total, requirement) =>
@@ -780,7 +830,9 @@
 
       card.querySelectorAll('.order-item-chip').forEach((chip) => {
         const requirement = readiness.requirements.find(
-          (candidate) => candidate.level === Number(chip.dataset.level)
+          (candidate) =>
+            candidate.chainId === chip.dataset.chainId &&
+            candidate.level === Number(chip.dataset.level)
         );
         const itemReady = Boolean(requirement?.available);
         chip.classList.toggle(
@@ -798,10 +850,11 @@
 
       readiness.requirements.forEach((requirement) => {
         if (!requirement.available) return;
-        const current = boardHighlights.get(requirement.level);
+        const key = `${requirement.chainId}:${requirement.level}`;
+        const current = boardHighlights.get(key);
         if (readiness.full || current !== 'full') {
           boardHighlights.set(
-            requirement.level,
+            key,
             readiness.full ? 'full' : 'partial'
           );
         }
@@ -811,7 +864,7 @@
     cellElements.forEach((cell, index) => {
       const item = state.cells[index];
       const highlight = item?.type === 'ball'
-        ? boardHighlights.get(item.level)
+        ? boardHighlights.get(`${item.chainId}:${item.level}`)
         : null;
       cell.classList.toggle('order-match-partial', highlight === 'partial');
       cell.classList.toggle('order-match', highlight === 'full');
@@ -840,7 +893,8 @@
       return;
     }
 
-    const fromIndex = findOrderItem(readiness.requirements[0].level);
+    const firstRequirement = readiness.requirements[0];
+    const fromIndex = findOrderItem(firstRequirement.chainId, firstRequirement.level);
     if (fromIndex < 0) {
       scheduleOrderReadinessUpdate();
       return;
@@ -865,6 +919,7 @@
         .filter(
           ({ item, index }) =>
             item?.type === 'ball' &&
+            item.chainId === requirement.chainId &&
             item.level === requirement.level &&
             !collected.includes(index) &&
             !cellElements[index]?.classList.contains('merge-resolving')
@@ -932,11 +987,12 @@
     requirements.forEach((requirement) => {
       const chip = document.createElement('span');
       chip.className = 'order-item-chip';
+      chip.dataset.chainId = requirement.chainId;
       chip.dataset.level = String(requirement.level);
 
       const image = document.createElement('img');
-      image.src = ballSource(requirement.level);
-      image.alt = itemName(requirement.level);
+      image.src = itemSource(requirement.chainId, requirement.level);
+      image.alt = itemName(requirement.chainId, requirement.level);
       chip.appendChild(image);
 
       if (requirement.quantity > 1) {
@@ -989,7 +1045,7 @@
       requirements
         .map(
           (requirement) =>
-            `${itemName(requirement.level)}, ` +
+            `${itemName(requirement.chainId, requirement.level)}, ` +
             `${window.t('orders.quantity')} ${requirement.quantity}`
         )
         .join('; ')
@@ -1129,14 +1185,14 @@
     });
   }
 
-  function playOrderDelivery(ghost, card, itemLevel) {
+  function playOrderDelivery(ghost, card, chainId, itemLevel) {
     if (!ghost) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       ghost.remove();
       return;
     }
     const image = card.querySelector(
-      `.order-item-chip[data-level="${itemLevel}"] img`
+      `.order-item-chip[data-chain-id="${chainId}"][data-level="${itemLevel}"] img`
     );
     const imageRect = image?.getBoundingClientRect() || card.getBoundingClientRect();
     const ghostX = Number.parseFloat(ghost.style.left);
@@ -1156,18 +1212,25 @@
 
   function playProducerUpgrade(levelUps) {
     if (!levelUps.length) return;
-    const producerIndex = state.cells.findIndex((item) => item?.type === 'producer');
+    const producerIndices = state.cells
+      .map((item, index) => item?.type === 'producer' ? index : -1)
+      .filter((index) => index >= 0);
+    const producerIndex = producerIndices[0];
     const totalDiamonds = levelUps.reduce(
       (total, levelUp) => total + levelUp.diamondReward,
       0
     );
 
-    renderCell(producerIndex, 'producer-upgrade');
-    if (selectedCellIndex === producerIndex) showProducerInfo(producerIndex);
+    producerIndices.forEach((index) => renderCell(index, 'producer-upgrade'));
+    if (producerIndices.includes(selectedCellIndex)) {
+      showProducerInfo(selectedCellIndex);
+    }
 
     const producerCell = cellElements[producerIndex];
     window.setTimeout(
-      () => producerCell?.classList.remove('producer-upgrade'),
+      () => producerIndices.forEach(
+        (index) => cellElements[index]?.classList.remove('producer-upgrade')
+      ),
       1200
     );
     const target = document.getElementById('gemValue');
@@ -1212,7 +1275,9 @@
     const order = Progression.getOrders()[orderIndex];
     const readiness = order ? analyzeOrderReadiness(order) : null;
     const itemMatchesOrder = readiness?.requirements.some(
-      (requirement) => requirement.level === item?.level
+      (requirement) =>
+        requirement.chainId === item?.chainId &&
+        requirement.level === item?.level
     );
     if (!readiness?.full || !itemMatchesOrder) {
       deliveryGhost?.remove();
@@ -1235,7 +1300,11 @@
     const deliveries = consumedIndices.map((index) => {
       const sourceItem = state.cells[index];
       if (index === fromIndex && deliveryGhost) {
-        return { ghost: deliveryGhost, level: sourceItem.level };
+        return {
+          ghost: deliveryGhost,
+          chainId: sourceItem.chainId,
+          level: sourceItem.level
+        };
       }
       const sourceRect = cellElements[index].getBoundingClientRect();
       return {
@@ -1244,13 +1313,17 @@
           sourceRect.left + sourceRect.width / 2,
           sourceRect.top + sourceRect.height / 2
         ),
+        chainId: sourceItem.chainId,
         level: sourceItem.level
       };
     });
-    const deliveredLevels = consumedIndices.map(
-      (index) => state.cells[index].level
+    const deliveredItems = consumedIndices.map(
+      (index) => ({
+        chainId: state.cells[index].chainId,
+        level: state.cells[index].level
+      })
     );
-    const completed = Progression.fulfillOrder(orderIndex, deliveredLevels);
+    const completed = Progression.fulfillOrder(orderIndex, deliveredItems);
     if (!completed) {
       deliveries.forEach((delivery) => delivery.ghost?.remove());
       showToast(window.t('orders.wrong_item'));
@@ -1261,7 +1334,7 @@
     card.classList.remove('order-target');
     card.classList.add('order-presenting', 'order-complete');
     deliveries.forEach((delivery) => {
-      playOrderDelivery(delivery.ghost, card, delivery.level);
+      playOrderDelivery(delivery.ghost, card, delivery.chainId, delivery.level);
     });
     const rewardTotals = Progression.getEconomy();
     consumedIndices.forEach((index) => {
@@ -1329,8 +1402,8 @@
     window.setTimeout(() => sparks.remove(), MERGE_SPARKS_MS);
   }
 
-  function createProducerLaunch(targetIndex, onComplete) {
-    const producerCell = cellElements.find((cell, index) => state.cells[index]?.type === 'producer');
+  function createProducerLaunch(targetIndex, producerIndex, chainId, onComplete) {
+    const producerCell = cellElements[producerIndex];
     const targetCell = cellElements[targetIndex];
     let launch;
     let content;
@@ -1351,7 +1424,7 @@
       shadowAnimation?.cancel();
       content.className = 'ball-wrap';
       image.className = 'ball';
-      image.alt = TEXT.ballLevel(1);
+      image.alt = itemName(chainId, 1);
       image.removeAttribute('aria-hidden');
       image.style.background = 'transparent';
       image.style.objectFit = 'contain';
@@ -1368,7 +1441,7 @@
         targetCell?.classList.remove('spawn-reserved');
 
         if (targetCell && state.cells[targetIndex] === null) {
-          state.cells[targetIndex] = { type: 'ball', level: 1 };
+          state.cells[targetIndex] = { type: 'ball', chainId, level: 1 };
           renderCell(targetIndex);
           adoptLandingVisual();
           targetCell.classList.add('spawn-landed');
@@ -1435,7 +1508,7 @@
     content.appendChild(shadow);
     image = document.createElement('img');
     image.className = 'producer-launch-ball';
-    image.src = ballSource(1);
+    image.src = itemSource(chainId, 1);
     image.alt = '';
     image.draggable = false;
     image.setAttribute('aria-hidden', 'true');
@@ -1570,7 +1643,8 @@
       activeSpawnVisuals < MAX_ACTIVE_SPAWN_VISUALS &&
       spawnVisualQueue.length > 0
     ) {
-      const targetIndex = spawnVisualQueue.shift();
+      const spawn = spawnVisualQueue.shift();
+      const { targetIndex, producerIndex, chainId } = spawn;
       const now = Date.now();
       const startAt = Math.max(now, nextSpawnVisualStartAt);
       const delay = startAt - now;
@@ -1587,12 +1661,12 @@
         };
 
         try {
-          createProducerLaunch(targetIndex, finishVisual);
+          createProducerLaunch(targetIndex, producerIndex, chainId, finishVisual);
         } catch (error) {
           pendingSpawnTargets.delete(targetIndex);
           cellElements[targetIndex]?.classList.remove('spawn-reserved');
           if (state.cells[targetIndex] === null) {
-            state.cells[targetIndex] = { type: 'ball', level: 1 };
+            state.cells[targetIndex] = { type: 'ball', chainId, level: 1 };
             renderCell(targetIndex);
           }
           finishVisual();
@@ -1601,13 +1675,18 @@
     }
   }
 
-  function enqueueSpawnVisual(targetIndex) {
-    spawnVisualQueue.push(targetIndex);
+  function enqueueSpawnVisual(targetIndex, producerIndex, chainId) {
+    spawnVisualQueue.push({ targetIndex, producerIndex, chainId });
     scheduleSpawnVisuals();
   }
 
-  function activateProducer() {
-    const producerCell = cellElements.find((cell, index) => state.cells[index]?.type === 'producer');
+  function activateProducer(producerIndex) {
+    const producerItem = state.cells[producerIndex];
+    const producerCell = cellElements[producerIndex];
+    if (producerItem?.type !== 'producer' || !producerCell) return false;
+    const producerId = producerItem.producerId;
+    const producerState = Progression.getProducerState(producerId);
+    const chainId = producerState.chainId;
     const emptyIndex = randomEmptyCell();
     if (emptyIndex === -1) {
       showToast(TEXT.boardFull);
@@ -1616,9 +1695,8 @@
 
     if (
       !(TESTING_MODE.enabled && TESTING_MODE.bypassProducerCooldown) &&
-      !Progression.canProduce()
+      !Progression.canProduce(producerId)
     ) {
-      const producerState = Progression.getProducerState();
       showToast(`${window.t('producer.cooldown')} ${formatCountdown(producerState.cooldownRemainingMs)}`);
       return false;
     }
@@ -1629,7 +1707,7 @@
     }
 
     if (!(TESTING_MODE.enabled && TESTING_MODE.bypassProducerCooldown)) {
-      Progression.consumeCharge();
+      Progression.consumeCharge(producerId);
     }
     producerCell.classList.remove('producer-pressed');
     void producerCell.offsetWidth;
@@ -1644,7 +1722,7 @@
     GameAudio.play('producer');
     pendingSpawnTargets.add(emptyIndex);
     cellElements[emptyIndex].classList.add('spawn-reserved');
-    enqueueSpawnVisual(emptyIndex);
+    enqueueSpawnVisual(emptyIndex, producerIndex, chainId);
     return true;
   }
 
@@ -1664,7 +1742,7 @@
 
       const image = document.createElement('img');
       image.className = 'drag-ghost-ball';
-      image.src = ballSource(item.level);
+      image.src = itemSource(item.chainId, item.level);
       image.alt = '';
       image.draggable = false;
       content.appendChild(image);
@@ -1672,7 +1750,7 @@
     } else {
       ghost = document.createElement('img');
       ghost.classList.add('producer-ghost');
-      ghost.src = producerSource();
+      ghost.src = producerSource(item.producerId);
       ghost.alt = '';
       ghost.draggable = false;
     }
@@ -1702,6 +1780,7 @@
     event.preventDefault();
     event.stopPropagation();
     state.producerPointer = {
+      producerIndex: Number(event.target.closest('.cell')?.dataset.index),
       pointerId: event.pointerId,
       startX: event.clientX,
       startY: event.clientY,
@@ -1739,7 +1818,7 @@
     event.stopPropagation();
     const shouldProduce = !pointer.moved;
     finishProducerPointer();
-    if (shouldProduce) activateProducer();
+    if (shouldProduce) activateProducer(pointer.producerIndex);
   }
 
   function cancelProducerPointer(event) {
@@ -1815,6 +1894,7 @@
     if (!to) return true;
     return from.type === 'ball' &&
       to.type === 'ball' &&
+      from.chainId === to.chainId &&
       from.level === to.level &&
       from.level < MAX_LEVEL;
   }
@@ -1852,7 +1932,12 @@
     if (target.classList.contains('order-card')) {
       const orderIndex = Number(target.dataset.orderIndex);
       const order = Progression.getOrders()[orderIndex];
-      target.classList.add(order?.level === state.drag.item.level
+      const matches = orderRequirements(order).some(
+        (requirement) =>
+          requirement.chainId === state.drag.item.chainId &&
+          requirement.level === state.drag.item.level
+      );
+      target.classList.add(matches
         ? 'order-target'
         : 'invalid-target');
       state.drag.target = target;
@@ -1888,7 +1973,11 @@
     const orderAvailable =
       orderCard && !orderCard.classList.contains('order-presenting');
     const orderMatches = orderCard
-      ? orderAvailable && Progression.getOrders()[orderIndex]?.level === item.level
+      ? orderAvailable && orderRequirements(Progression.getOrders()[orderIndex]).some(
+          (requirement) =>
+            requirement.chainId === item.chainId &&
+            requirement.level === item.level
+        )
       : false;
     const invalidDrop = wasMoved && (
       (!target && !orderCard) ||
@@ -1918,7 +2007,7 @@
     const isDoubleTap = lastItemTapIndex === index && now - lastItemTapAt <= 320;
     lastItemTapIndex = index;
     lastItemTapAt = now;
-    showItemInfo(item.level, index);
+    showItemInfo(item.level, index, item.chainId);
 
     if (isDoubleTap) {
       lastItemTapIndex = -1;
@@ -1940,6 +2029,7 @@
         index === fromIndex ||
         cellElements[index].classList.contains('merge-resolving') ||
         candidate?.type !== 'ball' ||
+        candidate.chainId !== from.chainId ||
         candidate.level !== from.level
       ) return;
 
@@ -2026,6 +2116,7 @@
     if (
       from.type === 'ball' &&
       to.type === 'ball' &&
+      from.chainId === to.chainId &&
       from.level === to.level &&
       from.level < MAX_LEVEL
     ) {
@@ -2059,14 +2150,20 @@
         fromCell.classList.add('merge-away');
 
         state.cells[fromIndex] = null;
-        state.cells[toIndex] = { type: 'ball', level: nextLevel };
+        state.cells[toIndex] = {
+          type: 'ball',
+          chainId: from.chainId,
+          level: nextLevel
+        };
         if (selectedCellIndex === fromIndex || selectedCellIndex === toIndex) {
           selectedCellIndex = toIndex;
         }
         renderCell(toIndex, 'merge-pop');
         playMergeSparks(cellElements[toIndex]);
         GameAudio.play('merge');
-        if (selectedItemLevel === from.level) showItemInfo(nextLevel, toIndex);
+        if (selectedItemLevel === from.level) {
+          showItemInfo(nextLevel, toIndex, from.chainId);
+        }
         cellElements[toIndex].appendChild(targetEcho);
 
         window.setTimeout(() => {
@@ -2080,6 +2177,7 @@
     if (
       from.type === 'ball' &&
       to.type === 'ball' &&
+      from.chainId === to.chainId &&
       from.level === MAX_LEVEL &&
       to.level === MAX_LEVEL
     ) {
