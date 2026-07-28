@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <meta name="theme-color" content="#67b9d8">
   <title>Champion Tour — Futbol Birleştirme Prototipi</title>
-  <link rel="stylesheet" href="style.css?v=sprint-compact-mobile-hud">
+  <link rel="stylesheet" href="style.css?v=sprint-9-1">
+  <link rel="stylesheet" href="sprint-9-1.css?v=1">
 </head>
 <body>
   <div class="scene" aria-hidden="true">
@@ -114,6 +115,10 @@
     </section>
 
     <section class="item-info-panel is-visible is-empty" id="itemInfoPanel" aria-live="polite" aria-hidden="false">
+      <button class="storage-button" id="storageButton" type="button" aria-label="Depoyu aç">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 9.5h22v17H5z"/><path d="M8 5.5h16l3 4H5z"/><path d="M12 14h8v12h-8z"/></svg>
+        <span id="storageCount">0/8</span>
+      </button>
       <div class="item-info-icon-wrap">
         <img id="itemInfoIcon" alt="">
       </div>
@@ -131,6 +136,10 @@
         <button class="producer-xp-debug" id="producerXpDebug" type="button" hidden></button>
       </div>
       <button class="item-info-button" id="itemInfoButton" type="button" aria-label="Detaylı bilgiyi aç" hidden>i</button>
+      <button class="sell-button" id="sellButton" type="button" aria-label="Seçili ürünü sat" disabled>
+        <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="11"/><path d="M13 11.5h5a2.2 2.2 0 0 1 0 4.4h-4a2.2 2.2 0 0 0 0 4.4h5M16 9.5v13"/></svg>
+        <span>+2</span>
+      </button>
     </section>
 
     <footer class="hint">
@@ -145,6 +154,18 @@
     <section class="item-detail-card" role="dialog" aria-modal="true" aria-labelledby="itemDetailTitle">
       <button class="item-detail-close" id="itemDetailClose" type="button" aria-label="Bilgi ekranını kapat">×</button>
       <div id="itemDetailContent"></div>
+    </section>
+  </div>
+
+  <div class="storage-overlay" id="storageOverlay" hidden>
+    <section class="storage-drawer" role="dialog" aria-labelledby="storageTitle">
+      <header>
+        <div><small>FUTBOL AKADEMİSİ</small><h2 id="storageTitle">Depo</h2></div>
+        <strong id="storageCapacityValue">8 SLOT</strong>
+        <button id="storageCloseButton" type="button" aria-label="Depoyu kapat">×</button>
+      </header>
+      <p>Ürünleri board ile depo arasında sürükle veya depodaki ürüne dokun.</p>
+      <div class="storage-grid" id="storageGrid"></div>
     </section>
   </div>
 
@@ -214,11 +235,11 @@
   </div>
 
   <script src="js/i18n.js"></script>
-  <script src="js/game-data.js?v=football-reference-assets"></script>
-  <script src="js/progression.js?v=football-reference-assets"></script>
+  <script src="js/game-data.js?v=sprint-9-1"></script>
+  <script src="js/progression.js?v=sprint-9-1"></script>
   <script src="js/sports-content.js?v=sprint-8-4-multi-producer"></script>
   <script src="js/academy.js?v=sprint-8-4-multi-producer"></script>
   <script src="js/audio.js"></script>
-  <script src="script.js?v=football-reference-assets"></script>
+  <script src="script.js?v=sprint-9-1"></script>
 </body>
 </html>

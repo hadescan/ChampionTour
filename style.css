@@ -2967,6 +2967,461 @@ body {
   }
 }
 
+/* Sprint 9.1 final override (must remain last). */
+.game-header { min-height: 30px !important; height: 30px !important; }
+.game-header .hud-capsule { min-height: 28px !important; height: 28px !important; }
+.campus-hud-button, .board-heading, .hint { display: none !important; }
+.board-frame {
+  width: min(calc(100vw - 12px), 424px) !important;
+  max-width: 424px !important;
+  margin-top: 2px !important;
+  padding: 4px !important;
+}
+.board { padding: 2px !important; gap: 1px !important; }
+.ball-wrap { width: 87% !important; height: 87% !important; }
+.producer-wrap { width: 92% !important; height: 92% !important; }
+.producer-cell {
+  overflow: hidden !important;
+  border: 0 !important;
+  background-color: var(--board-grass) !important;
+  background-image:
+    radial-gradient(ellipse at 38% 24%, var(--grass-light), transparent 72%),
+    linear-gradient(82deg, transparent 47%, rgba(255,255,238,.022) 49%, transparent 52%) !important;
+  box-shadow: inset 0 0 10px rgba(255,255,235,.04), inset 0 -5px 11px var(--grass-shadow) !important;
+}
+.producer-energy-badge {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.item-info-panel {
+  display: grid !important;
+  grid-template-columns: 48px 42px minmax(0, 1fr) 26px 48px !important;
+  width: min(calc(100% - 12px), 424px) !important;
+  height: 56px !important;
+  min-height: 56px !important;
+  margin-top: 3px !important;
+}
+@media (max-height: 760px) {
+  .item-info-panel { height: 52px !important; min-height: 52px !important; }
+}
+
+/* Sprint 9.1 definitive cascade guard. */
+.game-header {
+  min-height: 30px !important;
+  height: 30px !important;
+}
+
+.game-header .hud-capsule {
+  min-height: 28px !important;
+  height: 28px !important;
+}
+
+.campus-hud-button,
+.board-heading,
+.hint {
+  display: none !important;
+}
+
+.board-frame {
+  width: min(calc(100vw - 12px), 424px) !important;
+  max-width: 424px !important;
+  margin-top: 2px !important;
+  padding: 4px !important;
+}
+
+.board {
+  padding: 2px !important;
+  gap: 1px !important;
+}
+
+.ball-wrap {
+  width: 87% !important;
+  height: 87% !important;
+}
+
+.producer-wrap {
+  width: 92% !important;
+  height: 92% !important;
+}
+
+.producer-cell {
+  overflow: hidden !important;
+  border: 0 !important;
+  background-color: var(--board-grass) !important;
+  background-image:
+    radial-gradient(ellipse at 38% 24%, var(--grass-light), transparent 72%),
+    linear-gradient(82deg, transparent 47%, rgba(255,255,238,.022) 49%, transparent 52%) !important;
+  box-shadow: inset 0 0 10px rgba(255,255,235,.04), inset 0 -5px 11px var(--grass-shadow) !important;
+}
+
+.producer-energy-badge {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.item-info-panel {
+  display: grid !important;
+  grid-template-columns: 48px 42px minmax(0, 1fr) 26px 48px !important;
+  width: min(calc(100% - 12px), 424px) !important;
+  height: 56px !important;
+  min-height: 56px !important;
+  margin-top: 3px !important;
+}
+
+@media (max-height: 760px) {
+  .item-info-panel {
+    height: 52px !important;
+    min-height: 52px !important;
+  }
+}
+
+/* Sprint 9.1 — large board, minimal HUD and control center. */
+:root {
+  --normal-item-safe-size: 87%;
+  --producer-item-safe-size: 92%;
+}
+
+.game {
+  gap: 0;
+}
+
+.game-header {
+  grid-template-columns: .72fr 1fr .82fr .72fr;
+  width: min(calc(100% - 12px), 424px);
+  min-height: 30px;
+  height: 30px;
+  margin: 2px auto 0;
+  padding: 1px 5px;
+  gap: 4px;
+  border-radius: 13px;
+  background: linear-gradient(180deg, rgba(20,91,126,.93), rgba(14,70,105,.94));
+  box-shadow: 0 3px 10px rgba(20,64,75,.2), inset 0 1px rgba(255,255,255,.18);
+}
+
+.hud-capsule,
+.player-level-card,
+.energy-card,
+.resource-pill {
+  min-width: 0;
+  min-height: 28px;
+  height: 28px;
+  padding: 0 3px;
+  gap: 3px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.hud-capsule:not(:last-of-type) {
+  border-right: 1px solid rgba(255,255,255,.13);
+}
+
+.level-ring {
+  width: 24px;
+  height: 24px;
+}
+
+.level-ring span,
+.energy-row strong,
+.resource-copy strong {
+  font-size: 12px;
+}
+
+.level-copy small,
+.resource-copy small,
+.energy-maximum,
+.energy-track {
+  display: none;
+}
+
+.level-copy strong {
+  max-width: 42px;
+  font-size: 6px;
+  line-height: 1;
+}
+
+.hud-icon,
+.resource-icon,
+.energy-symbol {
+  width: 19px;
+  height: 19px;
+  flex: 0 0 19px;
+}
+
+.energy-content {
+  min-width: 0;
+  gap: 0;
+}
+
+.energy-row {
+  line-height: 1;
+}
+
+.energy-timer {
+  font-size: 6px;
+  line-height: 1;
+}
+
+.energy-timer span {
+  display: none;
+}
+
+.resource-copy {
+  min-width: 0;
+}
+
+.resource-copy strong {
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,.35);
+}
+
+.campus-hud-button,
+.board-heading,
+.hint {
+  display: none !important;
+}
+
+.orders-shell {
+  margin-top: 1px;
+  padding-top: 10px;
+}
+
+.orders-strip {
+  height: 64px;
+  min-height: 64px;
+}
+
+.board-frame {
+  width: min(calc(100vw - 12px), 424px);
+  max-width: 424px;
+  margin-top: 2px;
+  padding: 4px;
+  border-radius: 21px;
+}
+
+.board {
+  padding: 2px;
+  gap: 1px;
+}
+
+.cell {
+  overflow: hidden;
+}
+
+.producer-cell {
+  overflow: hidden;
+  border: 0;
+  background-color: var(--board-grass);
+  background-image:
+    radial-gradient(ellipse at 38% 24%, var(--grass-light), transparent 72%),
+    linear-gradient(82deg, transparent 47%, rgba(255,255,238,.022) 49%, transparent 52%);
+  background-size: 100% 100%, 13px 17px;
+  box-shadow: inset 0 0 10px rgba(255,255,235,.04), inset 0 -5px 11px var(--grass-shadow);
+}
+
+.producer-energy-badge {
+  width: 15px;
+  height: 17px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  filter: drop-shadow(0 1px 2px rgba(20,70,89,.55));
+}
+
+.producer-energy-badge svg {
+  width: 14px;
+  height: 16px;
+}
+
+.item-info-panel {
+  display: grid;
+  grid-template-columns: 48px 42px minmax(0, 1fr) 26px 48px;
+  width: min(calc(100% - 12px), 424px);
+  height: 56px;
+  min-height: 56px;
+  margin-top: 3px;
+  padding: 4px 5px;
+  gap: 4px;
+}
+
+.storage-button,
+.sell-button {
+  align-self: stretch;
+  display: grid;
+  place-items: center;
+  gap: 0;
+  border: 1px solid rgba(255,255,255,.55);
+  border-radius: 13px;
+  color: #fff;
+  font: 800 9px/1 "Nunito", sans-serif;
+  cursor: pointer;
+  box-shadow: 0 3px 7px rgba(31,76,67,.18), inset 0 1px rgba(255,255,255,.45);
+}
+
+.storage-button {
+  background: linear-gradient(180deg, #58b8c4, #27899d);
+}
+
+.sell-button {
+  background: linear-gradient(180deg, #f7bd42, #dd8724);
+}
+
+.storage-button svg,
+.sell-button svg {
+  width: 23px;
+  height: 23px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sell-button:disabled {
+  opacity: .38;
+  filter: grayscale(.35);
+  cursor: default;
+}
+
+.sell-button.is-confirming {
+  background: linear-gradient(180deg, #ef8e63, #ce5844);
+  animation: controlConfirm 700ms ease-in-out infinite alternate;
+}
+
+.item-info-icon-wrap {
+  width: 42px;
+  height: 42px;
+}
+
+.item-info-button {
+  width: 26px;
+  height: 26px;
+  align-self: center;
+}
+
+.storage-overlay {
+  position: fixed;
+  z-index: 60;
+  inset: 0;
+  pointer-events: none;
+}
+
+.storage-overlay[hidden] {
+  display: none;
+}
+
+.storage-drawer {
+  position: absolute;
+  left: 50%;
+  bottom: max(8px, env(safe-area-inset-bottom));
+  width: min(calc(100% - 16px), 424px);
+  padding: 12px;
+  pointer-events: auto;
+  border: 2px solid rgba(255,247,209,.78);
+  border-radius: 24px;
+  background: linear-gradient(155deg, rgba(250,239,204,.98), rgba(224,205,163,.98));
+  box-shadow: 0 16px 40px rgba(28,59,52,.34), inset 0 1px rgba(255,255,255,.8);
+  transform: translateX(-50%);
+  animation: storageIn 180ms ease-out both;
+}
+
+.storage-drawer header {
+  display: grid;
+  grid-template-columns: 1fr auto 32px;
+  align-items: center;
+  gap: 8px;
+}
+
+.storage-drawer h2,
+.storage-drawer p {
+  margin: 0;
+}
+
+.storage-drawer h2 {
+  color: #295e61;
+  font-size: 20px;
+}
+
+.storage-drawer header small,
+.storage-drawer > p {
+  color: #6f715f;
+  font-size: 9px;
+}
+
+.storage-drawer header > strong {
+  color: #2d7c78;
+  font-size: 11px;
+}
+
+.storage-drawer header button {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 50%;
+  background: #fff7df;
+  color: #78664d;
+  font-size: 20px;
+}
+
+.storage-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  margin-top: 9px;
+}
+
+.storage-slot {
+  position: relative;
+  aspect-ratio: 1;
+  border: 1px solid rgba(106,89,57,.15);
+  border-radius: 13px;
+  background: radial-gradient(circle at 50% 38%, #fff7df, #dfcda9);
+  box-shadow: inset 0 2px 5px rgba(105,83,48,.13), 0 2px 5px rgba(78,70,46,.1);
+}
+
+.storage-slot img {
+  width: 88%;
+  height: 88%;
+  object-fit: contain;
+}
+
+.storage-unlock {
+  display: grid;
+  place-content: center;
+  color: #765e8e;
+  font-size: 9px;
+}
+
+.storage-unlock span {
+  color: #745cc8;
+  font-weight: 900;
+}
+
+.storage-button.drag-target,
+.storage-slot.drag-target {
+  outline: 3px solid rgba(73,203,148,.7);
+}
+
+@keyframes storageIn {
+  from { opacity: 0; transform: translate(-50%, 16px) scale(.97); }
+  to { opacity: 1; transform: translate(-50%, 0) scale(1); }
+}
+
+@keyframes controlConfirm {
+  to { filter: brightness(1.12); transform: scale(1.03); }
+}
+
+@media (max-height: 760px) {
+  .orders-strip { height: 60px; min-height: 60px; }
+  .order-card,
+  .order-card.multi-requirement { height: 56px; min-height: 56px; }
+  .item-info-panel { height: 52px; min-height: 52px; }
+}
+
 @media (min-width: 700px) {
   .game {
     width: 430px;

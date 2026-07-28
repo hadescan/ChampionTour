@@ -44,6 +44,9 @@
   const ORDER_REWARD_START_MS = 430;
   const ORDER_REWARD_FLIGHT_MS = 470;
   const ORDER_COUNTER_PULSE_MS = 240;
+  const INITIAL_STORAGE_CAPACITY = DATA.storage.initialCapacity;
+  const STORAGE_SLOT_UNLOCK_COST = DATA.storage.slotUnlockCost;
+  const DEFAULT_ITEM_SELL_PRICE = DATA.economy.defaultItemSellPrice;
 
   const TEXT = {
     emptyCell: window.t('board.empty_cell'),
@@ -60,6 +63,9 @@
     cells: new Array(CELL_COUNT).fill(null),
     drag: null,
     producerPointer: null,
+    storage: new Array(INITIAL_STORAGE_CAPACITY).fill(null),
+    storageCapacity: INITIAL_STORAGE_CAPACITY,
+    storageDrag: null,
     energy: MAX_ENERGY,
     nextEnergyAt: null
   };
@@ -82,6 +88,9 @@
   let orderReadinessScheduled = false;
   const counterAnimations = new Map();
   const producerHighlightTimers = new Map();
+  let saleConfirmationIndex = -1;
+  let saleConfirmTimer = 0;
+  let saleInProgress = false;
 
   function itemSource(chainId, level) {
     return DATA.chains[chainId]?.assets[level] || DATA.chains.footballs.assets[level];
@@ -321,6 +330,7 @@
         170
       );
     }
+    updateControlCenter();
   }
 
   function showProducerInfo(index) {
@@ -354,6 +364,7 @@
     panel.setAttribute('aria-hidden', 'false');
     panel.classList.remove('is-empty');
     panel.classList.add('is-visible');
+    updateControlCenter();
   }
 
   function clearItemInfo() {
@@ -380,6 +391,7 @@
     panel.classList.remove('is-empty', 'content-change');
     panel.classList.add('is-visible');
     panel.setAttribute('aria-hidden', 'false');
+    updateControlCenter();
   }
 
   function detailImage(src, alt, className = '') {
@@ -491,14 +503,32 @@
     document.body.classList.remove('item-detail-open');
   }
 
+  function normalizeSavedItem(item, allowProducer = true) {
+    if (allowProducer && item?.type === 'producer' && DATA.producers[item.producerId]) {
+      return { type: 'producer', producerId: item.producerId };
+    }
+    if (item?.type === 'ball' && DATA.chains[item.chainId || 'footballs']) {
+      return {
+        type: 'ball',
+        chainId: item.chainId || 'footballs',
+        level: Math.max(1, Math.min(MAX_LEVEL, Number(item.level) || 1))
+      };
+    }
+    return null;
+  }
+
   function saveBoardState() {
     try {
       localStorage.setItem(BOARD_STORAGE_KEY, JSON.stringify({
-        version: 2,
-        cells: state.cells
+        version: 3,
+        cells: state.cells,
+        storageCapacity: state.storageCapacity,
+        storage: state.storage
       }));
+      return true;
     } catch (error) {
       console.warn('Board kaydı yazılamadı.', error);
+      return false;
     }
   }
 
@@ -510,20 +540,16 @@
       console.warn('Board kaydı okunamadı; güvenli başlangıç kullanılacak.', error);
     }
     if (Array.isArray(saved?.cells) && saved.cells.length === CELL_COUNT) {
-      state.cells = saved.cells.map((item) => {
-        if (item?.type === 'producer' && DATA.producers[item.producerId]) {
-          return { type: 'producer', producerId: item.producerId };
-        }
-        if (item?.type === 'ball' && DATA.chains[item.chainId || 'footballs']) {
-          return {
-            type: 'ball',
-            chainId: item.chainId || 'footballs',
-            level: Math.max(1, Math.min(MAX_LEVEL, Number(item.level) || 1))
-          };
-        }
-        return null;
-      });
+      state.cells = saved.cells.map((item) => normalizeSavedItem(item, true));
     }
+    state.storageCapacity = Math.max(
+      INITIAL_STORAGE_CAPACITY,
+      Math.floor(Number(saved?.storageCapacity) || INITIAL_STORAGE_CAPACITY)
+    );
+    state.storage = Array.from(
+      { length: state.storageCapacity },
+      (_, index) => normalizeSavedItem(saved?.storage?.[index], false)
+    );
 
     const presentProducerIds = new Set(
       state.cells
@@ -2155,7 +2181,7 @@
 
   function interactionTargetFromPoint(x, y) {
     const element = document.elementFromPoint(x, y);
-    return element ? element.closest('.cell, .order-card') : null;
+    return element ? element.closest('.cell, .order-card, .storage-button, .storage-slot') : null;
   }
 
   function clearTarget() {
@@ -2223,6 +2249,17 @@
       return;
     }
 
+    if (target.matches('.storage-button, .storage-slot')) {
+      const storageIndex = Number(target.dataset.storageIndex);
+      const available = state.drag.item.type === 'ball' && (
+        target.classList.contains('storage-button') ||
+        (Number.isInteger(storageIndex) && state.storage[storageIndex] === null)
+      );
+      target.classList.add(available ? 'drag-target' : 'invalid-target');
+      state.drag.target = target;
+      return;
+    }
+
     if (Number(target.dataset.index) === state.drag.fromIndex) return;
 
     const targetIndex = Number(target.dataset.index);
@@ -2244,6 +2281,9 @@
     const orderCard = interactionTarget?.classList.contains('order-card')
       ? interactionTarget
       : null;
+    const storageTarget = interactionTarget?.matches('.storage-button, .storage-slot')
+      ? interactionTarget
+      : null;
     const target = interactionTarget?.classList.contains('cell')
       ? interactionTarget
       : null;
@@ -2259,10 +2299,11 @@
         )
       : false;
     const invalidDrop = wasMoved && (
-      (!target && !orderCard) ||
+      (!target && !orderCard && !storageTarget) ||
       (orderCard && !orderMatches) ||
       (target && toIndex === fromIndex) ||
-      (target && !isValidTarget(fromIndex, toIndex))
+      (target && !isValidTarget(fromIndex, toIndex)) ||
+      (storageTarget && item.type !== 'ball')
     );
     const deliveryGhost = finishPointer(invalidDrop, Boolean(orderMatches));
 
@@ -2275,6 +2316,14 @@
       if (orderMatches) tryFulfillOrder(fromIndex, orderIndex, deliveryGhost);
       else if (!orderAvailable) return;
       else showToast(window.t('orders.wrong_item'));
+      return;
+    }
+
+    if (storageTarget) {
+      const storageIndex = storageTarget.classList.contains('storage-slot')
+        ? Number(storageTarget.dataset.storageIndex)
+        : -1;
+      storeBoardItem(fromIndex, storageIndex);
       return;
     }
 
@@ -2468,6 +2517,172 @@
     }
   }
 
+  function updateControlCenter() {
+    const count = state.storage.filter(Boolean).length;
+    const countElement = document.getElementById('storageCount');
+    if (countElement) countElement.textContent = `${count}/${state.storageCapacity}`;
+    const sellButton = document.getElementById('sellButton');
+    if (!sellButton) return;
+    const item = selectedCellIndex >= 0 ? state.cells[selectedCellIndex] : null;
+    const sellable = item?.type === 'ball' && !item.locked && !item.favorite;
+    sellButton.disabled = !sellable || saleInProgress;
+    if (!sellable || saleConfirmationIndex !== selectedCellIndex) {
+      sellButton.classList.remove('is-confirming');
+      sellButton.querySelector('span').textContent = `+${DEFAULT_ITEM_SELL_PRICE}`;
+    }
+  }
+
+  function renderStorage() {
+    updateControlCenter();
+    document.getElementById('storageCapacityValue').textContent =
+      `${state.storageCapacity} SLOT`;
+    const grid = document.getElementById('storageGrid');
+    grid.innerHTML = '';
+    state.storage.forEach((item, index) => {
+      const slot = document.createElement('button');
+      slot.type = 'button';
+      slot.className = 'storage-slot';
+      slot.dataset.storageIndex = String(index);
+      slot.setAttribute('aria-label', item ? itemName(item.chainId, item.level) : 'Boş depo slotu');
+      if (item) {
+        const image = document.createElement('img');
+        image.src = itemSource(item.chainId, item.level);
+        image.alt = '';
+        image.draggable = false;
+        slot.appendChild(image);
+        slot.addEventListener('click', () => moveStorageItemToBoard(index));
+      }
+      grid.appendChild(slot);
+    });
+    const unlock = document.createElement('button');
+    unlock.type = 'button';
+    unlock.className = 'storage-slot storage-unlock';
+    unlock.innerHTML =
+      `<strong>+1 SLOT</strong><span>${STORAGE_SLOT_UNLOCK_COST} ◆</span>`;
+    unlock.addEventListener('click', unlockStorageSlot);
+    grid.appendChild(unlock);
+  }
+
+  function openStorage() {
+    renderStorage();
+    document.getElementById('storageOverlay').hidden = false;
+    document.body.classList.add('storage-open');
+  }
+
+  function closeStorage() {
+    document.getElementById('storageOverlay').hidden = true;
+    document.body.classList.remove('storage-open');
+  }
+
+  function storeBoardItem(fromIndex, preferredSlot = -1) {
+    const item = state.cells[fromIndex];
+    if (item?.type !== 'ball') {
+      showToast('Üreticiler depoya taşınamaz');
+      return false;
+    }
+    const targetIndex = preferredSlot >= 0 && state.storage[preferredSlot] === null
+      ? preferredSlot
+      : state.storage.findIndex((stored) => stored === null);
+    if (targetIndex < 0) {
+      showToast('Depo dolu');
+      return false;
+    }
+    state.cells[fromIndex] = null;
+    state.storage[targetIndex] = item;
+    if (!saveBoardState()) {
+      state.cells[fromIndex] = item;
+      state.storage[targetIndex] = null;
+      showToast('Depo kaydedilemedi');
+      return false;
+    }
+    if (selectedCellIndex === fromIndex) clearItemInfo();
+    renderCell(fromIndex);
+    renderStorage();
+    showToast('Ürün depoya taşındı');
+    return true;
+  }
+
+  function moveStorageItemToBoard(storageIndex) {
+    const item = state.storage[storageIndex];
+    if (!item) return;
+    const boardIndex = state.cells.findIndex(
+      (cellItem, index) => cellItem === null && !pendingSpawnTargets.has(index)
+    );
+    if (boardIndex < 0) {
+      showToast(TEXT.boardFull);
+      return;
+    }
+    state.storage[storageIndex] = null;
+    state.cells[boardIndex] = item;
+    if (!saveBoardState()) {
+      state.storage[storageIndex] = item;
+      state.cells[boardIndex] = null;
+      showToast('Taşıma kaydedilemedi');
+      return;
+    }
+    renderCell(boardIndex, 'spawned');
+    renderStorage();
+    showToast('Ürün boarda taşındı');
+  }
+
+  function unlockStorageSlot() {
+    const economy = Progression.adjustEconomy({ gems: -STORAGE_SLOT_UNLOCK_COST });
+    if (!economy) {
+      showToast('Yeterli elmas yok');
+      return;
+    }
+    state.storageCapacity += 1;
+    state.storage.push(null);
+    if (!saveBoardState()) {
+      state.storageCapacity -= 1;
+      state.storage.pop();
+      Progression.adjustEconomy({ gems: STORAGE_SLOT_UNLOCK_COST });
+      showToast('Depo genişletilemedi');
+      return;
+    }
+    renderEconomy();
+    renderStorage();
+    showToast('Depoya 1 slot eklendi');
+  }
+
+  function resetSaleConfirmation() {
+    window.clearTimeout(saleConfirmTimer);
+    saleConfirmationIndex = -1;
+    updateControlCenter();
+  }
+
+  function handleSellClick() {
+    const index = selectedCellIndex;
+    const item = state.cells[index];
+    if (item?.type !== 'ball' || item.locked || item.favorite || saleInProgress) return;
+    if (saleConfirmationIndex !== index) {
+      saleConfirmationIndex = index;
+      const button = document.getElementById('sellButton');
+      button.classList.add('is-confirming');
+      button.querySelector('span').textContent = 'SAT?';
+      saleConfirmTimer = window.setTimeout(resetSaleConfirmation, 3000);
+      return;
+    }
+    saleInProgress = true;
+    window.clearTimeout(saleConfirmTimer);
+    state.cells[index] = null;
+    const economy = Progression.adjustEconomy({ coins: DEFAULT_ITEM_SELL_PRICE });
+    if (!economy || !saveBoardState()) {
+      state.cells[index] = item;
+      if (economy) Progression.adjustEconomy({ coins: -DEFAULT_ITEM_SELL_PRICE });
+      saleInProgress = false;
+      resetSaleConfirmation();
+      showToast('Satış tamamlanamadı');
+      return;
+    }
+    renderCell(index);
+    clearItemInfo();
+    renderEconomy();
+    saleInProgress = false;
+    resetSaleConfirmation();
+    showToast(`Ürün ${DEFAULT_ITEM_SELL_PRICE} altına satıldı`);
+  }
+
   function init() {
     applyTranslations();
     loadEnergy();
@@ -2485,6 +2700,9 @@
       showCampusMap();
     });
     document.getElementById('itemInfoButton').addEventListener('click', openItemDetail);
+    document.getElementById('storageButton').addEventListener('click', openStorage);
+    document.getElementById('storageCloseButton').addEventListener('click', closeStorage);
+    document.getElementById('sellButton').addEventListener('click', handleSellClick);
     document.getElementById('itemDetailClose').addEventListener('click', closeItemDetail);
     document.getElementById('itemDetailOverlay').addEventListener('click', (event) => {
       if (event.target.id === 'itemDetailOverlay') closeItemDetail();
@@ -2502,6 +2720,7 @@
     renderOrders();
     setupOrdersStripInteraction();
     renderEconomy();
+    renderStorage();
     renderAcademyWorld();
     renderEnergy();
     clearItemInfo();

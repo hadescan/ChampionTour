@@ -64,9 +64,25 @@ window.ChampionTour.Progression = (function () {
         economy,
         orders
       }));
+      return true;
     } catch (error) {
       console.warn('Progression kaydı yazılamadı.', error);
+      return false;
     }
+  }
+
+  function adjustEconomy(delta = {}) {
+    const previous = { ...economy };
+    const next = { ...economy };
+    for (const key of Object.keys(economy)) {
+      const change = Math.trunc(Number(delta[key]) || 0);
+      next[key] = economy[key] + change;
+      if (next[key] < 0) return null;
+    }
+    Object.assign(economy, next);
+    if (save()) return { ...economy, xp: producer.xp };
+    Object.assign(economy, previous);
+    return null;
   }
 
   function applyProducerXp(amount) {
@@ -349,6 +365,7 @@ window.ChampionTour.Progression = (function () {
     getOrders,
     fulfillOrder,
     getEconomy,
+    adjustEconomy,
     tick
   };
 })();

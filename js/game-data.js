@@ -132,6 +132,15 @@ window.ChampionTour.GameData = Object.freeze({
     producerXpIncrement: 25
   }),
 
+  storage: Object.freeze({
+    initialCapacity: 8,
+    slotUnlockCost: 10
+  }),
+
+  economy: Object.freeze({
+    defaultItemSellPrice: 2
+  }),
+
   producer: Object.freeze({
     id: 'football_academy',
     nameKey: 'producer.football_academy.name',
