@@ -24,7 +24,24 @@ def remove_magenta(image: Image.Image) -> Image.Image:
     return rgba
 
 
-def export_atlas(source_name: str, names: list[str], destination: Path, target: int) -> None:
+def clear_atlas_gutters(image: Image.Image) -> Image.Image:
+    """Remove neighboring-sprite fragments that touch atlas cell gutters."""
+    rgba = image.copy()
+    gutter = max(2, round(rgba.width * 0.035))
+    alpha = rgba.getchannel("A")
+    alpha.paste(0, (0, 0, gutter, rgba.height))
+    alpha.paste(0, (rgba.width - gutter, 0, rgba.width, rgba.height))
+    rgba.putalpha(alpha)
+    return rgba
+
+
+def export_atlas(
+    source_name: str,
+    names: list[str],
+    destination: Path,
+    target: int,
+    clear_gutters: bool = False,
+) -> None:
     source = Image.open(SOURCE_DIR / source_name).convert("RGBA")
     destination.mkdir(parents=True, exist_ok=True)
     cell_width = source.width / len(names)
@@ -32,6 +49,8 @@ def export_atlas(source_name: str, names: list[str], destination: Path, target: 
         left = round(index * cell_width)
         right = round((index + 1) * cell_width)
         sprite = remove_magenta(source.crop((left, 0, right, source.height)))
+        if clear_gutters:
+            sprite = clear_atlas_gutters(sprite)
         alpha_box = sprite.getchannel("A").getbbox()
         if not alpha_box:
             raise RuntimeError(f"No visible sprite found for {name}")
@@ -46,10 +65,11 @@ def export_atlas(source_name: str, names: list[str], destination: Path, target: 
 
 def main() -> None:
     export_atlas(
-        "football_atlas.png",
+        "football_atlas_v2.png",
         [f"football_lv{level}" for level in range(1, 7)],
         ITEM_DIR,
         256,
+        clear_gutters=True,
     )
     export_atlas(
         "hydration_atlas.png",
@@ -70,10 +90,11 @@ def main() -> None:
         256,
     )
     export_atlas(
-        "producer_atlas.png",
-        ["producer_football", "producer_hydration", "producer_training", "producer_trophy"],
+        "producer_atlas_v2.png",
+        ["producer_football_v2", "producer_hydration_v2", "producer_training_v2", "producer_trophy_v2"],
         PRODUCER_DIR,
         320,
+        clear_gutters=True,
     )
     export_atlas(
         "customer_atlas.png",

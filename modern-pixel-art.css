@@ -177,3 +177,270 @@ body {
   border-radius: 1px !important;
   background: #fff1a6 !important;
 }
+
+/* Rejected-pass correction: real mobile scale and readable 390px hierarchy. */
+html,
+body {
+  width: 100%;
+  min-width: 0;
+  min-height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.game {
+  width: 100% !important;
+  max-width: 430px !important;
+  min-height: 100dvh;
+  margin-inline: auto;
+  padding:
+    max(5px, env(safe-area-inset-top))
+    0
+    max(7px, env(safe-area-inset-bottom)) !important;
+  gap: 6px !important;
+  overflow: visible !important;
+  transform: none !important;
+  zoom: 1 !important;
+}
+
+.game-header {
+  width: calc(100% - 16px) !important;
+  max-width: 414px !important;
+  height: 42px !important;
+  min-height: 42px !important;
+  margin-inline: auto !important;
+  padding: 2px 4px !important;
+}
+
+.game-header .hud-capsule {
+  height: 36px !important;
+  min-height: 36px !important;
+  padding: 2px 5px !important;
+}
+
+.game-header .hud-icon {
+  width: 26px !important;
+  height: 28px !important;
+  flex: 0 0 26px !important;
+}
+
+.game-header .level-ring {
+  width: 32px !important;
+  height: 32px !important;
+}
+
+.game-header .level-copy small,
+.game-header .resource-copy small,
+.game-header .energy-maximum,
+.game-header .energy-timer span {
+  display: none !important;
+}
+
+.game-header .hud-capsule strong,
+.game-header .level-ring span,
+.game-header #energyValue,
+.game-header #coinValue,
+.game-header #gemValue {
+  overflow: visible !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  letter-spacing: 0 !important;
+  white-space: nowrap;
+}
+
+.game-header #xpValue {
+  font-size: 12px !important;
+}
+
+.orders-shell {
+  width: 100% !important;
+  height: 92px !important;
+  min-height: 92px !important;
+  margin: 0 !important;
+  padding: 2px 0 !important;
+}
+
+.orders-strip {
+  width: 100% !important;
+  height: 88px !important;
+  min-height: 88px !important;
+  gap: 7px !important;
+  padding: 1px 9px 5px !important;
+  scroll-padding-inline: 9px !important;
+}
+
+.order-card,
+.order-card.multi-requirement {
+  flex: 0 0 120px !important;
+  width: 120px !important;
+  height: 82px !important;
+  min-height: 82px !important;
+  padding: 4px 4px 4px 3px !important;
+  grid-template-columns: 38px minmax(0, 1fr) !important;
+  grid-template-rows: 14px 44px 20px !important;
+  column-gap: 3px !important;
+}
+
+.customer-portrait {
+  width: 40px !important;
+  height: 58px !important;
+  margin-left: -5px !important;
+}
+
+.order-customer-name {
+  overflow: hidden;
+  color: #173f58 !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  line-height: 14px !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.order-items {
+  height: 44px !important;
+  padding: 2px !important;
+  gap: 2px !important;
+}
+
+.order-item-chip,
+.order-item-chip img {
+  width: 38px !important;
+  height: 38px !important;
+}
+
+.order-items.multi-item .order-item-chip,
+.order-items.multi-item .order-item-chip img {
+  width: 32px !important;
+  height: 36px !important;
+}
+
+.order-quantity,
+.order-item-quantity {
+  min-width: 18px !important;
+  min-height: 18px !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  line-height: 18px !important;
+}
+
+.order-rewards {
+  min-height: 19px !important;
+  gap: 4px !important;
+}
+
+.order-reward,
+.order-reward strong {
+  min-height: 18px !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  line-height: 18px !important;
+}
+
+.board-frame {
+  width: min(calc(100% - 16px), 414px) !important;
+  max-width: 414px !important;
+  margin: 0 auto !important;
+}
+
+.ball,
+.producer-image,
+.item-info-icon-wrap img,
+.storage-slot img,
+.customer-portrait img,
+.order-item-chip img {
+  image-rendering: auto !important;
+}
+
+.ball-wrap {
+  width: 88% !important;
+  height: 88% !important;
+}
+
+.producer-wrap {
+  width: 96% !important;
+  height: 96% !important;
+}
+
+.item-info-panel {
+  width: min(calc(100% - 16px), 414px) !important;
+  height: 66px !important;
+  min-height: 66px !important;
+  margin: 0 auto !important;
+  grid-template-columns: 48px 48px minmax(0, 1fr) 34px 48px !important;
+}
+
+.item-info-icon-wrap {
+  width: 44px !important;
+  height: 44px !important;
+}
+
+.item-info-copy strong,
+.item-info-panel #itemInfoName {
+  color: #173f58 !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  line-height: 17px !important;
+  letter-spacing: 0 !important;
+}
+
+.item-info-copy p,
+.item-info-panel #itemInfoDescription {
+  color: #4d5f58 !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  line-height: 15px !important;
+}
+
+.item-info-panel.is-producer .item-info-copy {
+  padding-right: 130px !important;
+}
+
+.item-info-panel.is-producer #itemInfoName {
+  overflow: hidden !important;
+  max-width: 118px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.item-info-panel.is-producer .production-mode-control {
+  top: 8px !important;
+  right: 51px !important;
+  width: 124px !important;
+  min-width: 124px !important;
+  min-height: 48px !important;
+}
+
+.production-mode-control strong,
+.item-info-panel.is-producer .production-mode-control strong {
+  font-size: 17px !important;
+  font-weight: 700 !important;
+}
+
+.production-mode-control span {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+}
+
+@media (max-width: 375px), (max-height: 800px) {
+  .game { gap: 4px !important; }
+  .game-header { height: 40px !important; min-height: 40px !important; }
+  .game-header .hud-capsule { height: 34px !important; min-height: 34px !important; }
+  .orders-shell { height: 88px !important; min-height: 88px !important; }
+  .orders-strip { height: 84px !important; min-height: 84px !important; }
+  .order-card,
+  .order-card.multi-requirement {
+    flex-basis: 116px !important;
+    width: 116px !important;
+    height: 78px !important;
+    min-height: 78px !important;
+    grid-template-rows: 13px 42px 19px !important;
+  }
+  .board-frame { width: min(calc(100% - 12px), 414px) !important; }
+  .item-info-panel {
+    width: min(calc(100% - 12px), 414px) !important;
+    height: 62px !important;
+    min-height: 62px !important;
+  }
+}
