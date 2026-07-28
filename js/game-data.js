@@ -2,13 +2,21 @@ window.ChampionTour = window.ChampionTour || {};
 
 window.ChampionTour.GameData = Object.freeze({
   uiIcons: Object.freeze({
-    level: 'assets/ModernPixelArt/UI/sp_badge.png',
-    energy: 'assets/ModernPixelArt/UI/energy.png',
-    coins: 'assets/ModernPixelArt/UI/coin.png',
-    gems: 'assets/ModernPixelArt/UI/gem.png',
-    storage: 'assets/ModernPixelArt/UI/storage.png',
-    sell: 'assets/ModernPixelArt/UI/sell.png',
-    producerEnergy: 'assets/ModernPixelArt/UI/energy.png'
+    level: 'assets/CozyAcademy/Full/UI/level.png',
+    energy: 'assets/CozyAcademy/Full/UI/energy.png',
+    coins: 'assets/CozyAcademy/Full/UI/coin.png',
+    gems: 'assets/CozyAcademy/Full/UI/gem.png',
+    storage: 'assets/CozyAcademy/Full/UI/storage.png',
+    sell: 'assets/CozyAcademy/Full/UI/sell.png',
+    info: 'assets/CozyAcademy/Full/UI/info.png',
+    menu: 'assets/CozyAcademy/Full/UI/menu.png',
+    producerEnergy: 'assets/CozyAcademy/Full/UI/energy.png'
+  }),
+
+  customers: Object.freeze({
+    coach: 'assets/CozyAcademy/Full/Customers/customer_emre.png',
+    captain: 'assets/CozyAcademy/Full/Customers/customer_maya.png',
+    scout: 'assets/CozyAcademy/Full/Customers/customer_derya.png'
   }),
 
   maxItemLevel: 6,
@@ -22,12 +30,12 @@ window.ChampionTour.GameData = Object.freeze({
       orderEligibleLevels: Object.freeze([1, 2, 3, 4, 5, 6]),
       assets: Object.freeze([
         null,
-        'assets/ModernPixelArt/Items/football_lv1.png',
-        'assets/ModernPixelArt/Items/football_lv2.png',
-        'assets/ModernPixelArt/Items/football_lv3.png',
-        'assets/ModernPixelArt/Items/football_lv4.png',
-        'assets/ModernPixelArt/Items/football_lv5.png',
-        'assets/ModernPixelArt/Items/football_lv6.png'
+        'assets/CozyAcademy/Full/Items/football_lv1.png',
+        'assets/CozyAcademy/Full/Items/football_lv2.png',
+        'assets/CozyAcademy/Full/Items/football_lv3.png',
+        'assets/CozyAcademy/Full/Items/football_lv4.png',
+        'assets/CozyAcademy/Full/Items/football_lv5.png',
+        'assets/CozyAcademy/Full/Items/football_lv6.png'
       ]),
       itemNames: Object.freeze([
         null, 'Antrenman Topu', 'Kaliteli Antrenman Topu', 'Maç Topu',
@@ -43,12 +51,12 @@ window.ChampionTour.GameData = Object.freeze({
       orderEligibleLevels: Object.freeze([1, 2, 3, 4, 5, 6]),
       assets: Object.freeze([
         null,
-        'assets/ModernPixelArt/Items/hydration_lv1.png',
-        'assets/ModernPixelArt/Items/hydration_lv2.png',
-        'assets/ModernPixelArt/Items/hydration_lv3.png',
-        'assets/ModernPixelArt/Items/hydration_lv4.png',
-        'assets/ModernPixelArt/Items/hydration_lv5.png',
-        'assets/ModernPixelArt/Items/hydration_lv6.png'
+        'assets/CozyAcademy/Full/Items/hydration_lv1.png',
+        'assets/CozyAcademy/Full/Items/hydration_lv2.png',
+        'assets/CozyAcademy/Full/Items/hydration_lv3.png',
+        'assets/CozyAcademy/Full/Items/hydration_lv4.png',
+        'assets/CozyAcademy/Full/Items/hydration_lv5.png',
+        'assets/CozyAcademy/Full/Items/hydration_lv6.png'
       ]),
       itemNames: Object.freeze([
         null, 'Su Bardağı', 'Su Şişesi', 'Spor Matarası',
@@ -85,12 +93,12 @@ window.ChampionTour.GameData = Object.freeze({
       orderEligibleLevels: Object.freeze([1, 2, 3, 4, 5, 6]),
       assets: Object.freeze([
         null,
-        'assets/ModernPixelArt/Items/trophy_lv1.png',
-        'assets/ModernPixelArt/Items/trophy_lv2.png',
-        'assets/ModernPixelArt/Items/trophy_lv3.png',
-        'assets/ModernPixelArt/Items/trophy_lv4.png',
-        'assets/ModernPixelArt/Items/trophy_lv5.png',
-        'assets/ModernPixelArt/Items/trophy_lv6.png'
+        'assets/CozyAcademy/Full/Items/trophy_lv1.png',
+        'assets/CozyAcademy/Full/Items/trophy_lv2.png',
+        'assets/CozyAcademy/Full/Items/trophy_lv3.png',
+        'assets/CozyAcademy/Full/Items/trophy_lv4.png',
+        'assets/CozyAcademy/Full/Items/trophy_lv5.png',
+        'assets/CozyAcademy/Full/Items/trophy_lv6.png'
       ]),
       itemNames: Object.freeze([
         null, 'Madalya', 'Bronz Kupa', 'Gümüş Kupa',
@@ -107,7 +115,7 @@ window.ChampionTour.GameData = Object.freeze({
       chainId: 'footballs',
       unlockLevel: 1,
       description: 'Futbol topu zincirinden nesneler üretir.',
-      artwork: 'assets/ModernPixelArt/Producers/producer_football_v2.png'
+      artwork: 'assets/CozyAcademy/Full/Producers/producer_football.png'
     }),
     equipment_locker: Object.freeze({
       id: 'equipment_locker',
@@ -115,7 +123,7 @@ window.ChampionTour.GameData = Object.freeze({
       chainId: 'equipment',
       unlockLevel: 1,
       description: 'İçecek ve hidrasyon zincirinden nesneler üretir.',
-      artwork: 'assets/ModernPixelArt/Producers/producer_hydration_v2.png'
+      artwork: 'assets/CozyAcademy/Full/Producers/producer_hydration.png'
     }),
     training_cart: Object.freeze({
       id: 'training_cart',
@@ -131,7 +139,7 @@ window.ChampionTour.GameData = Object.freeze({
       chainId: 'trophies',
       unlockLevel: 1,
       description: 'Madalya ve kupa zincirinden nesneler üretir.',
-      artwork: 'assets/ModernPixelArt/Producers/producer_trophy_v2.png'
+      artwork: 'assets/CozyAcademy/Full/Producers/producer_trophy.png'
     })
   }),
 
