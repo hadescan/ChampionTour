@@ -2670,6 +2670,312 @@ body {
   }
 }
 
+/* Compact mobile gameplay HUD — layout-only polish. */
+:root {
+  --normal-item-safe-size: 84%;
+  --producer-item-safe-size: 90%;
+  --mobile-ui-gap: 4px;
+}
+
+.game {
+  width: min(100%, 430px);
+  max-width: 430px;
+  height: 100dvh;
+  min-height: 0;
+  gap: var(--mobile-ui-gap);
+  padding:
+    max(5px, env(safe-area-inset-top))
+    6px
+    max(4px, env(safe-area-inset-bottom));
+  overflow: hidden;
+}
+
+.game-header {
+  width: 100%;
+  max-width: 418px;
+  min-height: 0;
+  margin: 0 auto;
+  padding: 2px;
+  grid-template-columns:
+    minmax(76px, 1.08fr)
+    minmax(101px, 1.42fr)
+    minmax(72px, 1fr)
+    minmax(63px, .88fr);
+  grid-template-rows: 34px 24px;
+  gap: 4px 3px;
+  border-width: 1px;
+  border-radius: 15px;
+  box-shadow:
+    0 4px 12px rgba(33,75,77,.08),
+    inset 0 1px 0 rgba(255,255,255,.3);
+}
+
+.hud-capsule {
+  min-height: 34px;
+  height: 34px;
+  border-width: 1px;
+  border-radius: 11px;
+  box-shadow:
+    0 2px 0 rgba(25,94,118,.48),
+    0 3px 7px rgba(42,70,60,.11),
+    inset 0 1px 0 rgba(255,255,255,.34);
+}
+
+.player-level-card {
+  padding: 1px 4px 1px 2px;
+  gap: 3px;
+}
+
+.level-ring {
+  width: 29px;
+  height: 29px;
+  box-shadow:
+    0 2px 0 rgba(24,91,116,.48),
+    inset 0 1px 1px rgba(255,255,255,.3);
+}
+
+.level-ring circle { stroke-width: 3; }
+.level-ring span { font-size: 13px; text-shadow: 0 1px 0 rgba(19,83,107,.6); }
+
+.level-copy small,
+.resource-copy small {
+  font-size: 5.5px;
+  letter-spacing: .3px;
+}
+
+.level-copy strong {
+  margin-top: 2px;
+  font-size: 7px;
+}
+
+.energy-card {
+  min-height: 34px;
+  height: 34px;
+  padding: 1px 4px 1px 1px;
+  gap: 3px;
+  box-shadow:
+    0 2px 0 rgba(22,91,114,.52),
+    0 3px 7px rgba(42,70,60,.12),
+    inset 0 1px 0 rgba(255,255,255,.36);
+}
+
+.energy-symbol {
+  width: 25px;
+  height: 29px;
+  border-width: 1px;
+  border-radius: 9px;
+  box-shadow:
+    0 2px 0 #1d7699,
+    inset 0 1px 1px rgba(255,255,255,.4);
+}
+
+.energy-symbol svg { width: 17px; height: 17px; }
+.energy-row strong { font-size: 12px; }
+.energy-maximum { font-size: 6px; }
+
+.energy-track {
+  height: 3px;
+  margin: 2px 0 1px;
+  border-width: 0;
+}
+
+.energy-timer {
+  gap: 2px;
+  font-size: 5.5px;
+  line-height: 1;
+}
+
+.energy-timer strong { font-size: 7px; }
+
+.resource-pill {
+  min-height: 34px;
+  height: 34px;
+  padding: 2px 3px 2px 1px;
+  gap: 2px;
+}
+
+.resource-icon,
+.resource-coins .resource-icon {
+  width: 23px;
+  height: 23px;
+  margin-left: 0;
+}
+
+.resource-copy strong,
+.resource-coins .resource-copy strong {
+  margin-top: 1px;
+  font-size: 12px;
+  letter-spacing: -.2px;
+}
+
+.campus-hud-button {
+  min-height: 24px;
+  height: 24px;
+  padding: 1px 8px;
+  gap: 5px;
+  border-width: 1px;
+  border-radius: 9px;
+  box-shadow:
+    0 2px 0 #246f53,
+    0 3px 7px rgba(31,93,70,.14),
+    inset 0 1px 0 rgba(255,255,255,.28);
+}
+
+.campus-hud-icon { width: 15px; height: 15px; }
+.campus-hud-button span:last-child { gap: 4px; }
+.campus-hud-button small { font-size: 5px; }
+.campus-hud-button strong { font-size: 9px; }
+
+.orders-shell {
+  width: 100%;
+  max-width: 418px;
+  margin: 1px auto 0;
+  padding-top: 11px;
+}
+
+.orders-label {
+  left: 7px;
+  height: 14px;
+  padding-inline: 6px;
+  font-size: 6px;
+  border-width: 1px;
+}
+
+.orders-strip {
+  height: 66px;
+  min-height: 66px;
+  padding: 0 5px 4px;
+  gap: 6px;
+  scroll-padding-inline: 5px;
+}
+
+.order-card,
+.order-card.multi-requirement {
+  flex: 0 0 clamp(108px, 29.3vw, 114px);
+  width: clamp(108px, 29.3vw, 114px);
+  min-height: 61px;
+  height: 61px;
+  padding: 3px 4px 3px 3px;
+  grid-template-columns: 30px minmax(0, 1fr);
+  grid-template-rows: 9px 33px 13px;
+  column-gap: 2px;
+  border-radius: 14px;
+}
+
+.customer-portrait {
+  width: 33px;
+  height: 45px;
+  margin-left: -6px;
+}
+
+.order-customer-name { font-size: 6.5px; }
+
+.order-items {
+  height: 33px;
+  padding: 1px 2px;
+  gap: 2px;
+  border-radius: 9px;
+}
+
+.order-item-chip,
+.order-item-chip img {
+  width: 30px;
+  height: 30px;
+}
+
+.order-items.multi-item .order-item-chip,
+.order-items.multi-item .order-item-chip img {
+  width: 25px;
+  height: 27px;
+}
+
+.order-reward {
+  min-height: 12px;
+  padding: 1px 2px;
+  font-size: 6.5px;
+}
+
+.order-deliver-button {
+  top: 18px;
+  right: 3px;
+  width: 24px;
+  height: 24px;
+  font-size: 14px;
+}
+
+.board-frame {
+  width: min(calc(100vw - 16px), 414px);
+  max-width: 414px;
+  margin: 8px auto 0;
+  padding: clamp(5px, 1.5vw, 6px);
+}
+
+.ball-wrap {
+  width: var(--normal-item-safe-size);
+  height: var(--normal-item-safe-size);
+  overflow: visible;
+}
+
+.ball {
+  transform: scale(var(--item-visual-scale, 1));
+}
+
+.producer-wrap {
+  width: var(--producer-item-safe-size);
+  height: var(--producer-item-safe-size);
+}
+
+.item-info-panel {
+  width: min(calc(100% - 16px), 414px);
+  height: clamp(50px, 6.5dvh, 56px);
+  min-height: clamp(50px, 6.5dvh, 56px);
+  margin: 5px auto 0;
+}
+
+.hint {
+  min-height: 18px;
+  height: 18px;
+}
+
+@media (max-width: 375px), (max-height: 800px) {
+  .game { gap: 3px; padding-inline: 5px; }
+  .game-header {
+    grid-template-columns:
+      minmax(69px, 1.05fr)
+      minmax(94px, 1.42fr)
+      minmax(66px, 1fr)
+      minmax(59px, .88fr);
+  }
+  .resource-copy small,
+  .player-level-card .level-copy small { display: none; }
+  .level-copy strong { margin-top: 0; font-size: 6.5px; }
+  .orders-shell { padding-top: 10px; }
+  .orders-strip { height: 63px; min-height: 63px; }
+  .order-card,
+  .order-card.multi-requirement {
+    min-height: 59px;
+    height: 59px;
+  }
+  .board-frame {
+    width: min(calc(100vw - 12px), 414px);
+    margin-top: 5px;
+  }
+  .item-info-panel {
+    width: min(calc(100% - 12px), 414px);
+    height: 50px;
+    min-height: 50px;
+  }
+}
+
+@media (min-width: 700px) {
+  .game {
+    width: 430px;
+    height: 100dvh;
+    margin: 0 auto;
+    border-radius: 0;
+  }
+}
+
 /* Sprint 8.8 — true portrait-mobile composition */
 :root {
   --normal-item-safe-size: 84%;
@@ -4300,5 +4606,79 @@ body.campus-open {
   .item-info-panel {
     height: 75px;
     min-height: 75px;
+  }
+}
+
+/* Compact mobile HUD final cascade guard. */
+.campus-hud-button {
+  min-height: 24px;
+  height: 24px;
+}
+
+.orders-shell {
+  margin-top: 1px;
+  padding-top: 11px;
+}
+
+.orders-strip {
+  height: 66px;
+  min-height: 66px;
+  padding: 0 5px 4px;
+  gap: 6px;
+  scroll-padding-inline: 5px;
+}
+
+.order-card,
+.order-card.multi-requirement {
+  flex: 0 0 clamp(108px, 29.3vw, 114px);
+  width: clamp(108px, 29.3vw, 114px);
+  min-height: 61px;
+  height: 61px;
+}
+
+.board-frame {
+  width: min(calc(100vw - 16px), 414px);
+  max-width: 414px;
+  margin-top: 3px;
+}
+
+.ball-wrap {
+  width: var(--normal-item-safe-size);
+  height: var(--normal-item-safe-size);
+  overflow: visible;
+}
+
+.ball {
+  transform: scale(var(--item-visual-scale, 1));
+}
+
+.producer-wrap {
+  width: var(--producer-item-safe-size);
+  height: var(--producer-item-safe-size);
+}
+
+.item-info-panel {
+  width: min(calc(100% - 16px), 414px);
+  height: clamp(50px, 6.5dvh, 56px);
+  min-height: clamp(50px, 6.5dvh, 56px);
+  margin-top: 5px;
+}
+
+@media (max-width: 375px), (max-height: 800px) {
+  .orders-shell { padding-top: 10px; }
+  .orders-strip { height: 63px; min-height: 63px; }
+  .order-card,
+  .order-card.multi-requirement {
+    min-height: 59px;
+    height: 59px;
+  }
+  .board-frame {
+    width: min(calc(100vw - 12px), 414px);
+    margin-top: 5px;
+  }
+  .item-info-panel {
+    width: min(calc(100% - 12px), 414px);
+    height: 50px;
+    min-height: 50px;
   }
 }

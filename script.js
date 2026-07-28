@@ -569,6 +569,16 @@
     });
   }
 
+  function itemVisualScale(chainId, level) {
+    const scaleByChain = {
+      footballs: [1, 1.04, 1.02, 1.02, 1.02, 1.02, 1],
+      equipment: [1, 1.13, 1.09, 1.08, 1.06, 1.08, 1],
+      training: [1, 1.06, 1.07, 1.12, 1.08, 1.08, 1],
+      trophies: [1, 1.12, 1.08, 1.07, 1.06, 1, 1]
+    };
+    return scaleByChain[chainId]?.[level] || 1;
+  }
+
   function renderCell(index, animationClass) {
     scheduleOrderReadinessUpdate();
     const cell = cellElements[index];
@@ -619,6 +629,10 @@
     const wrapper = document.createElement('div');
     wrapper.className = 'ball-wrap';
     wrapper.style.background = 'transparent';
+    wrapper.style.setProperty(
+      '--item-visual-scale',
+      String(itemVisualScale(item.chainId, item.level))
+    );
     wrapper.appendChild(createItemShadow());
 
     const image = document.createElement('img');
