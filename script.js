@@ -1296,9 +1296,9 @@
     const customerKeys = ['coach', 'captain', 'scout'];
     const customerKey = order.customerId || customerKeys[index % customerKeys.length];
     const portraitSources = {
-      coach: 'assets/UI/Customers/customer_coach.png',
-      captain: 'assets/UI/Customers/customer_player.png',
-      scout: 'assets/UI/Customers/customer_scout.png'
+      coach: 'assets/ModernPixelArt/Customers/customer_coach.png',
+      captain: 'assets/ModernPixelArt/Customers/customer_player.png',
+      scout: 'assets/ModernPixelArt/Customers/customer_scout.png'
     };
     const portrait = document.createElement('div');
     portrait.className = `customer-portrait customer-${customerKey}`;

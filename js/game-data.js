@@ -2,13 +2,13 @@ window.ChampionTour = window.ChampionTour || {};
 
 window.ChampionTour.GameData = Object.freeze({
   uiIcons: Object.freeze({
-    level: 'assets/icons/ct-level.svg',
-    energy: 'assets/icons/ct-energy.svg',
-    coins: 'assets/icons/ct-coin.svg',
-    gems: 'assets/icons/ct-gem.svg',
-    storage: 'assets/icons/ct-storage.svg',
-    sell: 'assets/icons/ct-sell.svg',
-    producerEnergy: 'assets/icons/ct-producer-energy.svg'
+    level: 'assets/ModernPixelArt/UI/sp_badge.png',
+    energy: 'assets/ModernPixelArt/UI/energy.png',
+    coins: 'assets/ModernPixelArt/UI/coin.png',
+    gems: 'assets/ModernPixelArt/UI/gem.png',
+    storage: 'assets/ModernPixelArt/UI/storage.png',
+    sell: 'assets/ModernPixelArt/UI/sell.png',
+    producerEnergy: 'assets/ModernPixelArt/UI/producer_energy.png'
   }),
 
   maxItemLevel: 6,
@@ -22,12 +22,12 @@ window.ChampionTour.GameData = Object.freeze({
       orderEligibleLevels: Object.freeze([1, 2, 3, 4, 5, 6]),
       assets: Object.freeze([
         null,
-        'assets/Football/Reference/football_lv1.png',
-        'assets/Football/Reference/football_lv2.png',
-        'assets/Football/Reference/football_lv3.png',
-        'assets/Football/Reference/football_lv4.png',
-        'assets/Football/Reference/football_lv5.png',
-        'assets/Football/Reference/football_lv6.png'
+        'assets/ModernPixelArt/Items/football_lv1.png',
+        'assets/ModernPixelArt/Items/football_lv2.png',
+        'assets/ModernPixelArt/Items/football_lv3.png',
+        'assets/ModernPixelArt/Items/football_lv4.png',
+        'assets/ModernPixelArt/Items/football_lv5.png',
+        'assets/ModernPixelArt/Items/football_lv6.png'
       ]),
       itemNames: Object.freeze([
         null, 'Antrenman Topu', 'Kaliteli Antrenman Topu', 'Maç Topu',
@@ -43,12 +43,12 @@ window.ChampionTour.GameData = Object.freeze({
       orderEligibleLevels: Object.freeze([1, 2, 3, 4, 5, 6]),
       assets: Object.freeze([
         null,
-        'assets/Football/Reference/hydration_lv1.png',
-        'assets/Football/Reference/hydration_lv2.png',
-        'assets/Football/Reference/hydration_lv3.png',
-        'assets/Football/Reference/hydration_lv4.png',
-        'assets/Football/Reference/hydration_lv5.png',
-        'assets/Football/Reference/hydration_lv6.png'
+        'assets/ModernPixelArt/Items/hydration_lv1.png',
+        'assets/ModernPixelArt/Items/hydration_lv2.png',
+        'assets/ModernPixelArt/Items/hydration_lv3.png',
+        'assets/ModernPixelArt/Items/hydration_lv4.png',
+        'assets/ModernPixelArt/Items/hydration_lv5.png',
+        'assets/ModernPixelArt/Items/hydration_lv6.png'
       ]),
       itemNames: Object.freeze([
         null, 'Su Bardağı', 'Su Şişesi', 'Spor Matarası',
@@ -64,12 +64,12 @@ window.ChampionTour.GameData = Object.freeze({
       orderEligibleLevels: Object.freeze([1, 2, 3, 4, 5, 6]),
       assets: Object.freeze([
         null,
-        'assets/Football/Reference/training_lv1.png',
-        'assets/Football/Reference/training_lv2.png',
-        'assets/Football/Reference/training_lv3.png',
-        'assets/Football/Reference/training_lv4.png',
-        'assets/Football/Reference/training_lv5.png',
-        'assets/Football/Reference/training_lv6.png'
+        'assets/ModernPixelArt/Items/training_lv1.png',
+        'assets/ModernPixelArt/Items/training_lv2.png',
+        'assets/ModernPixelArt/Items/training_lv3.png',
+        'assets/ModernPixelArt/Items/training_lv4.png',
+        'assets/ModernPixelArt/Items/training_lv5.png',
+        'assets/ModernPixelArt/Items/training_lv6.png'
       ]),
       itemNames: Object.freeze([
         null, 'Antrenman Konisi', 'Koni Seti', 'Antrenman Engeli',
@@ -85,12 +85,12 @@ window.ChampionTour.GameData = Object.freeze({
       orderEligibleLevels: Object.freeze([1, 2, 3, 4, 5, 6]),
       assets: Object.freeze([
         null,
-        'assets/Football/Reference/trophy_lv1.png',
-        'assets/Football/Reference/trophy_lv2.png',
-        'assets/Football/Reference/trophy_lv3.png',
-        'assets/Football/Reference/trophy_lv4.png',
-        'assets/Football/Reference/trophy_lv5.png',
-        'assets/Football/Reference/trophy_lv6.png'
+        'assets/ModernPixelArt/Items/trophy_lv1.png',
+        'assets/ModernPixelArt/Items/trophy_lv2.png',
+        'assets/ModernPixelArt/Items/trophy_lv3.png',
+        'assets/ModernPixelArt/Items/trophy_lv4.png',
+        'assets/ModernPixelArt/Items/trophy_lv5.png',
+        'assets/ModernPixelArt/Items/trophy_lv6.png'
       ]),
       itemNames: Object.freeze([
         null, 'Madalya', 'Bronz Kupa', 'Gümüş Kupa',
@@ -107,7 +107,7 @@ window.ChampionTour.GameData = Object.freeze({
       chainId: 'footballs',
       unlockLevel: 1,
       description: 'Futbol topu zincirinden nesneler üretir.',
-      artwork: 'assets/Football/Producer/producer_ball_basket_v2.png'
+      artwork: 'assets/ModernPixelArt/Producers/producer_football.png'
     }),
     equipment_locker: Object.freeze({
       id: 'equipment_locker',
@@ -115,7 +115,7 @@ window.ChampionTour.GameData = Object.freeze({
       chainId: 'equipment',
       unlockLevel: 1,
       description: 'İçecek ve hidrasyon zincirinden nesneler üretir.',
-      artwork: 'assets/Football/Producer/producer_hydration_v2.png'
+      artwork: 'assets/ModernPixelArt/Producers/producer_hydration.png'
     }),
     training_cart: Object.freeze({
       id: 'training_cart',
@@ -123,7 +123,7 @@ window.ChampionTour.GameData = Object.freeze({
       chainId: 'training',
       unlockLevel: 1,
       description: 'Saha ve antrenman ekipmanı zincirinden nesneler üretir.',
-      artwork: 'assets/Football/Producer/producer_training_v2.png'
+      artwork: 'assets/ModernPixelArt/Producers/producer_training.png'
     }),
     trophy_cabinet: Object.freeze({
       id: 'trophy_cabinet',
@@ -131,7 +131,7 @@ window.ChampionTour.GameData = Object.freeze({
       chainId: 'trophies',
       unlockLevel: 1,
       description: 'Madalya ve kupa zincirinden nesneler üretir.',
-      artwork: 'assets/Football/Producer/producer_trophy_v2.png'
+      artwork: 'assets/ModernPixelArt/Producers/producer_trophy.png'
     })
   }),
 
@@ -185,12 +185,12 @@ window.ChampionTour.GameData = Object.freeze({
 
   items: Object.freeze([
     null,
-    Object.freeze({ id: 'football_1', level: 1, nameKey: 'item.football.lv1', descriptionKey: 'item.football.lv1.description', rarityKey: 'rarity.common', producerId: 'football_academy', icon: 'assets/Football/Reference/football_lv1.png', sprite: 'assets/Football/Reference/football_lv1.png', nextLevel: 2 }),
-    Object.freeze({ id: 'football_2', level: 2, nameKey: 'item.football.lv2', descriptionKey: 'item.football.lv2.description', rarityKey: 'rarity.common', producerId: 'football_academy', icon: 'assets/Football/Reference/football_lv2.png', sprite: 'assets/Football/Reference/football_lv2.png', nextLevel: 3 }),
-    Object.freeze({ id: 'football_3', level: 3, nameKey: 'item.football.lv3', descriptionKey: 'item.football.lv3.description', rarityKey: 'rarity.uncommon', producerId: 'football_academy', icon: 'assets/Football/Reference/football_lv3.png', sprite: 'assets/Football/Reference/football_lv3.png', nextLevel: 4 }),
-    Object.freeze({ id: 'football_4', level: 4, nameKey: 'item.football.lv4', descriptionKey: 'item.football.lv4.description', rarityKey: 'rarity.rare', producerId: 'football_academy', icon: 'assets/Football/Reference/football_lv4.png', sprite: 'assets/Football/Reference/football_lv4.png', nextLevel: 5 }),
-    Object.freeze({ id: 'football_5', level: 5, nameKey: 'item.football.lv5', descriptionKey: 'item.football.lv5.description', rarityKey: 'rarity.epic', producerId: 'football_academy', icon: 'assets/Football/Reference/football_lv5.png', sprite: 'assets/Football/Reference/football_lv5.png', nextLevel: 6 }),
-    Object.freeze({ id: 'football_6', level: 6, nameKey: 'item.football.lv6', descriptionKey: 'item.football.lv6.description', rarityKey: 'rarity.legendary', producerId: 'football_academy', icon: 'assets/Football/Reference/football_lv6.png', sprite: 'assets/Football/Reference/football_lv6.png', nextLevel: null })
+    Object.freeze({ id: 'football_1', level: 1, nameKey: 'item.football.lv1', descriptionKey: 'item.football.lv1.description', rarityKey: 'rarity.common', producerId: 'football_academy', icon: 'assets/ModernPixelArt/Items/football_lv1.png', sprite: 'assets/ModernPixelArt/Items/football_lv1.png', nextLevel: 2 }),
+    Object.freeze({ id: 'football_2', level: 2, nameKey: 'item.football.lv2', descriptionKey: 'item.football.lv2.description', rarityKey: 'rarity.common', producerId: 'football_academy', icon: 'assets/ModernPixelArt/Items/football_lv2.png', sprite: 'assets/ModernPixelArt/Items/football_lv2.png', nextLevel: 3 }),
+    Object.freeze({ id: 'football_3', level: 3, nameKey: 'item.football.lv3', descriptionKey: 'item.football.lv3.description', rarityKey: 'rarity.uncommon', producerId: 'football_academy', icon: 'assets/ModernPixelArt/Items/football_lv3.png', sprite: 'assets/ModernPixelArt/Items/football_lv3.png', nextLevel: 4 }),
+    Object.freeze({ id: 'football_4', level: 4, nameKey: 'item.football.lv4', descriptionKey: 'item.football.lv4.description', rarityKey: 'rarity.rare', producerId: 'football_academy', icon: 'assets/ModernPixelArt/Items/football_lv4.png', sprite: 'assets/ModernPixelArt/Items/football_lv4.png', nextLevel: 5 }),
+    Object.freeze({ id: 'football_5', level: 5, nameKey: 'item.football.lv5', descriptionKey: 'item.football.lv5.description', rarityKey: 'rarity.epic', producerId: 'football_academy', icon: 'assets/ModernPixelArt/Items/football_lv5.png', sprite: 'assets/ModernPixelArt/Items/football_lv5.png', nextLevel: 6 }),
+    Object.freeze({ id: 'football_6', level: 6, nameKey: 'item.football.lv6', descriptionKey: 'item.football.lv6.description', rarityKey: 'rarity.legendary', producerId: 'football_academy', icon: 'assets/ModernPixelArt/Items/football_lv6.png', sprite: 'assets/ModernPixelArt/Items/football_lv6.png', nextLevel: null })
   ]),
 
   orders: Object.freeze({
