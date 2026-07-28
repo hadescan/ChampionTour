@@ -97,7 +97,7 @@ window.ChampionTour.GameData = Object.freeze({
       chainId: 'footballs',
       unlockLevel: 1,
       description: 'Futbol topu zincirinden nesneler üretir.',
-      artwork: 'assets/Football/Reference/producer_football.png'
+      artwork: 'assets/Football/Producer/producer_ball_basket_v2.png'
     }),
     equipment_locker: Object.freeze({
       id: 'equipment_locker',
@@ -105,7 +105,7 @@ window.ChampionTour.GameData = Object.freeze({
       chainId: 'equipment',
       unlockLevel: 1,
       description: 'İçecek ve hidrasyon zincirinden nesneler üretir.',
-      artwork: 'assets/Football/Reference/producer_hydration.png'
+      artwork: 'assets/Football/Producer/producer_hydration_v2.png'
     }),
     training_cart: Object.freeze({
       id: 'training_cart',
@@ -113,7 +113,7 @@ window.ChampionTour.GameData = Object.freeze({
       chainId: 'training',
       unlockLevel: 1,
       description: 'Saha ve antrenman ekipmanı zincirinden nesneler üretir.',
-      artwork: 'assets/Football/Reference/producer_training.png'
+      artwork: 'assets/Football/Producer/producer_training_v2.png'
     }),
     trophy_cabinet: Object.freeze({
       id: 'trophy_cabinet',
@@ -121,7 +121,7 @@ window.ChampionTour.GameData = Object.freeze({
       chainId: 'trophies',
       unlockLevel: 1,
       description: 'Madalya ve kupa zincirinden nesneler üretir.',
-      artwork: 'assets/Football/Reference/producer_trophy.png'
+      artwork: 'assets/Football/Producer/producer_trophy_v2.png'
     })
   }),
 

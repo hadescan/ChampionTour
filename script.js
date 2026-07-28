@@ -91,6 +91,7 @@
   let saleConfirmationIndex = -1;
   let saleConfirmTimer = 0;
   let saleInProgress = false;
+  let lastSale = null;
 
   function itemSource(chainId, level) {
     return DATA.chains[chainId]?.assets[level] || DATA.chains.footballs.assets[level];
@@ -235,6 +236,48 @@
     toastTimer = setTimeout(() => toast.classList.remove('show'), 1500);
   }
 
+  function showSaleToast(item, originalIndex) {
+    const toast = document.getElementById('toast');
+    toast.textContent = `Ürün ${DEFAULT_ITEM_SELL_PRICE} altına satıldı`;
+    const undoButton = document.createElement('button');
+    undoButton.type = 'button';
+    undoButton.textContent = 'Geri al';
+    undoButton.addEventListener('click', undoLastSale, { once: true });
+    toast.appendChild(undoButton);
+    lastSale = { item, originalIndex };
+    toast.classList.add('show', 'sale-toast');
+    window.clearTimeout(toastTimer);
+    toastTimer = window.setTimeout(() => {
+      toast.classList.remove('show', 'sale-toast');
+      lastSale = null;
+    }, 4000);
+  }
+
+  function undoLastSale() {
+    if (!lastSale) return;
+    const targetIndex = state.cells[lastSale.originalIndex] === null
+      ? lastSale.originalIndex
+      : state.cells.findIndex((item) => item === null);
+    if (targetIndex < 0) {
+      showToast(TEXT.boardFull);
+      return;
+    }
+    const economy = Progression.adjustEconomy({ coins: -DEFAULT_ITEM_SELL_PRICE });
+    if (!economy) return;
+    state.cells[targetIndex] = lastSale.item;
+    if (!saveBoardState()) {
+      state.cells[targetIndex] = null;
+      Progression.adjustEconomy({ coins: DEFAULT_ITEM_SELL_PRICE });
+      showToast('Geri alma tamamlanamadı');
+      return;
+    }
+    lastSale = null;
+    renderCell(targetIndex, 'spawned');
+    renderEconomy();
+    document.getElementById('toast').classList.remove('show', 'sale-toast');
+    showToast('Satış geri alındı');
+  }
+
   function itemName(chainId, level) {
     return DATA.chains[chainId]?.itemNames[level] || window.t(`item.football.lv${level}`);
   }
@@ -285,6 +328,7 @@
     const definition = DATA.items[level];
     document.getElementById('producerXpDebug').hidden = true;
     document.getElementById('itemInfoButton').hidden = false;
+    document.getElementById('producerOutputChip').hidden = true;
     if (index >= 0) selectCell(index);
     const producerId = DATA.chains[chainId].producerId;
     selectedInfo = { type: 'item', chainId, level, producerId };
@@ -355,6 +399,12 @@
       state.energy >= PRODUCTION_COST ? 'Hazır' : 'Enerji gerekli';
     document.getElementById('itemInfoNext').textContent =
       'Üretmek için dokun. Taşımak için sürükle.';
+    const producer = DATA.producers[producerId];
+    const outputChip = document.getElementById('producerOutputChip');
+    document.getElementById('producerOutputIcon').src = itemSource(producer.chainId, 1);
+    document.getElementById('producerOutputIcon').alt = itemName(producer.chainId, 1);
+    document.getElementById('producerOutputName').textContent = itemName(producer.chainId, 1);
+    outputChip.hidden = false;
     debugButton.hidden = true;
     document.getElementById('itemInfoButton').hidden = false;
     debugButton.textContent = window.t('producer.progress.debug_xp').replace(
@@ -386,6 +436,7 @@
     document.getElementById('itemInfoProducer').textContent = '';
     document.getElementById('itemInfoRarity').textContent = '';
     document.getElementById('itemInfoNext').textContent = '';
+    document.getElementById('producerOutputChip').hidden = true;
     document.getElementById('producerXpDebug').hidden = true;
     document.getElementById('itemInfoButton').hidden = true;
     panel.classList.remove('is-empty', 'content-change');
@@ -2678,9 +2729,10 @@
     renderCell(index);
     clearItemInfo();
     renderEconomy();
+    pulseRewardCounter('coinValue', Progression.getEconomy().coins);
     saleInProgress = false;
     resetSaleConfirmation();
-    showToast(`Ürün ${DEFAULT_ITEM_SELL_PRICE} altına satıldı`);
+    showSaleToast(item, index);
   }
 
   function init() {
@@ -2702,6 +2754,9 @@
     document.getElementById('itemInfoButton').addEventListener('click', openItemDetail);
     document.getElementById('storageButton').addEventListener('click', openStorage);
     document.getElementById('storageCloseButton').addEventListener('click', closeStorage);
+    document.getElementById('storageOverlay').addEventListener('click', (event) => {
+      if (event.target.id === 'storageOverlay') closeStorage();
+    });
     document.getElementById('sellButton').addEventListener('click', handleSellClick);
     document.getElementById('itemDetailClose').addEventListener('click', closeItemDetail);
     document.getElementById('itemDetailOverlay').addEventListener('click', (event) => {
