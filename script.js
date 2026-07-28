@@ -101,6 +101,12 @@
     return DATA.producers[producerId]?.artwork || DATA.producers.ball_basket.artwork;
   }
 
+  function applyUiIcons(root = document) {
+    root.querySelectorAll('[data-ui-icon]').forEach((image) => {
+      image.src = DATA.uiIcons[image.dataset.uiIcon];
+    });
+  }
+
   function applyTranslations() {
     document.querySelectorAll('[data-i18n]').forEach((element) => {
       element.textContent = window.t(element.dataset.i18n);
@@ -694,8 +700,10 @@
       cell.appendChild(producerWrapper);
       const energyBadge = document.createElement('span');
       energyBadge.className = 'producer-energy-badge';
-      energyBadge.innerHTML =
-        '<svg viewBox="0 0 20 24" aria-hidden="true"><path d="M11.7 1.7 3.5 13h5.4l-.7 9.3 8.3-12h-5.4z"/></svg>';
+      const energyIcon = document.createElement('img');
+      energyIcon.src = DATA.uiIcons.producerEnergy;
+      energyIcon.alt = '';
+      energyBadge.appendChild(energyIcon);
       energyBadge.setAttribute('aria-hidden', 'true');
       cell.appendChild(energyBadge);
       if (index === selectedCellIndex) cell.classList.add('item-selected');
@@ -2053,8 +2061,10 @@
       ghost.appendChild(image);
       const badge = document.createElement('span');
       badge.className = 'producer-energy-badge';
-      badge.innerHTML =
-        '<svg viewBox="0 0 20 24" aria-hidden="true"><path d="M11.7 1.7 3.5 13h5.4l-.7 9.3 8.3-12h-5.4z"/></svg>';
+      const energyIcon = document.createElement('img');
+      energyIcon.src = DATA.uiIcons.producerEnergy;
+      energyIcon.alt = '';
+      badge.appendChild(energyIcon);
       badge.setAttribute('aria-hidden', 'true');
       ghost.appendChild(badge);
     }
@@ -2737,6 +2747,7 @@
 
   function init() {
     applyTranslations();
+    applyUiIcons();
     loadEnergy();
     createBoard();
     document.getElementById('campusCloseButton').addEventListener(

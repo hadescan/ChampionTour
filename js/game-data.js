@@ -1,6 +1,16 @@
 window.ChampionTour = window.ChampionTour || {};
 
 window.ChampionTour.GameData = Object.freeze({
+  uiIcons: Object.freeze({
+    level: 'assets/icons/ct-level.svg',
+    energy: 'assets/icons/ct-energy.svg',
+    coins: 'assets/icons/ct-coin.svg',
+    gems: 'assets/icons/ct-gem.svg',
+    storage: 'assets/icons/ct-storage.svg',
+    sell: 'assets/icons/ct-sell.svg',
+    producerEnergy: 'assets/icons/ct-producer-energy.svg'
+  }),
+
   maxItemLevel: 6,
 
   chains: Object.freeze({

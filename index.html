@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#67b9d8">
   <title>Champion Tour — Futbol Birleştirme Prototipi</title>
   <link rel="stylesheet" href="style.css?v=sprint-9-1">
-  <link rel="stylesheet" href="sprint-9-1.css?v=producer-readability-polish">
+  <link rel="stylesheet" href="sprint-9-1.css?v=typography-icon-polish">
 </head>
 <body>
   <div class="scene" aria-hidden="true">
@@ -47,6 +47,7 @@
             <circle class="level-ring-track" cx="24" cy="24" r="20"></circle>
             <circle class="level-ring-progress" cx="24" cy="24" r="20"></circle>
           </svg>
+          <img class="level-emblem" data-ui-icon="level" alt="">
           <span id="playerLevelValue">1</span>
         </div>
         <div class="level-copy">
@@ -56,9 +57,7 @@
       </section>
 
       <section class="energy-card hud-capsule" data-i18n-aria="energy.label">
-        <span class="hud-icon energy-symbol" aria-hidden="true">
-          <svg viewBox="0 0 32 32"><path d="M18.3 2.8 7.6 17.3h7.1l-1 11.9 10.7-15h-7.1z"></path></svg>
-        </span>
+        <img class="hud-icon energy-symbol" data-ui-icon="energy" alt="" aria-hidden="true">
         <div class="energy-content">
           <div class="energy-row">
             <strong id="energyValue">100</strong>
@@ -75,16 +74,12 @@
       </section>
 
       <section class="resource-pill resource-coins hud-capsule" aria-label="Altın">
-        <span class="hud-icon resource-icon" aria-hidden="true">
-          <svg viewBox="0 0 32 32"><ellipse cx="16" cy="17" rx="11" ry="10"/><ellipse class="icon-detail" cx="16" cy="15" rx="8.2" ry="7.4"/><path class="icon-detail" d="M13.3 11.8h4.3a2.1 2.1 0 0 1 0 4.2h-3.1a2.1 2.1 0 0 0 0 4.2h4.1M16 9.9v12"/></svg>
-        </span>
+        <img class="hud-icon resource-icon" data-ui-icon="coins" alt="" aria-hidden="true">
         <span class="resource-copy"><small>ALTIN</small><strong id="coinValue">0</strong></span>
       </section>
 
       <section class="resource-pill resource-gems hud-capsule" aria-label="Elmas">
-        <span class="hud-icon resource-icon" aria-hidden="true">
-          <svg viewBox="0 0 32 32"><path d="M8 6.5h16l5 7.1L16 27 3 13.6z"/><path class="icon-detail" d="m8 6.5 4 7.1 4-7.1 4 7.1 4-7.1M3 13.6h26M12 13.6 16 27l4-13.4"/></svg>
-        </span>
+        <img class="hud-icon resource-icon" data-ui-icon="gems" alt="" aria-hidden="true">
         <span class="resource-copy"><small>ELMAS</small><strong id="gemValue">0</strong></span>
       </section>
       <button type="button" class="campus-hud-button" id="campusHudButton" aria-label="Spor Kampüsünü aç">
@@ -100,7 +95,6 @@
     </header>
 
     <section class="orders-shell" data-i18n-aria="orders.title">
-      <span class="orders-label" aria-hidden="true">AKADEMİ TALEPLERİ</span>
       <div class="orders-strip" id="ordersStrip" role="region" data-i18n-aria="orders.title"></div>
       <span class="orders-scroll-progress" aria-hidden="true"><i id="ordersScrollThumb"></i></span>
     </section>
@@ -116,7 +110,7 @@
 
     <section class="item-info-panel is-visible is-empty" id="itemInfoPanel" aria-live="polite" aria-hidden="false">
       <button class="storage-button" id="storageButton" type="button" aria-label="Depoyu aç">
-        <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 9.5h22v17H5z"/><path d="M8 5.5h16l3 4H5z"/><path d="M12 14h8v12h-8z"/></svg>
+        <img data-ui-icon="storage" alt="" aria-hidden="true">
         <span id="storageCount">0/8</span>
       </button>
       <div class="item-info-icon-wrap">
@@ -142,7 +136,7 @@
       </div>
       <button class="item-info-button" id="itemInfoButton" type="button" aria-label="Detaylı bilgiyi aç" hidden>i</button>
       <button class="sell-button" id="sellButton" type="button" aria-label="Seçili ürünü sat" disabled>
-        <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="11"/><path d="M13 11.5h5a2.2 2.2 0 0 1 0 4.4h-4a2.2 2.2 0 0 0 0 4.4h5M16 9.5v13"/></svg>
+        <img data-ui-icon="sell" alt="" aria-hidden="true">
         <span>+2</span>
       </button>
     </section>
@@ -240,11 +234,11 @@
   </div>
 
   <script src="js/i18n.js"></script>
-  <script src="js/game-data.js?v=producer-readability-polish"></script>
+  <script src="js/game-data.js?v=typography-icon-polish"></script>
   <script src="js/progression.js?v=sprint-9-1"></script>
   <script src="js/sports-content.js?v=sprint-8-4-multi-producer"></script>
   <script src="js/academy.js?v=sprint-8-4-multi-producer"></script>
   <script src="js/audio.js"></script>
-  <script src="script.js?v=producer-readability-polish"></script>
+  <script src="script.js?v=typography-icon-polish"></script>
 </body>
 </html>
