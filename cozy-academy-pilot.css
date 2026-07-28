@@ -1,0 +1,247 @@
+/* Cozy Academy Storybook — High-Clarity Casual pilot theme. */
+:root {
+  --academy-navy: #173f58;
+  --dusty-teal: #4f9f9d;
+  --board-robin-egg: #b8deda;
+  --board-cell-alternate: #acd3cf;
+  --warm-cream: #fff3cf;
+  --honey-gold: #e5a82e;
+  --energy-cyan: #31cbe1;
+  --gem-plum: #a83eaa;
+  --success-sage: #76a978;
+  --danger-coral: #db6858;
+  --text-on-dark: #fff8df;
+  --text-on-light: #173f58;
+  --panel-radius: 18px;
+  --card-radius: 14px;
+  --board-gap: 3px;
+  --soft-shadow: 0 8px 22px rgba(31, 76, 76, .2);
+  --selected-outline: #20c8c4;
+  --hud-number-style: 700 16px/1 "Nunito Sans", system-ui, sans-serif;
+  --body-text-style: 600 14px/1.25 "Nunito Sans", system-ui, sans-serif;
+}
+
+html,
+body,
+button {
+  font-family: "Nunito Sans", system-ui, sans-serif !important;
+}
+
+body {
+  color: var(--text-on-light);
+  background:
+    radial-gradient(circle at 50% 12%, rgba(255, 248, 211, .74), transparent 30%),
+    linear-gradient(180deg, #acd9df 0 34%, #7bb89a 66%, #5b9e63 100%) !important;
+}
+
+.academy-world {
+  background:
+    radial-gradient(circle at 48% 13%, rgba(255, 246, 198, .78), transparent 25%),
+    linear-gradient(180deg, #b9e1e4 0 36%, #8bc4a5 68%, #70aa72 100%) !important;
+  image-rendering: auto !important;
+}
+
+.game-header {
+  border-color: rgba(229, 168, 46, .72) !important;
+  border-radius: 12px !important;
+  background: rgba(23, 63, 88, .92) !important;
+  box-shadow: 0 5px 14px rgba(18, 52, 69, .23), inset 0 1px rgba(255, 248, 223, .38) !important;
+}
+
+.game-header .hud-capsule {
+  border-radius: 10px !important;
+  background: linear-gradient(180deg, rgba(38, 90, 116, .95), rgba(22, 63, 88, .96)) !important;
+}
+
+.game-header strong,
+.level-ring span {
+  font: var(--hud-number-style) !important;
+  color: var(--text-on-dark) !important;
+  text-shadow: 0 1px 2px rgba(5, 31, 45, .5) !important;
+}
+
+.orders-shell {
+  background: rgba(54, 121, 116, .28) !important;
+  border-radius: var(--card-radius) !important;
+}
+
+.order-card,
+.order-card.multi-requirement {
+  border-color: #ead49d !important;
+  border-radius: var(--card-radius) !important;
+  background: linear-gradient(180deg, #fff6d9 0 67%, #f3dfa7 67%) !important;
+  box-shadow: 0 4px 10px rgba(42, 85, 74, .2), inset 0 1px white !important;
+}
+
+.order-customer-name,
+.order-reward,
+.order-reward strong,
+.order-quantity,
+.order-item-quantity {
+  font-family: "Nunito Sans", system-ui, sans-serif !important;
+}
+
+.order-customer-name {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+}
+
+.order-reward,
+.order-reward strong,
+.order-quantity,
+.order-item-quantity {
+  font-size: 14px !important;
+  font-weight: 700 !important;
+}
+
+.board-frame {
+  padding: 6px !important;
+  border: 4px solid var(--warm-cream) !important;
+  border-radius: var(--panel-radius) !important;
+  background: linear-gradient(145deg, #6eaaa2, var(--dusty-teal)) !important;
+  box-shadow:
+    0 0 0 3px rgba(54, 122, 116, .6),
+    var(--soft-shadow),
+    inset 0 2px rgba(255, 255, 255, .58) !important;
+}
+
+.board {
+  gap: var(--board-gap) !important;
+  padding: 4px !important;
+  border: 0 !important;
+  border-radius: 12px !important;
+  background: var(--board-robin-egg) !important;
+}
+
+.cell,
+.producer-cell,
+.cell:nth-child(even) {
+  overflow: visible !important;
+  border: 1px solid rgba(235, 251, 239, .72) !important;
+  border-radius: 8px !important;
+  background: linear-gradient(145deg, rgba(200, 230, 222, .88), rgba(168, 211, 207, .9)) !important;
+  box-shadow:
+    inset 1px 1px rgba(255, 255, 255, .55),
+    inset -1px -1px rgba(64, 122, 119, .12) !important;
+}
+
+.cell:nth-child(even) {
+  background: linear-gradient(145deg, rgba(192, 224, 218, .9), var(--board-cell-alternate)) !important;
+}
+
+.cell.item-selected {
+  border-color: var(--selected-outline) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(250, 255, 246, .95),
+    0 0 0 2px var(--selected-outline),
+    0 4px 12px rgba(32, 200, 196, .25) !important;
+}
+
+.ball[src*="/CozyAcademy/Pilot/Training/"],
+.producer-image[src*="/CozyAcademy/Pilot/Training/"],
+.order-item-chip img[src*="/CozyAcademy/Pilot/Training/"],
+.item-info-icon-wrap img[src*="/CozyAcademy/Pilot/Training/"],
+.storage-slot img[src*="/CozyAcademy/Pilot/Training/"] {
+  image-rendering: auto !important;
+  object-fit: contain !important;
+}
+
+.cell:has(.ball[src*="/CozyAcademy/Pilot/Training/"]) .ball-wrap {
+  width: 86% !important;
+  height: 86% !important;
+}
+
+.producer-cell[data-producer-id="training_cart"] .producer-wrap {
+  width: 104% !important;
+  height: 104% !important;
+}
+
+.producer-cell[data-producer-id="training_cart"] .producer-image {
+  object-fit: contain !important;
+  image-rendering: auto !important;
+}
+
+.producer-energy-badge {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.producer-energy-badge img {
+  image-rendering: auto !important;
+  filter:
+    saturate(1.16)
+    brightness(1.14)
+    drop-shadow(0 2px 3px rgba(15, 90, 111, .42)) !important;
+}
+
+.item-info-panel {
+  border-color: #edd69d !important;
+  border-radius: var(--panel-radius) !important;
+  background: linear-gradient(180deg, rgba(255, 247, 218, .98), rgba(244, 224, 172, .98)) !important;
+  box-shadow: var(--soft-shadow), inset 0 1px white !important;
+}
+
+.item-info-panel #itemInfoName {
+  color: var(--text-on-light) !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+}
+
+.item-info-panel #itemInfoDescription {
+  color: #52665f !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+}
+
+.production-mode-control {
+  border-radius: 12px !important;
+  background: linear-gradient(180deg, #45d5e8, #239db8) !important;
+  box-shadow: 0 4px 10px rgba(20, 93, 111, .25), inset 0 1px rgba(255,255,255,.55) !important;
+}
+
+.production-mode-control strong {
+  font-size: 18px !important;
+  font-weight: 700 !important;
+}
+
+.production-mode-control span {
+  font-size: 13px !important;
+  font-weight: 700 !important;
+}
+
+.item-info-panel.is-producer .item-info-copy {
+  align-self: center;
+  padding-right: 0 !important;
+}
+
+.item-info-panel.is-producer #itemInfoName {
+  max-width: 94px !important;
+  font-size: 15px !important;
+}
+
+.item-info-panel.is-producer #itemInfoDescription {
+  display: block !important;
+  max-width: 94px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 14px !important;
+}
+
+.item-info-panel.is-producer .production-mode-control {
+  right: 44px !important;
+  width: 116px !important;
+  min-width: 116px !important;
+}
+
+.item-info-panel.is-producer .production-mode-control span {
+  font-size: 11px !important;
+}
+
+@media (max-width: 375px), (max-height: 800px) {
+  :root { --board-gap: 2px; }
+  .item-info-panel #itemInfoName { font-size: 15px !important; }
+  .item-info-panel #itemInfoDescription { font-size: 13px !important; }
+  .production-mode-control strong { font-size: 17px !important; }
+}

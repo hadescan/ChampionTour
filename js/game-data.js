@@ -8,7 +8,7 @@ window.ChampionTour.GameData = Object.freeze({
     gems: 'assets/ModernPixelArt/UI/gem.png',
     storage: 'assets/ModernPixelArt/UI/storage.png',
     sell: 'assets/ModernPixelArt/UI/sell.png',
-    producerEnergy: 'assets/ModernPixelArt/UI/producer_energy.png'
+    producerEnergy: 'assets/ModernPixelArt/UI/energy.png'
   }),
 
   maxItemLevel: 6,
@@ -64,16 +64,16 @@ window.ChampionTour.GameData = Object.freeze({
       orderEligibleLevels: Object.freeze([1, 2, 3, 4, 5, 6]),
       assets: Object.freeze([
         null,
-        'assets/ModernPixelArt/Items/training_lv1.png',
-        'assets/ModernPixelArt/Items/training_lv2.png',
-        'assets/ModernPixelArt/Items/training_lv3.png',
-        'assets/ModernPixelArt/Items/training_lv4.png',
-        'assets/ModernPixelArt/Items/training_lv5.png',
-        'assets/ModernPixelArt/Items/training_lv6.png'
+        'assets/CozyAcademy/Pilot/Training/Items/training_lv1.png',
+        'assets/CozyAcademy/Pilot/Training/Items/training_lv2.png',
+        'assets/CozyAcademy/Pilot/Training/Items/training_lv3.png',
+        'assets/CozyAcademy/Pilot/Training/Items/training_lv4.png',
+        'assets/CozyAcademy/Pilot/Training/Items/training_lv5.png',
+        'assets/CozyAcademy/Pilot/Training/Items/training_lv6.png'
       ]),
       itemNames: Object.freeze([
-        null, 'Antrenman Konisi', 'Koni Seti', 'Antrenman Engeli',
-        'Koordinasyon Merdiveni', 'Mini Kale', 'Profesyonel Antrenman İstasyonu'
+        null, 'Antrenman Diski', 'Küçük Koni', 'Uzun Koni',
+        'Koni Yığını', 'Ağırlıklı Koni', 'Antrenman Kiti'
       ]),
       symbols: Object.freeze([null, '🔶', '🚧', '🥅', '🥅', '🎯', '🏟'])
     }),
@@ -119,11 +119,11 @@ window.ChampionTour.GameData = Object.freeze({
     }),
     training_cart: Object.freeze({
       id: 'training_cart',
-      name: 'Antrenman Ekipmanı Kulübesi',
+      name: 'Koni Arabası',
       chainId: 'training',
       unlockLevel: 1,
-      description: 'Saha ve antrenman ekipmanı zincirinden nesneler üretir.',
-      artwork: 'assets/ModernPixelArt/Producers/producer_training_v2.png'
+      description: 'Koni ve saha işaretleme ekipmanları üretir.',
+      artwork: 'assets/CozyAcademy/Pilot/Training/Producers/producer_training_cart.png'
     }),
     trophy_cabinet: Object.freeze({
       id: 'trophy_cabinet',
