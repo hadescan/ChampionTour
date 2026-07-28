@@ -138,6 +138,7 @@ window.ChampionTour.GameData = Object.freeze({
   testing: Object.freeze({
     enabled: true,
     bypassEnergy: false,
+    infiniteEnergyInTest: true,
     bypassProducerCooldown: false,
     producerXpIncrement: 25
   }),
@@ -149,6 +150,18 @@ window.ChampionTour.GameData = Object.freeze({
 
   economy: Object.freeze({
     defaultItemSellPrice: 2
+  }),
+
+  productionModes: Object.freeze({
+    energyOptions: Object.freeze([1, 2, 4, 8, 16]),
+    defaultEnergy: 1,
+    rareLevel3Chance: .02,
+    rareLevel4Chance: .005
+  }),
+
+  specialOrders: Object.freeze({
+    maxItemRequiredCount: 3,
+    diamondReward: 1
   }),
 
   producer: Object.freeze({

@@ -6,6 +6,7 @@
   const CELL_COUNT = BOARD_COLUMNS * BOARD_ROWS;
   const DATA = window.ChampionTour.GameData;
   const Progression = window.ChampionTour.Progression;
+  const ProductionRules = window.ChampionTour.ProductionRules;
   const Academy = window.ChampionTour.AcademyProgression;
   const GameAudio = window.ChampionTour.Audio;
   const TESTING_MODE = DATA.testing;
@@ -47,6 +48,8 @@
   const INITIAL_STORAGE_CAPACITY = DATA.storage.initialCapacity;
   const STORAGE_SLOT_UNLOCK_COST = DATA.storage.slotUnlockCost;
   const DEFAULT_ITEM_SELL_PRICE = DATA.economy.defaultItemSellPrice;
+  const PRODUCTION_ENERGY_OPTIONS = DATA.productionModes.energyOptions;
+  const DEFAULT_PRODUCTION_ENERGY = DATA.productionModes.defaultEnergy;
 
   const TEXT = {
     emptyCell: window.t('board.empty_cell'),
@@ -66,6 +69,7 @@
     storage: new Array(INITIAL_STORAGE_CAPACITY).fill(null),
     storageCapacity: INITIAL_STORAGE_CAPACITY,
     storageDrag: null,
+    selectedProductionEnergy: DEFAULT_PRODUCTION_ENERGY,
     energy: MAX_ENERGY,
     nextEnergyAt: null
   };
@@ -92,6 +96,7 @@
   let saleConfirmTimer = 0;
   let saleInProgress = false;
   let lastSale = null;
+  let specialOrderCheckScheduled = false;
 
   function itemSource(chainId, level) {
     return DATA.chains[chainId]?.assets[level] || DATA.chains.footballs.assets[level];
@@ -183,7 +188,10 @@
   }
 
   function spendEnergy(amount) {
-    if (TESTING_MODE.enabled && TESTING_MODE.bypassEnergy) {
+    if (
+      TESTING_MODE.enabled &&
+      (TESTING_MODE.bypassEnergy || TESTING_MODE.infiniteEnergyInTest)
+    ) {
       renderEnergy();
       return true;
     }
@@ -215,10 +223,11 @@
     const timerRow = document.getElementById('energyTimerRow');
     const fill = document.getElementById('energyFill');
 
-    value.textContent = String(state.energy);
+    const infiniteEnergy = TESTING_MODE.enabled && TESTING_MODE.infiniteEnergyInTest;
+    value.textContent = infiniteEnergy ? '∞' : String(state.energy);
     fill.style.width = `${(state.energy / MAX_ENERGY) * 100}%`;
 
-    if (state.energy >= MAX_ENERGY) {
+    if (infiniteEnergy || state.energy >= MAX_ENERGY) {
       timer.textContent = '';
       timerRow.hidden = true;
     } else {
@@ -335,7 +344,9 @@
     document.getElementById('producerXpDebug').hidden = true;
     document.getElementById('itemInfoButton').hidden = false;
     document.getElementById('producerOutputChip').hidden = true;
+    document.getElementById('productionModeSelector').hidden = true;
     if (index >= 0) selectCell(index);
+    highlightMergePartners(index, chainId, level);
     const producerId = DATA.chains[chainId].producerId;
     selectedInfo = { type: 'item', chainId, level, producerId };
     highlightProducer(producerId);
@@ -411,6 +422,8 @@
     document.getElementById('producerOutputIcon').alt = itemName(producer.chainId, 1);
     document.getElementById('producerOutputName').textContent = itemName(producer.chainId, 1);
     outputChip.hidden = false;
+    renderProductionModeSelector();
+    document.getElementById('productionModeSelector').hidden = false;
     debugButton.hidden = true;
     document.getElementById('itemInfoButton').hidden = false;
     debugButton.textContent = window.t('producer.progress.debug_xp').replace(
@@ -443,12 +456,32 @@
     document.getElementById('itemInfoRarity').textContent = '';
     document.getElementById('itemInfoNext').textContent = '';
     document.getElementById('producerOutputChip').hidden = true;
+    document.getElementById('productionModeSelector').hidden = true;
+    cellElements.forEach((cell) => cell.classList.remove('merge-partner-hint'));
     document.getElementById('producerXpDebug').hidden = true;
     document.getElementById('itemInfoButton').hidden = true;
     panel.classList.remove('is-empty', 'content-change');
     panel.classList.add('is-visible');
     panel.setAttribute('aria-hidden', 'false');
     updateControlCenter();
+  }
+
+  function highlightMergePartners(selectedIndex, chainId, level) {
+    cellElements.forEach((cell, index) => {
+      const item = state.cells[index];
+      cell.classList.toggle(
+        'merge-partner-hint',
+        index !== selectedIndex &&
+        item?.type === 'ball' &&
+        item.chainId === chainId &&
+        item.level === level &&
+        level < MAX_LEVEL
+      );
+    });
+    window.setTimeout(
+      () => cellElements.forEach((cell) => cell.classList.remove('merge-partner-hint')),
+      900
+    );
   }
 
   function detailImage(src, alt, className = '') {
@@ -580,13 +613,39 @@
         version: 3,
         cells: state.cells,
         storageCapacity: state.storageCapacity,
-        storage: state.storage
+        storage: state.storage,
+        selectedProductionEnergy: state.selectedProductionEnergy
       }));
+      scheduleSpecialOrderCheck();
       return true;
     } catch (error) {
       console.warn('Board kaydı yazılamadı.', error);
       return false;
     }
+  }
+
+  function scheduleSpecialOrderCheck() {
+    if (specialOrderCheckScheduled) return;
+    specialOrderCheckScheduled = true;
+    queueMicrotask(() => {
+      specialOrderCheckScheduled = false;
+      let created = false;
+      Object.keys(DATA.chains).forEach((chainId) => {
+        const count = [...state.cells, ...state.storage].reduce(
+          (total, item) =>
+            total + Number(
+              item?.type === 'ball' &&
+              item.chainId === chainId &&
+              item.level === MAX_LEVEL
+            ),
+          0
+        );
+        if (count >= DATA.specialOrders.maxItemRequiredCount) {
+          created = Progression.queueMaxItemSpecialOrder(chainId) || created;
+        }
+      });
+      if (created) renderOrders();
+    });
   }
 
   function loadBoardState() {
@@ -607,6 +666,11 @@
       { length: state.storageCapacity },
       (_, index) => normalizeSavedItem(saved?.storage?.[index], false)
     );
+    state.selectedProductionEnergy = PRODUCTION_ENERGY_OPTIONS.includes(
+      Number(saved?.selectedProductionEnergy)
+    )
+      ? Number(saved.selectedProductionEnergy)
+      : DEFAULT_PRODUCTION_ENERGY;
 
     const presentProducerIds = new Set(
       state.cells
@@ -993,10 +1057,24 @@
     );
   }
 
+  function totalItemCount(chainId, level) {
+    return boardItemCount(chainId, level) + state.storage.reduce(
+      (count, item) =>
+        count + Number(
+          item?.type === 'ball' &&
+          item.chainId === chainId &&
+          item.level === level
+        ),
+      0
+    );
+  }
+
   function analyzeOrderReadiness(order) {
     const requirements = orderRequirements(order).map((requirement) => ({
       ...requirement,
-      available: boardItemCount(requirement.chainId, requirement.level)
+      available: order.special
+        ? totalItemCount(requirement.chainId, requirement.level)
+        : boardItemCount(requirement.chainId, requirement.level)
     }));
     const availableItems = requirements.reduce(
       (total, requirement) =>
@@ -1110,6 +1188,11 @@
       return;
     }
 
+    if (order.special) {
+      fulfillSpecialOrder(orderIndex, order, readiness, card);
+      return;
+    }
+
     const firstRequirement = readiness.requirements[0];
     const fromIndex = findOrderItem(firstRequirement.chainId, firstRequirement.level);
     if (fromIndex < 0) {
@@ -1125,6 +1208,51 @@
       sourceRect.top + sourceRect.height / 2
     );
     tryFulfillOrder(fromIndex, orderIndex, deliveryGhost);
+  }
+
+  function fulfillSpecialOrder(orderIndex, order, readiness, card) {
+    const requirement = readiness.requirements[0];
+    const boardMatches = state.cells
+      .map((item, index) => ({ item, index }))
+      .filter(({ item }) =>
+        item?.type === 'ball' &&
+        item.chainId === requirement.chainId &&
+        item.level === requirement.level
+      )
+      .slice(0, requirement.quantity);
+    const neededFromStorage = requirement.quantity - boardMatches.length;
+    const storageMatches = state.storage
+      .map((item, index) => ({ item, index }))
+      .filter(({ item }) =>
+        item?.type === 'ball' &&
+        item.chainId === requirement.chainId &&
+        item.level === requirement.level
+      )
+      .slice(0, neededFromStorage);
+    if (boardMatches.length + storageMatches.length !== requirement.quantity) return;
+    const deliveredItems = Array.from(
+      { length: requirement.quantity },
+      () => ({ chainId: requirement.chainId, level: requirement.level })
+    );
+    const completed = Progression.fulfillOrder(orderIndex, deliveredItems);
+    if (!completed) return;
+    boardMatches.forEach(({ index }) => {
+      state.cells[index] = null;
+      renderCell(index);
+    });
+    storageMatches.forEach(({ index }) => {
+      state.storage[index] = null;
+    });
+    saveBoardState();
+    renderStorage();
+    renderEconomy();
+    const academyProgress = Academy.addXp(completed.rewards.xp);
+    playProducerUpgrade(completed.producerProgress);
+    handleAcademyProgress(academyProgress);
+    card.classList.add('order-presenting', 'order-complete');
+    GameAudio.play('reward');
+    showToast('Özel sipariş tamamlandı · +1 elmas');
+    window.setTimeout(() => renderOrderSlot(orderIndex), ORDER_CARD_RESOLVE_MS);
   }
 
   function collectOrderItemIndices(readiness, preferredIndex = -1) {
@@ -1187,6 +1315,13 @@
     const card = document.createElement('article');
     card.className = 'order-card';
     card.dataset.orderIndex = String(index);
+    if (order.special) {
+      card.classList.add('special-order');
+      const badge = document.createElement('span');
+      badge.className = 'special-order-badge';
+      badge.textContent = '+1 ◆';
+      card.appendChild(badge);
+    }
     card.appendChild(createCustomerPortrait(order, index));
 
     const requirements = orderRequirements(order);
@@ -1710,7 +1845,15 @@
     window.setTimeout(() => sparks.remove(), MERGE_SPARKS_MS);
   }
 
-  function createProducerLaunch(targetIndex, producerIndex, chainId, onComplete) {
+  function productionLevelForEnergy(energy) {
+    return ProductionRules.levelForEnergy(energy);
+  }
+
+  function productionResult(energy, random = Math.random) {
+    return ProductionRules.resultForEnergy(energy, random);
+  }
+
+  function createProducerLaunch(targetIndex, producerIndex, chainId, level, rare, onComplete) {
     const producerCell = cellElements[producerIndex];
     const targetCell = cellElements[targetIndex];
     let launch;
@@ -1732,7 +1875,7 @@
       shadowAnimation?.cancel();
       content.className = 'ball-wrap';
       image.className = 'ball';
-      image.alt = itemName(chainId, 1);
+      image.alt = itemName(chainId, level);
       image.removeAttribute('aria-hidden');
       image.style.background = 'transparent';
       image.style.objectFit = 'contain';
@@ -1749,14 +1892,22 @@
         targetCell?.classList.remove('spawn-reserved');
 
         if (targetCell && state.cells[targetIndex] === null) {
-          state.cells[targetIndex] = { type: 'ball', chainId, level: 1 };
+          state.cells[targetIndex] = { type: 'ball', chainId, level };
           saveBoardState();
           renderCell(targetIndex);
           adoptLandingVisual();
           targetCell.classList.add('spawn-landed');
+          targetCell.classList.toggle('rare-spawn', rare);
+          if (level > 1) {
+            targetCell.dataset.spawnLevel = `Sv.${level}`;
+            targetCell.classList.add('summary-spawn');
+          }
           launch?.remove();
           window.setTimeout(
-            () => targetCell.classList.remove('spawn-landed'),
+            () => {
+              targetCell.classList.remove('spawn-landed', 'rare-spawn', 'summary-spawn');
+              delete targetCell.dataset.spawnLevel;
+            },
             PRODUCER_LANDING_MS
           );
         }
@@ -1817,7 +1968,7 @@
     content.appendChild(shadow);
     image = document.createElement('img');
     image.className = 'producer-launch-ball';
-    image.src = itemSource(chainId, 1);
+    image.src = itemSource(chainId, level);
     image.alt = '';
     image.draggable = false;
     image.setAttribute('aria-hidden', 'true');
@@ -1953,7 +2104,7 @@
       spawnVisualQueue.length > 0
     ) {
       const spawn = spawnVisualQueue.shift();
-      const { targetIndex, producerIndex, chainId } = spawn;
+      const { targetIndex, producerIndex, chainId, level, rare } = spawn;
       const now = Date.now();
       const startAt = Math.max(now, nextSpawnVisualStartAt);
       const delay = startAt - now;
@@ -1970,12 +2121,12 @@
         };
 
         try {
-          createProducerLaunch(targetIndex, producerIndex, chainId, finishVisual);
+          createProducerLaunch(targetIndex, producerIndex, chainId, level, rare, finishVisual);
         } catch (error) {
           pendingSpawnTargets.delete(targetIndex);
           cellElements[targetIndex]?.classList.remove('spawn-reserved');
           if (state.cells[targetIndex] === null) {
-            state.cells[targetIndex] = { type: 'ball', chainId, level: 1 };
+            state.cells[targetIndex] = { type: 'ball', chainId, level };
             saveBoardState();
             renderCell(targetIndex);
           }
@@ -1985,8 +2136,8 @@
     }
   }
 
-  function enqueueSpawnVisual(targetIndex, producerIndex, chainId) {
-    spawnVisualQueue.push({ targetIndex, producerIndex, chainId });
+  function enqueueSpawnVisual(targetIndex, producerIndex, chainId, level, rare) {
+    spawnVisualQueue.push({ targetIndex, producerIndex, chainId, level, rare });
     scheduleSpawnVisuals();
   }
 
@@ -2003,7 +2154,12 @@
       return false;
     }
 
-    if (!spendEnergy(PRODUCTION_COST)) {
+    const energyCost = state.selectedProductionEnergy;
+    const result = productionResult(
+      energyCost,
+      window.ChampionTour.testingRandom || Math.random
+    );
+    if (!spendEnergy(energyCost)) {
       producerCell.classList.remove('energy-denied');
       void producerCell.offsetWidth;
       producerCell.classList.add('energy-denied');
@@ -2025,7 +2181,7 @@
     GameAudio.play('producer');
     pendingSpawnTargets.add(emptyIndex);
     cellElements[emptyIndex].classList.add('spawn-reserved');
-    enqueueSpawnVisual(emptyIndex, producerIndex, chainId);
+    enqueueSpawnVisual(emptyIndex, producerIndex, chainId, result.level, result.rare);
     return true;
   }
 
@@ -2576,6 +2732,29 @@
     } else if (from.type === 'ball' && to.type === 'ball') {
       showToast(TEXT.sameLevel);
     }
+  }
+
+  function renderProductionModeSelector() {
+    const root = document.getElementById('productionModeOptions');
+    if (!root) return;
+    root.innerHTML = '';
+    PRODUCTION_ENERGY_OPTIONS.forEach((energy) => {
+      const level = productionLevelForEnergy(energy);
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'production-mode-button';
+      button.classList.toggle('is-selected', energy === state.selectedProductionEnergy);
+      button.dataset.energy = String(energy);
+      button.innerHTML =
+        `<img src="${DATA.uiIcons.energy}" alt="">` +
+        `<strong>${energy}</strong><small>Sv.${level}</small>`;
+      button.addEventListener('click', () => {
+        state.selectedProductionEnergy = energy;
+        saveBoardState();
+        renderProductionModeSelector();
+      });
+      root.appendChild(button);
+    });
   }
 
   function updateControlCenter() {

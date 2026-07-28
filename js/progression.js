@@ -12,6 +12,7 @@ window.ChampionTour.Progression = (function () {
   };
   const economy = { coins: 0, gems: 0, eventPoints: 0 };
   let orders = [];
+  let pendingSpecialOrders = [];
   let loadedExistingOrders = false;
   const recentPrimaryChains = [];
 
@@ -50,6 +51,9 @@ window.ChampionTour.Progression = (function () {
           .map(normalizeOrder);
         loadedExistingOrders = true;
       }
+      pendingSpecialOrders = Array.isArray(saved.pendingSpecialOrders)
+        ? saved.pendingSpecialOrders.map(normalizeOrder).filter((order) => order.special)
+        : [];
       normalizeProducerProgress();
     } catch (error) {
       console.warn('Progression kaydı okunamadı.', error);
@@ -62,7 +66,8 @@ window.ChampionTour.Progression = (function () {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
         producer,
         economy,
-        orders
+        orders,
+        pendingSpecialOrders
       }));
       return true;
     } catch (error) {
@@ -154,6 +159,8 @@ window.ChampionTour.Progression = (function () {
       return total;
     }, { coins: 0, xp: 0, gems: 0, eventPoints: 0 });
     const primary = items[0];
+    const special = Boolean(order?.special);
+    if (special) rewards.gems = DATA.specialOrders.diamondReward;
     return {
       chainId: primary.chainId,
       level: primary.level,
@@ -162,6 +169,8 @@ window.ChampionTour.Progression = (function () {
       customerId: ['coach', 'captain', 'scout'].includes(order?.customerId)
         ? order.customerId
         : null,
+      special,
+      specialChainId: special ? primary.chainId : null,
       rewards
     };
   }
@@ -270,6 +279,27 @@ window.ChampionTour.Progression = (function () {
     save();
   }
 
+  function queueMaxItemSpecialOrder(chainId) {
+    if (!DATA.chains[chainId]) return false;
+    const exists = [...orders, ...pendingSpecialOrders].some(
+      (order) => order.special && order.specialChainId === chainId
+    );
+    if (exists) return false;
+    const special = normalizeOrder({
+      special: true,
+      customerId: 'scout',
+      items: [{
+        chainId,
+        level: DATA.maxItemLevel,
+        quantity: DATA.specialOrders.maxItemRequiredCount
+      }]
+    });
+    if (orders.length < DATA.orders.slotCount) orders.push(special);
+    else pendingSpecialOrders.push(special);
+    save();
+    return true;
+  }
+
   function tick(now) {
     return false;
   }
@@ -311,6 +341,8 @@ window.ChampionTour.Progression = (function () {
       quantity: order.quantity,
       items: order.items.map((item) => ({ ...item })),
       customerId: order.customerId,
+      special: order.special,
+      specialChainId: order.specialChainId,
       rewards: { ...order.rewards }
     }));
   }
@@ -345,7 +377,7 @@ window.ChampionTour.Progression = (function () {
       rewards: { ...order.rewards },
       producerProgress
     };
-    orders[slotIndex] = createOrder();
+    orders[slotIndex] = pendingSpecialOrders.shift() || createOrder();
     save();
     return completed;
   }
@@ -366,6 +398,7 @@ window.ChampionTour.Progression = (function () {
     fulfillOrder,
     getEconomy,
     adjustEconomy,
+    queueMaxItemSpecialOrder,
     tick
   };
 })();
