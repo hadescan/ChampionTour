@@ -35,12 +35,60 @@ def clear_atlas_gutters(image: Image.Image) -> Image.Image:
     return rgba
 
 
+def keep_largest_component(image: Image.Image) -> Image.Image:
+    """Keep the intended sprite and discard disconnected neighboring-atlas debris."""
+    rgba = image.copy()
+    alpha = rgba.getchannel("A")
+    width, height = rgba.size
+    visible = alpha.load()
+    visited: set[tuple[int, int]] = set()
+    components: list[list[tuple[int, int]]] = []
+
+    for y in range(height):
+        for x in range(width):
+            if visible[x, y] == 0 or (x, y) in visited:
+                continue
+            component: list[tuple[int, int]] = []
+            stack = [(x, y)]
+            visited.add((x, y))
+            while stack:
+                current_x, current_y = stack.pop()
+                component.append((current_x, current_y))
+                for next_x, next_y in (
+                    (current_x - 1, current_y),
+                    (current_x + 1, current_y),
+                    (current_x, current_y - 1),
+                    (current_x, current_y + 1),
+                ):
+                    if (
+                        0 <= next_x < width
+                        and 0 <= next_y < height
+                        and visible[next_x, next_y] > 0
+                        and (next_x, next_y) not in visited
+                    ):
+                        visited.add((next_x, next_y))
+                        stack.append((next_x, next_y))
+            components.append(component)
+
+    if not components:
+        return rgba
+
+    keep = set(max(components, key=len))
+    for component in components:
+        if component and component[0] not in keep:
+            for x, y in component:
+                visible[x, y] = 0
+    rgba.putalpha(alpha)
+    return rgba
+
+
 def export_atlas(
     source_name: str,
     names: list[str],
     destination: Path,
     target: int,
     clear_gutters: bool = False,
+    remove_fragments: bool = False,
 ) -> None:
     source = Image.open(SOURCE_DIR / source_name).convert("RGBA")
     destination.mkdir(parents=True, exist_ok=True)
@@ -49,9 +97,12 @@ def export_atlas(
         left = round(index * cell_width)
         right = round((index + 1) * cell_width)
         sprite = remove_magenta(source.crop((left, 0, right, source.height)))
+        original_alpha_box = sprite.getchannel("A").getbbox()
         if clear_gutters:
             sprite = clear_atlas_gutters(sprite)
-        alpha_box = sprite.getchannel("A").getbbox()
+        if remove_fragments:
+            sprite = keep_largest_component(sprite)
+        alpha_box = original_alpha_box if remove_fragments else sprite.getchannel("A").getbbox()
         if not alpha_box:
             raise RuntimeError(f"No visible sprite found for {name}")
         sprite = sprite.crop(alpha_box)
@@ -76,12 +127,16 @@ def main() -> None:
         [f"hydration_lv{level}" for level in range(1, 7)],
         ITEM_DIR,
         256,
+        clear_gutters=True,
+        remove_fragments=True,
     )
     export_atlas(
         "training_atlas.png",
         [f"training_lv{level}" for level in range(1, 7)],
         ITEM_DIR,
         256,
+        clear_gutters=True,
+        remove_fragments=True,
     )
     export_atlas(
         "trophy_atlas.png",
