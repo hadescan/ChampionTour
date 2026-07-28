@@ -344,7 +344,8 @@
     document.getElementById('producerXpDebug').hidden = true;
     document.getElementById('itemInfoButton').hidden = false;
     document.getElementById('producerOutputChip').hidden = true;
-    document.getElementById('productionModeSelector').hidden = true;
+    document.getElementById('productionModeControl').hidden = true;
+    panel.classList.remove('is-producer');
     if (index >= 0) selectCell(index);
     highlightMergePartners(index, chainId, level);
     const producerId = DATA.chains[chainId].producerId;
@@ -422,8 +423,7 @@
     document.getElementById('producerOutputIcon').alt = itemName(producer.chainId, 1);
     document.getElementById('producerOutputName').textContent = itemName(producer.chainId, 1);
     outputChip.hidden = false;
-    renderProductionModeSelector();
-    document.getElementById('productionModeSelector').hidden = false;
+    renderProductionModeControl(producer.chainId);
     debugButton.hidden = true;
     document.getElementById('itemInfoButton').hidden = false;
     debugButton.textContent = window.t('producer.progress.debug_xp').replace(
@@ -431,6 +431,7 @@
       String(TESTING_MODE.producerXpIncrement)
     );
     panel.setAttribute('aria-hidden', 'false');
+    panel.classList.add('is-producer');
     panel.classList.remove('is-empty');
     panel.classList.add('is-visible');
     updateControlCenter();
@@ -446,6 +447,7 @@
       selectedCellIndex = -1;
     }
     const panel = document.getElementById('itemInfoPanel');
+    panel.classList.remove('is-producer');
     document.getElementById('itemInfoIcon').src = 'assets/icons/sports_bag.svg';
     document.getElementById('itemInfoIcon').alt = '';
     document.getElementById('itemInfoName').textContent = window.t('item.info.default_title');
@@ -456,7 +458,7 @@
     document.getElementById('itemInfoRarity').textContent = '';
     document.getElementById('itemInfoNext').textContent = '';
     document.getElementById('producerOutputChip').hidden = true;
-    document.getElementById('productionModeSelector').hidden = true;
+    document.getElementById('productionModeControl').hidden = true;
     cellElements.forEach((cell) => cell.classList.remove('merge-partner-hint'));
     document.getElementById('producerXpDebug').hidden = true;
     document.getElementById('itemInfoButton').hidden = true;
@@ -631,17 +633,26 @@
       specialOrderCheckScheduled = false;
       let created = false;
       Object.keys(DATA.chains).forEach((chainId) => {
-        const count = [...state.cells, ...state.storage].reduce(
-          (total, item) =>
-            total + Number(
-              item?.type === 'ball' &&
-              item.chainId === chainId &&
-              item.level === MAX_LEVEL
-            ),
+        const maxLevel = ProductionRules.maxLevelForChain(chainId);
+        const boardCount = state.cells.reduce(
+          (total, item) => total + Number(
+            item?.type === 'ball' &&
+            item.chainId === chainId &&
+            item.level === maxLevel
+          ),
           0
         );
+        const storageCount = state.storage.reduce(
+          (total, item) => total + Number(
+            item?.type === 'ball' &&
+            item.chainId === chainId &&
+            item.level === maxLevel
+          ),
+          0
+        );
+        const count = boardCount + storageCount;
         if (count >= DATA.specialOrders.maxItemRequiredCount) {
-          created = Progression.queueMaxItemSpecialOrder(chainId) || created;
+          created = Progression.queueMaxItemSpecialOrder(chainId, maxLevel) || created;
         }
       });
       if (created) renderOrders();
@@ -1388,6 +1399,7 @@
     deliverButton.addEventListener('click', (event) => {
       event.preventDefault();
       event.stopPropagation();
+      clearItemInfo();
       fulfillReadyOrder(index);
     });
     card.appendChild(deliverButton);
@@ -2322,16 +2334,20 @@
     if (!pointer || event.pointerId !== pointer.pointerId) return;
     event.preventDefault();
     event.stopPropagation();
-    const shouldProduce = !pointer.moved;
+    const wasSelectedForProduction =
+      !pointer.moved &&
+      selectedCellIndex === pointer.producerIndex &&
+      selectedInfo?.type === 'producer' &&
+      selectedInfo.producerId === state.cells[pointer.producerIndex]?.producerId;
     const target = pointer.moved
       ? cellFromPoint(event.clientX, event.clientY)
       : null;
     const targetIndex = target ? Number(target.dataset.index) : pointer.producerIndex;
     const producerIndex = pointer.producerIndex;
     finishProducerPointer();
-    if (shouldProduce) {
+    if (!pointer.moved) {
       showProducerInfo(producerIndex);
-      activateProducer(producerIndex);
+      if (wasSelectedForProduction) activateProducer(producerIndex);
       return;
     }
     if (targetIndex === producerIndex || targetIndex < 0) return;
@@ -2734,27 +2750,34 @@
     }
   }
 
-  function renderProductionModeSelector() {
-    const root = document.getElementById('productionModeOptions');
-    if (!root) return;
-    root.innerHTML = '';
-    PRODUCTION_ENERGY_OPTIONS.forEach((energy) => {
-      const level = productionLevelForEnergy(energy);
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = 'production-mode-button';
-      button.classList.toggle('is-selected', energy === state.selectedProductionEnergy);
-      button.dataset.energy = String(energy);
-      button.innerHTML =
-        `<img src="${DATA.uiIcons.energy}" alt="">` +
-        `<strong>${energy}</strong><small>Sv.${level}</small>`;
-      button.addEventListener('click', () => {
-        state.selectedProductionEnergy = energy;
-        saveBoardState();
-        renderProductionModeSelector();
-      });
-      root.appendChild(button);
-    });
+  function renderProductionModeControl(chainId) {
+    const control = document.getElementById('productionModeControl');
+    if (!control) return;
+    const options = ProductionRules.supportedEnergyOptions(chainId);
+    if (!options.includes(state.selectedProductionEnergy)) {
+      state.selectedProductionEnergy = options[0] || DEFAULT_PRODUCTION_ENERGY;
+    }
+    const energy = state.selectedProductionEnergy;
+    const level = productionLevelForEnergy(energy);
+    document.getElementById('productionModeValue').textContent = String(energy);
+    document.getElementById('productionModeSummary').textContent =
+      energy === DEFAULT_PRODUCTION_ENERGY
+        ? `${energy} enerji • Standart`
+        : `${energy} enerji • Sv.${level}`;
+    control.hidden = false;
+    control.dataset.chainId = chainId;
+  }
+
+  function cycleProductionMode(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    if (selectedInfo?.type !== 'producer') return;
+    const producer = DATA.producers[selectedInfo.producerId];
+    const options = ProductionRules.supportedEnergyOptions(producer.chainId);
+    const currentIndex = options.indexOf(state.selectedProductionEnergy);
+    state.selectedProductionEnergy = options[(currentIndex + 1) % options.length];
+    saveBoardState();
+    renderProductionModeControl(producer.chainId);
   }
 
   function updateControlCenter() {
@@ -2804,6 +2827,7 @@
   }
 
   function openStorage() {
+    clearItemInfo();
     renderStorage();
     document.getElementById('storageOverlay').hidden = false;
     document.body.classList.add('storage-open');
@@ -2943,6 +2967,10 @@
     });
     document.getElementById('itemInfoButton').addEventListener('click', openItemDetail);
     document.getElementById('storageButton').addEventListener('click', openStorage);
+    document.getElementById('productionModeControl').addEventListener(
+      'click',
+      cycleProductionMode
+    );
     document.getElementById('storageCloseButton').addEventListener('click', closeStorage);
     document.getElementById('storageOverlay').addEventListener('click', (event) => {
       if (event.target.id === 'storageOverlay') closeStorage();

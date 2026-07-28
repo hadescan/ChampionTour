@@ -11,6 +11,22 @@ window.ChampionTour.ProductionRules = (function () {
     return Math.min(DATA.maxItemLevel, Math.log2(normalized) + 1);
   }
 
+  function maxLevelForChain(chainId) {
+    const chain = DATA.chains[chainId];
+    if (!chain) return 0;
+    for (let level = chain.assets.length - 1; level >= 1; level -= 1) {
+      if (chain.assets[level]) return level;
+    }
+    return 0;
+  }
+
+  function supportedEnergyOptions(chainId) {
+    const maxLevel = maxLevelForChain(chainId);
+    return DATA.productionModes.energyOptions.filter(
+      (energy) => levelForEnergy(energy) <= maxLevel
+    );
+  }
+
   function resultForEnergy(energy, random = Math.random) {
     const normalized = Number(energy);
     if (normalized !== DATA.productionModes.defaultEnergy) {
@@ -30,5 +46,5 @@ window.ChampionTour.ProductionRules = (function () {
     return { level: 1, rare: false };
   }
 
-  return { levelForEnergy, resultForEnergy };
+  return { levelForEnergy, maxLevelForChain, supportedEnergyOptions, resultForEnergy };
 })();

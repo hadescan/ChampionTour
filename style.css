@@ -1735,6 +1735,57 @@ body {
 .producer-xp-debug:active { transform: scale(.96); }
 .producer-xp-debug[hidden] { display: none; }
 
+.production-mode-control {
+  min-width: 128px;
+  min-height: 44px;
+  display: inline-grid;
+  grid-template-columns: 22px 18px 1fr;
+  align-items: center;
+  gap: 3px;
+  margin: -4px 0 -5px;
+  padding: 3px 8px 3px 5px;
+  color: #fff9df;
+  font: inherit;
+  border: 1px solid rgba(255,255,255,.76);
+  border-radius: 999px;
+  background: linear-gradient(145deg, rgba(57,151,177,.96), rgba(38,111,147,.97));
+  box-shadow:
+    0 4px 10px rgba(33,93,113,.18),
+    inset 0 1px 0 rgba(255,255,255,.38);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 100ms ease-out, filter 100ms ease-out;
+}
+
+.production-mode-control img {
+  width: 22px;
+  height: 26px;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 1px rgba(21,63,77,.25));
+}
+
+.production-mode-control strong {
+  color: white;
+  font-size: 13px;
+  line-height: 1;
+  text-shadow: 0 1px 2px rgba(22,63,76,.34);
+}
+
+.production-mode-control span {
+  overflow: hidden;
+  color: #f7f5dc;
+  font-size: 7px;
+  font-weight: 900;
+  line-height: 1.1;
+  text-align: left;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.production-mode-control:hover { filter: brightness(1.06); }
+.production-mode-control:active { transform: scale(.95); }
+.production-mode-control[hidden] { display: none; }
+
 .item-info-button {
   position: absolute;
   top: 10px;
@@ -3710,6 +3761,57 @@ body {
   .order-card.order-presenting .customer-portrait {
     animation: none;
   }
+}
+
+/* Producer seçiliyken enerji modu mevcut kompakt bilgi kutusunun içinde kalır. */
+.item-info-panel.is-producer .item-info-meta {
+  display: contents;
+}
+
+.item-info-panel.is-producer .producer-output-chip,
+.item-info-panel.is-producer #itemInfoProducer,
+.item-info-panel.is-producer #itemInfoRarity,
+.item-info-panel.is-producer #itemInfoNext,
+.item-info-panel.is-producer #itemInfoLevel,
+.item-info-panel.is-producer #itemInfoDescription,
+.item-info-panel.is-producer #sellButton {
+  display: none;
+}
+
+.item-info-panel.is-producer .production-mode-control {
+  position: absolute;
+  z-index: 4;
+  top: 6px;
+  right: 50px;
+  width: 116px;
+  min-width: 116px;
+  min-height: 44px;
+  margin: 0;
+  grid-template-columns: 19px 14px minmax(0, 1fr);
+  padding-inline: 5px 7px;
+}
+
+.item-info-panel.is-producer .production-mode-control img {
+  width: 19px;
+  height: 23px;
+}
+
+.item-info-panel.is-producer .item-info-copy {
+  padding-right: 122px;
+}
+
+.item-info-panel.is-producer #itemInfoName {
+  overflow: visible;
+  font-size: 7px;
+  letter-spacing: -.12px;
+  line-height: 1.12;
+  white-space: nowrap;
+}
+
+.item-info-panel.is-producer .item-info-copy p {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 @media (max-width: 350px) {

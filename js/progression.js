@@ -160,6 +160,21 @@ window.ChampionTour.Progression = (function () {
     }, { coins: 0, xp: 0, gems: 0, eventPoints: 0 });
     const primary = items[0];
     const special = Boolean(order?.special);
+    const chainMaxLevel = window.ChampionTour.ProductionRules.maxLevelForChain(
+      primary.chainId
+    ) || DATA.maxItemLevel;
+    const specialMaxLevel = special
+      ? Math.max(1, Math.min(chainMaxLevel, Number(order?.specialMaxLevel) || primary.level))
+      : null;
+    const specialRequiredCount = special
+      ? Math.max(1, Math.floor(
+        Number(order?.specialRequiredCount) || DATA.specialOrders.maxItemRequiredCount
+      ))
+      : null;
+    if (special) {
+      primary.level = specialMaxLevel;
+      primary.quantity = specialRequiredCount;
+    }
     if (special) rewards.gems = DATA.specialOrders.diamondReward;
     return {
       chainId: primary.chainId,
@@ -171,6 +186,8 @@ window.ChampionTour.Progression = (function () {
         : null,
       special,
       specialChainId: special ? primary.chainId : null,
+      specialMaxLevel,
+      specialRequiredCount,
       rewards
     };
   }
@@ -279,8 +296,13 @@ window.ChampionTour.Progression = (function () {
     save();
   }
 
-  function queueMaxItemSpecialOrder(chainId) {
+  function queueMaxItemSpecialOrder(chainId, requestedMaxLevel) {
     if (!DATA.chains[chainId]) return false;
+    const chainMaxLevel = window.ChampionTour.ProductionRules.maxLevelForChain(chainId);
+    const maxLevel = Math.max(
+      1,
+      Math.min(chainMaxLevel, Number(requestedMaxLevel) || chainMaxLevel)
+    );
     const exists = [...orders, ...pendingSpecialOrders].some(
       (order) => order.special && order.specialChainId === chainId
     );
@@ -288,9 +310,11 @@ window.ChampionTour.Progression = (function () {
     const special = normalizeOrder({
       special: true,
       customerId: 'scout',
+      specialMaxLevel: maxLevel,
+      specialRequiredCount: DATA.specialOrders.maxItemRequiredCount,
       items: [{
         chainId,
-        level: DATA.maxItemLevel,
+        level: maxLevel,
         quantity: DATA.specialOrders.maxItemRequiredCount
       }]
     });
@@ -343,6 +367,8 @@ window.ChampionTour.Progression = (function () {
       customerId: order.customerId,
       special: order.special,
       specialChainId: order.specialChainId,
+      specialMaxLevel: order.specialMaxLevel,
+      specialRequiredCount: order.specialRequiredCount,
       rewards: { ...order.rewards }
     }));
   }

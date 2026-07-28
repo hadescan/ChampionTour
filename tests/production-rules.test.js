@@ -28,6 +28,11 @@ assert.deepEqual(
   [1, 2, 4, 8, 16]
 );
 assert.deepEqual([1, 2, 4, 8, 16].map(rules.levelForEnergy), [1, 2, 3, 4, 5]);
+assert.equal(rules.maxLevelForChain('footballs'), 6);
+assert.deepEqual(
+  Array.from(rules.supportedEnergyOptions('footballs')),
+  [1, 2, 4, 8, 16]
+);
 assert.equal(rules.resultForEnergy(4, () => 0).level, 3);
 assert.equal(rules.resultForEnergy(16, () => 0).level, 5);
 assert.equal(rules.resultForEnergy(1, () => 0.001).level, 4);
@@ -52,6 +57,8 @@ assert.equal(active.length, 6);
 assert.equal(active[0].special, true);
 assert.equal(active[0].items.length, 1);
 assert.equal(active[0].items[0].quantity, 3);
+assert.equal(active[0].specialMaxLevel, 6);
+assert.equal(active[0].specialRequiredCount, 3);
 assert.equal(active[0].rewards.gems, 1);
 
 console.log('production-rules.test.js: all assertions passed');
