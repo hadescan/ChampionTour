@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="sprint-9-1.css?v=typography-icon-polish">
   <link rel="stylesheet" href="modern-pixel-art.css?v=locked-art-direction-2">
   <link rel="stylesheet" href="cozy-academy-pilot.css?v=cozy-pilot-1">
-  <link rel="stylesheet" href="cozy-academy-full.css?v=cozy-full-1">
+  <link rel="stylesheet" href="cozy-academy-full.css?v=producer-mastery-1">
 </head>
 <body>
   <div class="scene" aria-hidden="true">
@@ -58,6 +58,10 @@
           <strong id="xpValue">0 / 100 XP</strong>
         </div>
       </section>
+      <button class="reputation-button" id="reputationButton" type="button" aria-label="Akademi İtibarı bilgisi">
+        <span aria-hidden="true">★</span>
+        <strong id="reputationValue">0</strong>
+      </button>
 
       <section class="energy-card hud-capsule" data-i18n-aria="energy.label">
         <img class="hud-icon energy-symbol" data-ui-icon="energy" alt="" aria-hidden="true">
@@ -85,7 +89,7 @@
         <img class="hud-icon resource-icon" data-ui-icon="gems" alt="" aria-hidden="true">
         <span class="resource-copy"><small>ELMAS</small><strong id="gemValue">0</strong></span>
       </section>
-      <button type="button" class="campus-hud-button" id="campusHudButton" aria-label="Spor Kampüsünü aç">
+      <button type="button" class="campus-hud-button" id="campusHudButton" aria-label="Akademi Rehberini aç">
         <img data-ui-icon="menu" alt="" aria-hidden="true">
       </button>
       <span id="eventValue" hidden>0</span>
@@ -95,6 +99,8 @@
       <div class="orders-strip" id="ordersStrip" role="region" data-i18n-aria="orders.title"></div>
       <span class="orders-scroll-progress" aria-hidden="true"><i id="ordersScrollThumb"></i></span>
     </section>
+
+    <section class="mastery-orders" id="masteryOrders" aria-label="Ustalık siparişleri" hidden></section>
 
     <section class="board-frame">
       <div class="board-heading">
@@ -156,6 +162,13 @@
     <section class="item-detail-card" role="dialog" aria-modal="true" aria-labelledby="itemDetailTitle">
       <button class="item-detail-close" id="itemDetailClose" type="button" aria-label="Bilgi ekranını kapat">×</button>
       <div id="itemDetailContent"></div>
+    </section>
+  </div>
+
+  <div class="academy-info-overlay" id="academyInfoOverlay" hidden>
+    <section class="academy-info-card" role="dialog" aria-modal="true" aria-labelledby="academyInfoTitle">
+      <button class="academy-info-close" id="academyInfoClose" type="button" aria-label="Bilgi ekranını kapat">×</button>
+      <div id="academyInfoContent"></div>
     </section>
   </div>
 
@@ -237,12 +250,13 @@
   </div>
 
   <script src="js/i18n.js"></script>
-  <script src="js/game-data.js?v=production-modes"></script>
-  <script src="js/production-rules.js?v=production-modes"></script>
-  <script src="js/progression.js?v=production-modes"></script>
+  <script src="js/game-data.js?v=producer-mastery-1"></script>
+  <script src="js/production-rules.js?v=producer-mastery-1"></script>
+  <script src="js/producer-progression.js?v=mastery-guide-1"></script>
+  <script src="js/progression.js?v=producer-mastery-1"></script>
   <script src="js/sports-content.js?v=sprint-8-4-multi-producer"></script>
   <script src="js/academy.js?v=sprint-8-4-multi-producer"></script>
   <script src="js/audio.js"></script>
-  <script src="script.js?v=production-modes"></script>
+  <script src="script.js?v=producer-mastery-1"></script>
 </body>
 </html>

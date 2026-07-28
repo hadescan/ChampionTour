@@ -17,11 +17,16 @@ const data = context.ChampionTour.GameData;
 const training = data.chains.training;
 assert.equal(training.id, 'training');
 assert.equal(training.producerId, 'training_cart');
-assert.equal(training.assets.length, 7);
+assert.equal(training.assets.length, 13);
 
 for (let level = 1; level <= 6; level += 1) {
   const asset = training.assets[level];
   assert.match(asset, /assets\/CozyAcademy\/Pilot\/Training\/Items\/training_lv[1-6]\.png/);
+  assert.equal(fs.existsSync(path.join(root, asset)), true, `missing ${asset}`);
+}
+for (let level = 7; level <= 12; level += 1) {
+  const asset = training.assets[level];
+  assert.match(asset, /assets\/CozyAcademy\/Progression\/Items\/training_lv(?:[7-9]|1[0-2])\.png/);
   assert.equal(fs.existsSync(path.join(root, asset)), true, `missing ${asset}`);
 }
 

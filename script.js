@@ -6,6 +6,7 @@
   const CELL_COUNT = BOARD_COLUMNS * BOARD_ROWS;
   const DATA = window.ChampionTour.GameData;
   const Progression = window.ChampionTour.Progression;
+  const ProducerProgression = window.ChampionTour.ProducerProgression;
   const ProductionRules = window.ChampionTour.ProductionRules;
   const Academy = window.ChampionTour.AcademyProgression;
   const GameAudio = window.ChampionTour.Audio;
@@ -103,7 +104,9 @@
   }
 
   function producerSource(producerId = 'ball_basket') {
-    return DATA.producers[producerId]?.artwork || DATA.producers.ball_basket.artwork;
+    return Progression.getProducerState(producerId).artwork ||
+      DATA.producers[producerId]?.artwork ||
+      DATA.producers.ball_basket.artwork;
   }
 
   function applyUiIcons(root = document) {
@@ -414,7 +417,9 @@
       DATA.producers[producerId].description;
     document.getElementById('itemInfoProducer').textContent = 'Üretici';
     document.getElementById('itemInfoRarity').textContent =
-      state.energy >= PRODUCTION_COST ? 'Hazır' : 'Enerji gerekli';
+      producerState.charges > 0
+        ? `${producerState.charges}/${producerState.maxCharges} üretim hazır`
+        : `Dolum: ${formatCountdown(producerState.cooldownRemainingMs)}`;
     document.getElementById('itemInfoNext').textContent =
       'Üretmek için dokun. Taşımak için sürükle.';
     const producer = DATA.producers[producerId];
@@ -595,6 +600,69 @@
     document.body.classList.remove('item-detail-open');
   }
 
+  function openAcademyInfo(section = 'guide') {
+    const overlay = document.getElementById('academyInfoOverlay');
+    const content = document.getElementById('academyInfoContent');
+    const progress = ProducerProgression.getState();
+    const milestones = ProducerProgression.nextMilestones(4);
+    const producerCards = Object.keys(DATA.producers).map((producerId) => {
+      const producer = Progression.getProducerState(producerId);
+      const retirement = ProducerProgression.retirementStatus(producerId);
+      return `<article class="guide-producer-card">` +
+        `<img src="${producer.artwork}" alt="">` +
+        `<div><small>${DATA.chains[producer.chainId].name}</small>` +
+        `<strong>${producer.name} • Sv.${producer.level}</strong>` +
+        `<span>${producer.charges}/${producer.maxCharges} üretim • Sipariş üst sınırı Sv.${producer.normalOrderMaxLevel}</span>` +
+        (retirement ? `<em>${retirement.eligible ? 'Yeni uzmanlık üreticisine dönüşmeye hazır' : 'Ustalık ve itibar ile uzmanlaşır'}</em>` : '') +
+        `</div>` +
+        (retirement?.eligible
+          ? `<button type="button" data-retire="${producerId}">Uzmanlaştır</button>`
+          : '') +
+      `</article>`;
+    }).join('');
+    content.innerHTML =
+      `<header><small>CHAMPION TOUR</small><h2 id="academyInfoTitle">Akademi Rehberi</h2>` +
+      `<p>Üret, birleştir, siparişleri tamamla ve akademi itibarını büyüt.</p></header>` +
+      `<nav class="guide-summary">` +
+        `<span><b>XP</b> Akademi seviyesini ve kampüs yenilemelerini ilerletir.</span>` +
+        `<span><b>★ ${progress.reputation}</b> Üreticileri geliştirir ve ustalık hedeflerini açar.</span>` +
+      `</nav>` +
+      `<section class="guide-milestones"><h3>Sıradaki hedefler</h3>${milestones.map((milestone) =>
+        `<span><strong>${milestone.reputation} ★</strong>${milestone.label}</span>`
+      ).join('') || '<span>Tüm mevcut hedefler tamamlandı.</span>'}</section>` +
+      `<section class="guide-producers"><h3>Üreticiler</h3>${producerCards}</section>` +
+      `<section class="guide-rules"><h3>Nasıl oynanır?</h3>` +
+        `<p>Aynı seviyedeki iki ürünü birleştir. Seviye 12 keşfedildiğinde ve üç adet hazırlandığında Ustalık Siparişi normal siparişlerden ayrı açılır.</p>` +
+        `<button type="button" id="guideCampusButton">Spor Kampüsünü Aç</button>` +
+      `</section>`;
+    content.querySelectorAll('[data-retire]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const producerId = button.dataset.retire;
+        if (!ProducerProgression.retire(producerId)) return;
+        const index = state.cells.findIndex(
+          (item) => item?.type === 'producer' && item.producerId === producerId
+        );
+        if (index >= 0) renderCell(index);
+        showToast('Yeni uzmanlık üreticisi aynı slota yerleşti');
+        openAcademyInfo('guide');
+      });
+    });
+    document.getElementById('guideCampusButton').addEventListener('click', () => {
+      closeAcademyInfo();
+      openSportsCampus(false);
+    });
+    overlay.hidden = false;
+    document.body.classList.add('academy-info-open');
+    if (section === 'mastery') {
+      content.querySelector('.guide-rules')?.scrollIntoView({ block: 'center' });
+    }
+  }
+
+  function closeAcademyInfo() {
+    document.getElementById('academyInfoOverlay').hidden = true;
+    document.body.classList.remove('academy-info-open');
+  }
+
   function normalizeSavedItem(item, allowProducer = true) {
     if (allowProducer && item?.type === 'producer' && DATA.producers[item.producerId]) {
       return { type: 'producer', producerId: item.producerId };
@@ -631,9 +699,9 @@
     specialOrderCheckScheduled = true;
     queueMicrotask(() => {
       specialOrderCheckScheduled = false;
-      let created = false;
+      const counts = {};
       Object.keys(DATA.chains).forEach((chainId) => {
-        const maxLevel = ProductionRules.maxLevelForChain(chainId);
+        const maxLevel = MAX_LEVEL;
         const boardCount = state.cells.reduce(
           (total, item) => total + Number(
             item?.type === 'ball' &&
@@ -651,11 +719,21 @@
           0
         );
         const count = boardCount + storageCount;
-        if (count >= DATA.specialOrders.maxItemRequiredCount) {
-          created = Progression.queueMaxItemSpecialOrder(chainId, maxLevel) || created;
-        }
+        counts[chainId] = count;
+        const highestBoard = [...state.cells, ...state.storage].reduce(
+          (highest, item) => item?.type === 'ball' && item.chainId === chainId
+            ? Math.max(highest, item.level)
+            : highest,
+          0
+        );
+        if (highestBoard) ProducerProgression.recordDiscovery(chainId, highestBoard);
       });
-      if (created) renderOrders();
+      const opened = ProducerProgression.evaluateMastery(counts);
+      renderMasteryOrders();
+      if (opened.length) {
+        showToast('Yeni Ustalık Siparişi açıldı');
+        openAcademyInfo('mastery');
+      }
     });
   }
 
@@ -779,6 +857,9 @@
       energyIcon.src = DATA.uiIcons.producerEnergy;
       energyIcon.alt = '';
       energyBadge.appendChild(energyIcon);
+      const chargeText = document.createElement('strong');
+      chargeText.textContent = `${producerState.charges}/${producerState.maxCharges}`;
+      energyBadge.appendChild(chargeText);
       energyBadge.setAttribute('aria-hidden', 'true');
       cell.appendChild(energyBadge);
       if (index === selectedCellIndex) cell.classList.add('item-selected');
@@ -812,9 +893,14 @@
     cellElements.forEach((producerCell, index) => {
       const item = state.cells[index];
       if (item?.type !== 'producer') return;
+      const producerState = Progression.getProducerState(item.producerId);
       const energyReady =
-        state.energy >= PRODUCTION_COST;
+        state.energy >= PRODUCTION_COST && producerState.charges > 0 &&
+        !producerState.replacementPendingContent;
       producerCell.classList.toggle('ready', energyReady);
+      producerCell.classList.toggle('is-refilling', producerState.charges === 0);
+      const badge = producerCell.querySelector('.producer-energy-badge strong');
+      if (badge) badge.textContent = `${producerState.charges}/${producerState.maxCharges}`;
     });
   }
 
@@ -1012,9 +1098,12 @@
 
   function renderEconomy() {
     const economy = Progression.getEconomy();
+    const producerProgress = ProducerProgression.getState();
     document.getElementById('coinValue').textContent = String(economy.coins);
     document.getElementById('gemValue').textContent = String(economy.gems);
     document.getElementById('eventValue').textContent = String(economy.eventPoints);
+    document.getElementById('reputationValue').textContent =
+      String(producerProgress.reputation);
     renderPlayerProgression();
   }
 
@@ -1258,6 +1347,9 @@
     renderStorage();
     renderEconomy();
     const academyProgress = Academy.addXp(completed.rewards.xp);
+    document.getElementById('reputationValue').textContent =
+      String(completed.reputationProgress.reputation);
+    playReputationUpgrades(completed.reputationProgress);
     playProducerUpgrade(completed.producerProgress);
     handleAcademyProgress(academyProgress);
     card.classList.add('order-presenting', 'order-complete');
@@ -1378,6 +1470,9 @@
       `</span>` +
       `<span class="order-reward order-reward-xp">` +
         `<i aria-hidden="true">★</i><strong>${order.rewards.xp}</strong>` +
+      `</span>` +
+      `<span class="order-reward order-reward-reputation">` +
+        `<i aria-hidden="true">◆</i><strong>${order.rewards.reputation}</strong>` +
       `</span>`;
     card.appendChild(rewards);
 
@@ -1420,6 +1515,73 @@
     const maximum = Math.max(0, root.scrollWidth - root.clientWidth);
     const progress = maximum ? root.scrollLeft / maximum : 0;
     thumb.style.setProperty('--orders-progress-x', `${progress * 100}%`);
+  }
+
+  function removeMasteryItems(chainId, quantity) {
+    let remaining = quantity;
+    for (let index = 0; index < state.cells.length && remaining > 0; index += 1) {
+      const item = state.cells[index];
+      if (item?.type === 'ball' && item.chainId === chainId && item.level === MAX_LEVEL) {
+        state.cells[index] = null;
+        renderCell(index);
+        remaining -= 1;
+      }
+    }
+    for (let index = 0; index < state.storage.length && remaining > 0; index += 1) {
+      const item = state.storage[index];
+      if (item?.type === 'ball' && item.chainId === chainId && item.level === MAX_LEVEL) {
+        state.storage[index] = null;
+        remaining -= 1;
+      }
+    }
+    return remaining === 0;
+  }
+
+  function completeMasteryOrder(chainId) {
+    const order = ProducerProgression.getMasteryOrders()
+      .find((candidate) => candidate.chainId === chainId);
+    if (!order || totalItemCount(chainId, MAX_LEVEL) < order.quantity) return;
+    if (!removeMasteryItems(chainId, order.quantity)) return;
+    Progression.adjustEconomy({
+      coins: order.rewards.coins,
+      gems: order.rewards.gems
+    });
+    const completed = ProducerProgression.completeMastery(chainId);
+    saveBoardState();
+    renderStorage();
+    renderEconomy();
+    renderMasteryOrders();
+    renderOrders();
+    showToast(
+      `${DATA.chains[chainId].name} ustalığı tamamlandı • +${completed.rewards.reputation} itibar`
+    );
+  }
+
+  function renderMasteryOrders() {
+    const root = document.getElementById('masteryOrders');
+    if (!root) return;
+    const orders = ProducerProgression.getMasteryOrders();
+    root.hidden = orders.length === 0;
+    root.innerHTML = '';
+    orders.forEach((order) => {
+      const available = totalItemCount(order.chainId, order.level);
+      const ready = available >= order.quantity;
+      const card = document.createElement('article');
+      card.className = `mastery-order-card${ready ? ' is-ready' : ''}`;
+      card.innerHTML =
+        `<span class="mastery-order-crown" aria-hidden="true">★</span>` +
+        `<div><small>USTALIK SİPARİŞİ</small><strong>${DATA.chains[order.chainId].name}</strong>` +
+        `<span>${available} / ${order.quantity} • Seviye ${order.level}</span></div>` +
+        `<img src="${itemSource(order.chainId, order.level)}" alt="${itemName(order.chainId, order.level)}">` +
+        `<span class="mastery-rewards">🪙 ${order.rewards.coins} &nbsp; ◆ ${order.rewards.gems} &nbsp; ★ ${order.rewards.reputation}</span>`;
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = ready ? 'Teslim Et' : 'Hazırlanıyor';
+      button.disabled = !ready;
+      button.addEventListener('click', () => completeMasteryOrder(order.chainId));
+      card.appendChild(button);
+      root.appendChild(card);
+    });
   }
 
   function renderOrders() {
@@ -1695,6 +1857,22 @@
     showToast(`${message}${rewardMessage}`);
   }
 
+  function playReputationUpgrades(result) {
+    if (!result?.upgrades?.length) return;
+    result.upgrades.forEach((upgrade) => {
+      const index = state.cells.findIndex(
+        (item) => item?.type === 'producer' && item.producerId === upgrade.producerId
+      );
+      if (index < 0) return;
+      renderCell(index, 'producer-upgrade');
+      window.setTimeout(
+        () => cellElements[index]?.classList.remove('producer-upgrade'),
+        1200
+      );
+    });
+    showToast('Akademi itibarı bir üreticiyi geliştirdi!');
+  }
+
   function tryFulfillOrder(fromIndex, orderIndex, deliveryGhost) {
     const item = state.cells[fromIndex];
     const card = document.querySelector(`.order-card[data-order-index="${orderIndex}"]`);
@@ -1760,6 +1938,9 @@
       return false;
     }
     const academyProgress = Academy.addXp(completed.rewards.xp);
+    document.getElementById('reputationValue').textContent =
+      String(completed.reputationProgress.reputation);
+    playReputationUpgrades(completed.reputationProgress);
 
     card.classList.remove('order-target');
     card.classList.add('order-presenting', 'order-complete');
@@ -1857,8 +2038,8 @@
     return ProductionRules.levelForEnergy(energy);
   }
 
-  function productionResult(energy, random = Math.random) {
-    return ProductionRules.resultForEnergy(energy, random);
+  function productionResult(energy, random = Math.random, producerId = 'ball_basket') {
+    return ProductionRules.resultForEnergy(energy, random, producerId);
   }
 
   function createProducerLaunch(targetIndex, producerIndex, chainId, level, rare, onComplete) {
@@ -2165,9 +2346,20 @@
     const energyCost = state.selectedProductionEnergy;
     const result = productionResult(
       energyCost,
-      window.ChampionTour.testingRandom || Math.random
+      window.ChampionTour.testingRandom || Math.random,
+      producerId
     );
+    if (!Progression.consumeCharge(producerId)) {
+      showToast(
+        producerState.replacementPendingContent
+          ? 'Yeni üretim zinciri yakında açılacak'
+          : 'Üretici dolum yapıyor'
+      );
+      renderCell(producerIndex);
+      return false;
+    }
     if (!spendEnergy(energyCost)) {
+      ProducerProgression.refundCharge?.(producerId);
       producerCell.classList.remove('energy-denied');
       void producerCell.offsetWidth;
       producerCell.classList.add('energy-denied');
@@ -2190,6 +2382,7 @@
     pendingSpawnTargets.add(emptyIndex);
     cellElements[emptyIndex].classList.add('spawn-reserved');
     enqueueSpawnVisual(emptyIndex, producerIndex, chainId, result.level, result.rare);
+    renderCell(producerIndex);
     return true;
   }
 
@@ -2955,8 +3148,16 @@
     );
     document.getElementById('campusHudButton').addEventListener(
       'click',
-      () => openSportsCampus(false)
+      () => openAcademyInfo('guide')
     );
+    document.getElementById('reputationButton').addEventListener(
+      'click',
+      () => openAcademyInfo('reputation')
+    );
+    document.getElementById('academyInfoClose').addEventListener('click', closeAcademyInfo);
+    document.getElementById('academyInfoOverlay').addEventListener('click', (event) => {
+      if (event.target.id === 'academyInfoOverlay') closeAcademyInfo();
+    });
     document.getElementById('campusBackButton').addEventListener('click', () => {
       renderCampusMap();
       showCampusMap();
@@ -2987,6 +3188,7 @@
       if (!result.levelUps.length && producerIndex >= 0) showProducerInfo(producerIndex);
     });
     renderOrders();
+    renderMasteryOrders();
     setupOrdersStripInteraction();
     renderEconomy();
     renderStorage();

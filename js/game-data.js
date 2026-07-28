@@ -19,7 +19,7 @@ window.ChampionTour.GameData = Object.freeze({
     scout: 'assets/CozyAcademy/Full/Customers/customer_derya.png'
   }),
 
-  maxItemLevel: 6,
+  maxItemLevel: 12,
 
   chains: Object.freeze({
     footballs: Object.freeze({
@@ -27,7 +27,7 @@ window.ChampionTour.GameData = Object.freeze({
       name: 'Top Zinciri',
       producerId: 'ball_basket',
       unlockLevel: 1,
-      orderEligibleLevels: Object.freeze([1, 2, 3, 4, 5, 6]),
+      orderEligibleLevels: Object.freeze([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
       assets: Object.freeze([
         null,
         'assets/CozyAcademy/Full/Items/football_lv1.png',
@@ -35,20 +35,28 @@ window.ChampionTour.GameData = Object.freeze({
         'assets/CozyAcademy/Full/Items/football_lv3.png',
         'assets/CozyAcademy/Full/Items/football_lv4.png',
         'assets/CozyAcademy/Full/Items/football_lv5.png',
-        'assets/CozyAcademy/Full/Items/football_lv6.png'
+        'assets/CozyAcademy/Full/Items/football_lv6.png',
+        'assets/CozyAcademy/Progression/Items/football_lv7.png',
+        'assets/CozyAcademy/Progression/Items/football_lv8.png',
+        'assets/CozyAcademy/Progression/Items/football_lv9.png',
+        'assets/CozyAcademy/Progression/Items/football_lv10.png',
+        'assets/CozyAcademy/Progression/Items/football_lv11.png',
+        'assets/CozyAcademy/Progression/Items/football_lv12.png'
       ]),
       itemNames: Object.freeze([
         null, 'Antrenman Topu', 'Kaliteli Antrenman Topu', 'Maç Topu',
-        'Profesyonel Top', 'İmzalı Top', 'Şampiyonluk Topu'
+        'Profesyonel Top', 'İmzalı Top', 'Şampiyonluk Topu',
+        'Elit Akademi Topu', 'Hatıra Topu', 'Gümüş Şampiyon Topu',
+        'Altın Şampiyon Topu', 'Efsane Top', 'Ustalık Topu'
       ]),
-      symbols: Object.freeze([null, '⚽', '⚽', '⚽', '⚽', '⚽', '⚽'])
+      symbols: Object.freeze([null, '⚽', '⚽', '⚽', '⚽', '⚽', '⚽', '⚽', '⚽', '⚽', '⚽', '⚽', '⚽'])
     }),
     equipment: Object.freeze({
       id: 'equipment',
       name: 'Hidrasyon Zinciri',
       producerId: 'equipment_locker',
       unlockLevel: 1,
-      orderEligibleLevels: Object.freeze([1, 2, 3, 4, 5, 6]),
+      orderEligibleLevels: Object.freeze([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
       assets: Object.freeze([
         null,
         'assets/CozyAcademy/Full/Items/hydration_lv1.png',
@@ -56,20 +64,28 @@ window.ChampionTour.GameData = Object.freeze({
         'assets/CozyAcademy/Full/Items/hydration_lv3.png',
         'assets/CozyAcademy/Full/Items/hydration_lv4.png',
         'assets/CozyAcademy/Full/Items/hydration_lv5.png',
-        'assets/CozyAcademy/Full/Items/hydration_lv6.png'
+        'assets/CozyAcademy/Full/Items/hydration_lv6.png',
+        'assets/CozyAcademy/Progression/Items/hydration_lv7.png',
+        'assets/CozyAcademy/Progression/Items/hydration_lv8.png',
+        'assets/CozyAcademy/Progression/Items/hydration_lv9.png',
+        'assets/CozyAcademy/Progression/Items/hydration_lv10.png',
+        'assets/CozyAcademy/Progression/Items/hydration_lv11.png',
+        'assets/CozyAcademy/Progression/Items/hydration_lv12.png'
       ]),
       itemNames: Object.freeze([
         null, 'Su Bardağı', 'Su Şişesi', 'Spor Matarası',
-        'Takım Shakerı', 'Termos', 'Profesyonel Hidrasyon Seti'
+        'Takım Shakerı', 'Termos', 'Profesyonel Hidrasyon Seti',
+        'Takım Su Tankı', 'Çiftli Matara Seti', 'Hidrasyon Sırtlığı',
+        'Akıllı İçecek Ünitesi', 'Elit Hidrasyon İstasyonu', 'Ustalık Hidrasyon Sistemi'
       ]),
-      symbols: Object.freeze([null, '👕', '👟', '🛡', '🧤', '🎽', '⭐'])
+      symbols: Object.freeze(new Array(13).fill('●'))
     }),
     training: Object.freeze({
       id: 'training',
       name: 'Antrenman Zinciri',
       producerId: 'training_cart',
       unlockLevel: 1,
-      orderEligibleLevels: Object.freeze([1, 2, 3, 4, 5, 6]),
+      orderEligibleLevels: Object.freeze([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
       assets: Object.freeze([
         null,
         'assets/CozyAcademy/Pilot/Training/Items/training_lv1.png',
@@ -77,20 +93,28 @@ window.ChampionTour.GameData = Object.freeze({
         'assets/CozyAcademy/Pilot/Training/Items/training_lv3.png',
         'assets/CozyAcademy/Pilot/Training/Items/training_lv4.png',
         'assets/CozyAcademy/Pilot/Training/Items/training_lv5.png',
-        'assets/CozyAcademy/Pilot/Training/Items/training_lv6.png'
+        'assets/CozyAcademy/Pilot/Training/Items/training_lv6.png',
+        'assets/CozyAcademy/Progression/Items/training_lv7.png',
+        'assets/CozyAcademy/Progression/Items/training_lv8.png',
+        'assets/CozyAcademy/Progression/Items/training_lv9.png',
+        'assets/CozyAcademy/Progression/Items/training_lv10.png',
+        'assets/CozyAcademy/Progression/Items/training_lv11.png',
+        'assets/CozyAcademy/Progression/Items/training_lv12.png'
       ]),
       itemNames: Object.freeze([
         null, 'Antrenman Diski', 'Küçük Koni', 'Uzun Koni',
-        'Koni Yığını', 'Ağırlıklı Koni', 'Antrenman Kiti'
+        'Koni Yığını', 'Ağırlıklı Koni', 'Antrenman Kiti',
+        'Çeviklik Parkuru', 'Geri Dönüş Ağı', 'Koç Ekipman Seti',
+        'Modüler Antrenman Alanı', 'Elit Antrenman Sistemi', 'Ustalık Komuta İstasyonu'
       ]),
-      symbols: Object.freeze([null, '🔶', '🚧', '🥅', '🥅', '🎯', '🏟'])
+      symbols: Object.freeze(new Array(13).fill('●'))
     }),
     trophies: Object.freeze({
       id: 'trophies',
       name: 'Başarı Zinciri',
       producerId: 'trophy_cabinet',
       unlockLevel: 1,
-      orderEligibleLevels: Object.freeze([1, 2, 3, 4, 5, 6]),
+      orderEligibleLevels: Object.freeze([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
       assets: Object.freeze([
         null,
         'assets/CozyAcademy/Full/Items/trophy_lv1.png',
@@ -98,13 +122,21 @@ window.ChampionTour.GameData = Object.freeze({
         'assets/CozyAcademy/Full/Items/trophy_lv3.png',
         'assets/CozyAcademy/Full/Items/trophy_lv4.png',
         'assets/CozyAcademy/Full/Items/trophy_lv5.png',
-        'assets/CozyAcademy/Full/Items/trophy_lv6.png'
+        'assets/CozyAcademy/Full/Items/trophy_lv6.png',
+        'assets/CozyAcademy/Progression/Items/trophy_lv7.png',
+        'assets/CozyAcademy/Progression/Items/trophy_lv8.png',
+        'assets/CozyAcademy/Progression/Items/trophy_lv9.png',
+        'assets/CozyAcademy/Progression/Items/trophy_lv10.png',
+        'assets/CozyAcademy/Progression/Items/trophy_lv11.png',
+        'assets/CozyAcademy/Progression/Items/trophy_lv12.png'
       ]),
       itemNames: Object.freeze([
         null, 'Madalya', 'Bronz Kupa', 'Gümüş Kupa',
-        'Altın Kupa', 'Şampiyonluk Kupası', 'Efsane Kupası'
+        'Altın Kupa', 'Şampiyonluk Kupası', 'Efsane Kupası',
+        'Onur Madalyası', 'Akademi Plaketi', 'Gümüş Defne Kupası',
+        'Altın Şampiyon Kupası', 'Kanatlı Efsane Kupası', 'Ustalık Anıtı'
       ]),
-      symbols: Object.freeze([null, '🏅', '🏆', '🏆', '🏆', '🏆', '👑'])
+      symbols: Object.freeze(new Array(13).fill('●'))
     })
   }),
 
@@ -115,7 +147,13 @@ window.ChampionTour.GameData = Object.freeze({
       chainId: 'footballs',
       unlockLevel: 1,
       description: 'Futbol topu zincirinden nesneler üretir.',
-      artwork: 'assets/CozyAcademy/Full/Producers/producer_football.png'
+      artwork: 'assets/CozyAcademy/Full/Producers/producer_football.png',
+      artworks: Object.freeze([
+        null,
+        'assets/CozyAcademy/Full/Producers/producer_football.png',
+        'assets/CozyAcademy/Progression/Producers/producer_football_lv2.png',
+        'assets/CozyAcademy/Progression/Producers/producer_football_lv3.png'
+      ])
     }),
     equipment_locker: Object.freeze({
       id: 'equipment_locker',
@@ -123,7 +161,13 @@ window.ChampionTour.GameData = Object.freeze({
       chainId: 'equipment',
       unlockLevel: 1,
       description: 'İçecek ve hidrasyon zincirinden nesneler üretir.',
-      artwork: 'assets/CozyAcademy/Full/Producers/producer_hydration.png'
+      artwork: 'assets/CozyAcademy/Full/Producers/producer_hydration.png',
+      artworks: Object.freeze([
+        null,
+        'assets/CozyAcademy/Full/Producers/producer_hydration.png',
+        'assets/CozyAcademy/Progression/Producers/producer_hydration_lv2.png',
+        'assets/CozyAcademy/Progression/Producers/producer_hydration_lv3.png'
+      ])
     }),
     training_cart: Object.freeze({
       id: 'training_cart',
@@ -131,7 +175,13 @@ window.ChampionTour.GameData = Object.freeze({
       chainId: 'training',
       unlockLevel: 1,
       description: 'Koni ve saha işaretleme ekipmanları üretir.',
-      artwork: 'assets/CozyAcademy/Pilot/Training/Producers/producer_training_cart.png'
+      artwork: 'assets/CozyAcademy/Pilot/Training/Producers/producer_training_cart.png',
+      artworks: Object.freeze([
+        null,
+        'assets/CozyAcademy/Pilot/Training/Producers/producer_training_cart.png',
+        'assets/CozyAcademy/Progression/Producers/producer_training_lv2.png',
+        'assets/CozyAcademy/Progression/Producers/producer_training_lv3.png'
+      ])
     }),
     trophy_cabinet: Object.freeze({
       id: 'trophy_cabinet',
@@ -139,7 +189,58 @@ window.ChampionTour.GameData = Object.freeze({
       chainId: 'trophies',
       unlockLevel: 1,
       description: 'Madalya ve kupa zincirinden nesneler üretir.',
-      artwork: 'assets/CozyAcademy/Full/Producers/producer_trophy.png'
+      artwork: 'assets/CozyAcademy/Full/Producers/producer_trophy.png',
+      artworks: Object.freeze([
+        null,
+        'assets/CozyAcademy/Full/Producers/producer_trophy.png',
+        'assets/CozyAcademy/Progression/Producers/producer_trophy_lv2.png',
+        'assets/CozyAcademy/Progression/Producers/producer_trophy_lv3.png'
+      ])
+    })
+  }),
+
+  producerProgression: Object.freeze({
+    levels: Object.freeze({
+      1: Object.freeze({
+        capacity: 12,
+        refillMs: 180000,
+        normalOrderMaxLevel: 6,
+        drops: Object.freeze({ 1: .85, 2: .15 })
+      }),
+      2: Object.freeze({
+        capacity: 16,
+        refillMs: 150000,
+        normalOrderMaxLevel: 8,
+        drops: Object.freeze({ 1: .55, 2: .40, 3: .05 })
+      }),
+      3: Object.freeze({
+        capacity: 20,
+        refillMs: 120000,
+        normalOrderMaxLevel: 10,
+        drops: Object.freeze({ 1: .30, 2: .50, 3: .18, 4: .02 })
+      })
+    }),
+    reputationMilestones: Object.freeze([
+      Object.freeze({ reputation: 100, producerId: 'ball_basket', level: 2 }),
+      Object.freeze({ reputation: 220, producerId: 'training_cart', level: 2 }),
+      Object.freeze({ reputation: 360, producerId: 'equipment_locker', level: 2 }),
+      Object.freeze({ reputation: 520, producerId: 'trophy_cabinet', level: 2 }),
+      Object.freeze({ reputation: 720, producerId: 'ball_basket', level: 3 }),
+      Object.freeze({ reputation: 950, producerId: 'training_cart', level: 3 }),
+      Object.freeze({ reputation: 1220, producerId: 'equipment_locker', level: 3 }),
+      Object.freeze({ reputation: 1520, producerId: 'trophy_cabinet', level: 3 })
+    ]),
+    masteryMilestones: Object.freeze({
+      footballs: 1850,
+      training: 2600
+    }),
+    retirement: Object.freeze({
+      ball_basket: Object.freeze({
+        reputation: 2200,
+        replacementId: 'jersey_station',
+        replacementName: 'Forma Üreticisi',
+        replacementArtwork: 'assets/CozyAcademy/Progression/Producers/producer_jersey_lv1.png'
+      })
     })
   }),
 
@@ -169,7 +270,13 @@ window.ChampionTour.GameData = Object.freeze({
 
   specialOrders: Object.freeze({
     maxItemRequiredCount: 3,
-    diamondReward: 1
+    diamondReward: 1,
+    rewards: Object.freeze({
+      coins: 900,
+      gems: 1,
+      reputation: 100,
+      mastery: 1
+    })
   }),
 
   producer: Object.freeze({
@@ -203,14 +310,27 @@ window.ChampionTour.GameData = Object.freeze({
 
   orders: Object.freeze({
     slotCount: 6,
-    levelWeights: Object.freeze([0, .42, .28, .17, .09, .035, .005]),
+    difficultyPattern: Object.freeze(['easy', 'easy', 'medium', 'medium', 'hard', 'variable']),
+    reputationRewards: Object.freeze({
+      easy: Object.freeze([10, 14]),
+      medium: Object.freeze([20, 28]),
+      hard: Object.freeze([40, 55]),
+      variable: Object.freeze([14, 42])
+    }),
+    levelWeights: Object.freeze([0, .42, .28, .17, .09, .035, .005, .003, .002, .001, .0005, 0, 0]),
     rewards: Object.freeze({
       1: Object.freeze({ coins: 12, xp: 4, gems: 0, eventPoints: 1 }),
       2: Object.freeze({ coins: 22, xp: 7, gems: 0, eventPoints: 2 }),
       3: Object.freeze({ coins: 40, xp: 12, gems: 0, eventPoints: 3 }),
       4: Object.freeze({ coins: 70, xp: 20, gems: 0, eventPoints: 5 }),
       5: Object.freeze({ coins: 115, xp: 32, gems: 0, eventPoints: 8 }),
-      6: Object.freeze({ coins: 180, xp: 50, gems: 0, eventPoints: 12 })
+      6: Object.freeze({ coins: 180, xp: 50, gems: 0, eventPoints: 12 }),
+      7: Object.freeze({ coins: 280, xp: 72, gems: 0, eventPoints: 15 }),
+      8: Object.freeze({ coins: 420, xp: 96, gems: 0, eventPoints: 18 }),
+      9: Object.freeze({ coins: 620, xp: 126, gems: 0, eventPoints: 22 }),
+      10: Object.freeze({ coins: 900, xp: 164, gems: 0, eventPoints: 28 }),
+      11: Object.freeze({ coins: 1300, xp: 210, gems: 0, eventPoints: 35 }),
+      12: Object.freeze({ coins: 1800, xp: 270, gems: 0, eventPoints: 45 })
     })
   })
 });

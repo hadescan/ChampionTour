@@ -4,6 +4,7 @@ window.ChampionTour.Progression = (function () {
   'use strict';
 
   const DATA = window.ChampionTour.GameData;
+  const ProducerProgression = window.ChampionTour.ProducerProgression;
   const STORAGE_KEY = 'championTour.prototype.progression.v1';
   const producer = {
     level: 1,
@@ -150,6 +151,9 @@ window.ChampionTour.Progression = (function () {
       });
     });
     const items = Array.from(quantityByItem.values());
+    const difficulty = DATA.orders.difficultyPattern.includes(order?.difficulty)
+      ? order.difficulty
+      : 'variable';
     const rewards = items.reduce((total, item) => {
       const reward = DATA.orders.rewards[item.level];
       total.coins += reward.coins * item.quantity;
@@ -157,7 +161,17 @@ window.ChampionTour.Progression = (function () {
       total.gems += reward.gems * item.quantity;
       total.eventPoints += reward.eventPoints * item.quantity;
       return total;
-    }, { coins: 0, xp: 0, gems: 0, eventPoints: 0 });
+    }, { coins: 0, xp: 0, gems: 0, eventPoints: 0, reputation: 0 });
+    const reputationRange = DATA.orders.reputationRewards[difficulty];
+    rewards.reputation = Math.max(
+      reputationRange[0],
+      Math.min(
+        reputationRange[1],
+        Math.floor(Number(order?.rewards?.reputation) || (
+          reputationRange[0] + Math.random() * (reputationRange[1] - reputationRange[0] + 1)
+        ))
+      )
+    );
     const primary = items[0];
     const special = Boolean(order?.special);
     const chainMaxLevel = window.ChampionTour.ProductionRules.maxLevelForChain(
@@ -188,14 +202,14 @@ window.ChampionTour.Progression = (function () {
       specialChainId: special ? primary.chainId : null,
       specialMaxLevel,
       specialRequiredCount,
+      difficulty,
       rewards
     };
   }
 
-  function accessibleMaxItemLevel() {
-    if (producer.level <= 2) return 2;
-    if (producer.level <= 4) return 4;
-    return DATA.maxItemLevel;
+  function accessibleMaxItemLevel(chainId = 'footballs') {
+    const producerId = DATA.chains[chainId]?.producerId || 'ball_basket';
+    return ProducerProgression.getProducerState(producerId).normalOrderMaxLevel;
   }
 
   function rollOrderLevel(maxLevel = accessibleMaxItemLevel()) {
@@ -245,7 +259,7 @@ window.ChampionTour.Progression = (function () {
     return leastRepresented[Math.floor(Math.random() * leastRepresented.length)];
   }
 
-  function createOrder(forcedItemCount = 0, preferredPrimaryChain = null) {
+  function createOrder(forcedItemCount = 0, preferredPrimaryChain = null, difficulty = 'variable') {
     const itemCount = forcedItemCount > 0
       ? Math.max(1, Math.min(2, forcedItemCount))
       : producer.level >= 2 && Math.random() < .5 ? 2 : 1;
@@ -259,12 +273,18 @@ window.ChampionTour.Progression = (function () {
         );
       const chain = DATA.chains[chainId];
       const maxLevel = Math.min(
-        accessibleMaxItemLevel(),
+        accessibleMaxItemLevel(chainId),
         Math.max(...chain.orderEligibleLevels)
       );
+      const difficultyCap = {
+        easy: Math.min(3, maxLevel),
+        medium: Math.min(5, maxLevel),
+        hard: maxLevel,
+        variable: maxLevel
+      }[difficulty] || maxLevel;
       const candidate = {
         chainId,
-        level: rollOrderLevel(maxLevel),
+        level: rollOrderLevel(difficultyCap),
         quantity: 1
       };
       if (!items.some(
@@ -275,23 +295,31 @@ window.ChampionTour.Progression = (function () {
     }
     recentPrimaryChains.unshift(items[0].chainId);
     recentPrimaryChains.splice(3);
-    return normalizeOrder({ items });
+    return normalizeOrder({ items, difficulty });
   }
 
   function ensureOrders() {
     const chainIds = activeChainIds();
+    orders = orders.map((order, index) => normalizeOrder({
+      ...order,
+      difficulty: DATA.orders.difficultyPattern[index]
+    }));
     while (orders.length < DATA.orders.slotCount) {
       const preferredChain = !loadedExistingOrders
         ? chainIds[orders.length % chainIds.length]
         : null;
-      orders.push(createOrder(0, preferredChain));
+      orders.push(createOrder(
+        0,
+        preferredChain,
+        DATA.orders.difficultyPattern[orders.length]
+      ));
     }
     if (
       producer.level >= 2 &&
       orders.length > 1 &&
       !orders.some((order) => order.items.length > 1)
     ) {
-      orders[1] = createOrder(2, chainIds[1 % chainIds.length]);
+      orders[1] = createOrder(2, chainIds[1 % chainIds.length], 'easy');
     }
     save();
   }
@@ -329,31 +357,36 @@ window.ChampionTour.Progression = (function () {
   }
 
   function canProduce(producerId = 'ball_basket', now = Date.now()) {
-    return Boolean(DATA.producers[producerId]);
+    const state = ProducerProgression.getProducerState(producerId, now);
+    return Boolean(state && state.charges > 0 && !state.replacementPendingContent);
   }
 
   function consumeCharge(producerId = 'ball_basket', now = Date.now()) {
-    return canProduce(producerId, now);
+    return ProducerProgression.consumeCharge(producerId, now);
   }
 
   function getProducerState(producerId = 'ball_basket', now = Date.now()) {
-    tick(now);
     const definition = DATA.producers[producerId] || DATA.producers.ball_basket;
+    const progressionState = ProducerProgression.getProducerState(definition.id, now);
     const levelData = DATA.producer.levels[producer.level];
     return {
       id: definition.id,
       name: definition.name,
       chainId: definition.chainId,
       symbol: definition.symbol || null,
-      charges: null,
-      maxCharges: null,
-      cooldownEndsAt: null,
-      cooldownRemainingMs: 0,
-      level: producer.level,
+      charges: progressionState.charges,
+      maxCharges: progressionState.capacity,
+      cooldownEndsAt: progressionState.refillRemainingMs
+        ? now + progressionState.refillRemainingMs
+        : null,
+      cooldownRemainingMs: progressionState.refillRemainingMs,
+      level: progressionState.level,
       xp: producer.xp,
       xpToNext: levelData.xpToNext,
       isMaxLevel: producer.level === DATA.producer.maxLevel,
-      artwork: definition.artwork || levelData.artwork
+      artwork: progressionState.artwork || definition.artwork || levelData.artwork,
+      normalOrderMaxLevel: progressionState.normalOrderMaxLevel,
+      replacementPendingContent: progressionState.replacementPendingContent
     };
   }
 
@@ -369,6 +402,7 @@ window.ChampionTour.Progression = (function () {
       specialChainId: order.specialChainId,
       specialMaxLevel: order.specialMaxLevel,
       specialRequiredCount: order.specialRequiredCount,
+      difficulty: order.difficulty,
       rewards: { ...order.rewards }
     }));
   }
@@ -395,15 +429,23 @@ window.ChampionTour.Progression = (function () {
     economy.coins += order.rewards.coins;
     economy.gems += order.rewards.gems;
     economy.eventPoints += order.rewards.eventPoints;
+    const reputationProgress = ProducerProgression.addReputation(
+      order.rewards.reputation
+    );
     const producerProgress = applyProducerXp(order.rewards.xp);
     const completed = {
       chainId: order.chainId,
       level: order.level,
       items: order.items.map((item) => ({ ...item })),
       rewards: { ...order.rewards },
-      producerProgress
+      producerProgress,
+      reputationProgress
     };
-    orders[slotIndex] = pendingSpecialOrders.shift() || createOrder();
+    orders[slotIndex] = createOrder(
+      0,
+      null,
+      DATA.orders.difficultyPattern[slotIndex]
+    );
     save();
     return completed;
   }

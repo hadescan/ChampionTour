@@ -27,23 +27,22 @@ window.ChampionTour.ProductionRules = (function () {
     );
   }
 
-  function resultForEnergy(energy, random = Math.random) {
-    const normalized = Number(energy);
-    if (normalized !== DATA.productionModes.defaultEnergy) {
-      return { level: levelForEnergy(normalized), rare: false };
-    }
+  function resultForEnergy(energy, random = Math.random, producerId = 'ball_basket') {
+    const baseLevel = levelForEnergy(energy);
+    const producer = window.ChampionTour.ProducerProgression
+      ?.getProducerState(producerId);
+    const drops = producer?.drops || { 1: 1 };
     const roll = random();
-    if (roll < DATA.productionModes.rareLevel4Chance) {
-      return { level: Math.min(4, DATA.maxItemLevel), rare: true };
-    }
-    if (
-      roll <
-      DATA.productionModes.rareLevel4Chance +
-      DATA.productionModes.rareLevel3Chance
-    ) {
-      return { level: Math.min(3, DATA.maxItemLevel), rare: true };
-    }
-    return { level: 1, rare: false };
+    let cumulative = 0;
+    let rolledLevel = 1;
+    Object.entries(drops).some(([level, chance]) => {
+      cumulative += chance;
+      if (roll > cumulative) return false;
+      rolledLevel = Number(level);
+      return true;
+    });
+    const level = Math.min(DATA.maxItemLevel, baseLevel + rolledLevel - 1);
+    return { level, rare: rolledLevel > 1, producerLevel: producer?.level || 1 };
   }
 
   return { levelForEnergy, maxLevelForChain, supportedEnergyOptions, resultForEnergy };

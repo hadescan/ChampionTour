@@ -771,3 +771,112 @@ body {
     max-width: 430px !important;
   }
 }
+/* Producer progression, Academy Reputation and Mastery presentation */
+.reputation-button {
+  align-self: center;
+  min-width: 44px;
+  height: 34px;
+  padding: 0 9px;
+  border: 1px solid rgba(255, 224, 118, .8);
+  border-radius: 17px;
+  color: #fff8cf;
+  background: linear-gradient(180deg, rgba(37, 104, 121, .96), rgba(18, 67, 89, .96));
+  box-shadow: 0 4px 10px rgba(14, 57, 70, .22), inset 0 1px rgba(255,255,255,.25);
+  font: 800 12px/1 inherit;
+}
+.reputation-button span { color: #ffd353; margin-right: 3px; }
+.producer-energy-badge strong { margin-left: 2px; font-size: 8px; color: #fff; }
+.producer-cell.is-refilling { filter: saturate(.75); }
+
+.mastery-orders {
+  width: min(100%, 480px);
+  margin: 0 auto 6px;
+}
+.mastery-order-card {
+  display: grid;
+  grid-template-columns: auto 1fr 54px auto;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 10px;
+  border: 2px solid #d6ad55;
+  border-radius: 18px;
+  color: #173f4d;
+  background: linear-gradient(145deg, #fff8d9, #f6dd9f);
+  box-shadow: 0 7px 18px rgba(64, 76, 44, .18), inset 0 1px #fff;
+}
+.mastery-order-card.is-ready { border-color: #63a457; box-shadow: 0 0 0 3px rgba(109,177,84,.18), 0 7px 18px rgba(64,76,44,.18); }
+.mastery-order-card img { width: 52px; height: 52px; object-fit: contain; }
+.mastery-order-card div { display: grid; }
+.mastery-order-card small { font-size: 8px; color: #8a6b2b; letter-spacing: .08em; }
+.mastery-order-card strong { font-size: 12px; }
+.mastery-order-card span { font-size: 9px; }
+.mastery-order-crown { color: #d99b16; font-size: 20px !important; }
+.mastery-rewards { white-space: nowrap; }
+.mastery-order-card button,
+.guide-producer-card button,
+.guide-rules button {
+  border: 1px solid #367e47;
+  border-radius: 12px;
+  padding: 8px 10px;
+  color: white;
+  background: linear-gradient(#70c35a, #3d9847);
+  box-shadow: 0 3px 7px rgba(32,86,43,.22), inset 0 1px rgba(255,255,255,.4);
+  font-weight: 800;
+}
+.mastery-order-card button:disabled { filter: grayscale(.6); opacity: .65; }
+
+.academy-info-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(20, 48, 51, .48);
+  backdrop-filter: blur(7px);
+}
+.academy-info-overlay[hidden] { display: none; }
+.academy-info-card {
+  position: relative;
+  width: min(92vw, 480px);
+  max-height: min(82vh, 760px);
+  overflow: auto;
+  padding: 22px 16px 18px;
+  border: 3px solid rgba(255,240,191,.9);
+  border-radius: 26px;
+  color: #173f4d;
+  background: radial-gradient(circle at 50% 0, #fffdf0, #f6e4b9 72%);
+  box-shadow: 0 22px 55px rgba(18,49,50,.3), inset 0 1px #fff;
+}
+.academy-info-close {
+  position: absolute; top: 8px; right: 10px;
+  width: 32px; height: 32px; border: 0; border-radius: 50%;
+  color: #fff; background: #286d78; font-size: 22px;
+}
+.academy-info-card header small { color: #a07424; font-weight: 900; letter-spacing: .12em; }
+.academy-info-card h2 { margin: 3px 0; font-size: 24px; }
+.academy-info-card header p { margin: 0 32px 14px 0; font-size: 12px; }
+.guide-summary, .guide-milestones { display: grid; gap: 6px; }
+.guide-summary span, .guide-milestones span {
+  padding: 9px 11px; border-radius: 13px; background: rgba(255,255,255,.58);
+  box-shadow: inset 0 1px rgba(255,255,255,.8);
+  font-size: 11px;
+}
+.academy-info-card h3 { margin: 15px 0 7px; font-size: 14px; }
+.guide-milestones span { display:flex; justify-content:space-between; gap:10px; }
+.guide-producer-card {
+  display: grid; grid-template-columns: 56px 1fr auto; align-items:center; gap:8px;
+  margin: 7px 0; padding: 8px; border-radius: 15px; background: rgba(202,236,220,.62);
+}
+.guide-producer-card img { width: 56px; height: 56px; object-fit: contain; }
+.guide-producer-card div { display:grid; gap:2px; }
+.guide-producer-card small, .guide-producer-card span, .guide-producer-card em { font-size: 9px; }
+.guide-producer-card em { color:#7b6027; }
+.guide-rules p { font-size: 11px; line-height: 1.45; }
+.order-reward-reputation { color: #fff2bd; }
+
+@media (max-width: 430px) {
+  .mastery-order-card { grid-template-columns: auto 1fr 46px; }
+  .mastery-rewards { grid-column: 2 / 4; }
+  .mastery-order-card button { grid-column: 1 / 4; padding: 6px; }
+}
