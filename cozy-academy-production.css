@@ -103,35 +103,32 @@ h2 {
   background: linear-gradient(180deg, rgba(255, 247, 219, .05), rgba(17, 95, 76, .07));
 }
 
-/* HUD — 56 / 844 reference-height share. */
+/* HUD — separate compact capsules, measured against the locked reference. */
 .game-header {
   position: relative;
   z-index: 30;
   width: calc(100% - 8px);
-  height: 56px;
-  min-height: 56px;
-  flex: 0 0 56px;
-  padding: 5px;
+  height: 48px;
+  min-height: 48px;
+  flex: 0 0 48px;
+  padding: 2px 0;
   display: grid;
-  grid-template-columns: minmax(0, 1.92fr) minmax(0, .84fr) minmax(0, .98fr) minmax(0, .94fr);
+  grid-template-columns: minmax(0, 1.72fr) minmax(0, .82fr) minmax(0, .96fr) minmax(0, .9fr);
   align-items: center;
   gap: 4px;
-  border: 2px solid rgba(255, 238, 157, .82);
-  border-radius: 22px;
-  background: linear-gradient(180deg, rgba(34, 111, 138, .88), rgba(12, 62, 94, .9));
-  box-shadow:
-    0 3px 0 rgba(77, 44, 13, .34),
-    0 7px 15px rgba(15, 43, 35, .24),
-    inset 0 1px 0 rgba(255,255,255,.45);
-  backdrop-filter: blur(4px);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
 }
 
 .game-header .hud-capsule {
   position: relative;
-  height: 42px;
+  height: 36px;
   min-width: 0;
   border: 1.5px solid #d9a542;
-  border-radius: 19px;
+  border-radius: 16px;
   background: linear-gradient(180deg, #184f73, #0d3557);
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,.18),
@@ -142,7 +139,7 @@ h2 {
 .player-level-card {
   display: flex;
   align-items: center;
-  padding: 3px 4px 3px 43px;
+  padding: 3px 4px 3px 39px;
   overflow: hidden;
 }
 
@@ -150,8 +147,8 @@ h2 {
   position: absolute;
   left: 0;
   top: 50%;
-  width: 44px;
-  height: 48px;
+  width: 40px;
+  height: 44px;
   transform: translateY(-50%);
   border: 3px solid #efbd4d;
   border-radius: 17px 17px 21px 21px;
@@ -185,7 +182,7 @@ h2 {
   place-items: center;
   padding-top: 4px;
   color: #fff7dc;
-  font: 700 20px/1 "Fredoka", sans-serif;
+  font: 700 18px/1 "Fredoka", sans-serif;
   text-shadow: 0 2px 0 #17374e;
 }
 
@@ -210,15 +207,15 @@ h2 {
 }
 
 .energy-card {
-  padding: 3px 3px 3px 24px;
+  padding: 2px 3px 2px 21px;
   display: flex;
   align-items: center;
   overflow: hidden;
 }
 
 .game-header .hud-icon {
-  width: 34px;
-  height: 42px;
+  width: 28px;
+  height: 36px;
   object-fit: contain;
   image-rendering: auto;
   filter: drop-shadow(0 2px 1px rgba(8, 38, 55, .46));
@@ -467,11 +464,12 @@ h2 {
 
 .order-item-chip {
   position: relative;
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
+  aspect-ratio: 1;
   display: grid;
   place-items: center;
-  padding: 2px;
+  padding: 4px;
   border: 1.5px solid #dfad57;
   border-radius: 11px;
   background: linear-gradient(145deg, #fff0a8, #f5cd69);
@@ -483,11 +481,22 @@ h2 {
 }
 
 .order-item-chip img {
-  width: 96%;
-  height: 96%;
+  width: 80%;
+  height: 80%;
   object-fit: contain;
   image-rendering: auto;
   filter: drop-shadow(0 2px 1px rgba(66, 53, 27, .22));
+}
+
+.order-items.multi-item .order-item-chip {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+}
+
+.order-items.multi-item .order-item-chip img {
+  width: 80%;
+  height: 80%;
 }
 
 .order-item-chip.item-partial {
@@ -504,17 +513,18 @@ h2 {
 .order-item-chip.item-ready::after {
   content: "✓";
   position: absolute;
-  right: -4px;
-  bottom: -3px;
-  width: 10px;
-  height: 10px;
+  right: -3px;
+  top: -3px;
+  bottom: auto;
+  width: 13px;
+  height: 13px;
   display: grid;
   place-items: center;
   border: 1px solid white;
   border-radius: 50%;
   background: #52a73e;
   color: white;
-  font: 700 7px/1 "Fredoka", sans-serif;
+  font: 700 8px/1 "Fredoka", sans-serif;
 }
 
 .order-item-quantity {
@@ -600,17 +610,81 @@ h2 {
 
 /* Mastery remains outside the six normal order slots. */
 .mastery-orders {
+  position: relative;
   z-index: 24;
   width: calc(100% - 14px);
+  height: 62px;
+  min-height: 62px;
   max-height: 62px;
+  flex: 0 0 62px;
+  overflow: hidden;
 }
 
 .mastery-order-card {
+  width: 100%;
+  height: 58px;
   min-height: 58px;
+  padding: 4px 6px;
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) 46px auto;
+  grid-template-rows: 46px;
+  align-items: center;
+  gap: 2px 6px;
   border: 2px solid #efc35b;
   border-radius: 17px;
   background: linear-gradient(135deg, #fff6cf, #efd494);
   box-shadow: var(--ct-soft-shadow);
+  overflow: hidden;
+}
+
+.mastery-order-crown {
+  position: static;
+  grid-row: 1;
+  color: #d89827;
+  font-size: 18px;
+}
+
+.mastery-order-card > div {
+  position: static;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  grid-row: 1;
+}
+
+.mastery-order-card > div small { font-size: 7px; color: #956622; }
+.mastery-order-card > div strong { font-size: 11px; color: var(--ct-ink); }
+.mastery-order-card > div span { font-size: 8px; color: #6d603c; }
+
+.mastery-order-card > img {
+  position: static;
+  grid-row: 1;
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
+}
+
+.mastery-rewards {
+  position: static;
+  display: none;
+  font-size: 8px;
+  color: #7e551e;
+  white-space: nowrap;
+}
+
+.mastery-order-card > button {
+  position: static;
+  grid-column: 4;
+  grid-row: 1;
+  min-width: 62px;
+  height: 34px;
+  padding: 0 7px;
+  border: 2px solid white;
+  border-radius: 13px;
+  background: linear-gradient(#83ca4d, #429e3a);
+  color: white;
+  font-size: 9px;
+  box-shadow: 0 2px 0 #2f7131;
 }
 
 /* Board — stone/teal layered frame, 7 × 9 grid. */
@@ -686,11 +760,11 @@ h2 {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 94%;
-  height: 94%;
+  width: 86%;
+  height: 86%;
   margin: 0;
   padding: 0;
-  transform: translate3d(-50%, -48%, 0);
+  transform: translate3d(-50%, calc(-50% - 3px), 0);
   display: grid;
   place-items: center;
   background: transparent;
@@ -707,28 +781,28 @@ h2 {
   object-fit: contain;
   image-rendering: auto;
   filter:
-    drop-shadow(0 1px 0 rgba(255,255,255,.25))
-    drop-shadow(0 2px 1px rgba(19, 56, 53, .16));
+    drop-shadow(0 -1px 0 rgba(255,255,255,.22))
+    drop-shadow(0 2px 1px rgba(19, 56, 53, .22));
 }
 
 .item-shadow {
   position: absolute;
   z-index: 1;
   left: 50%;
-  bottom: 3%;
-  width: 66%;
-  height: 18%;
+  bottom: -1%;
+  width: 68%;
+  height: 16%;
   transform: translateX(-50%);
   object-fit: fill;
-  opacity: .32;
-  filter: blur(.2px);
+  opacity: .3;
+  filter: blur(.7px);
 }
 
 .producer-wrap {
   z-index: 5;
-  width: 116%;
-  height: 116%;
-  transform: translate3d(-50%, -51%, 0);
+  width: 112%;
+  height: 112%;
+  transform: translate3d(-50%, calc(-50% - 2px), 0);
   filter: drop-shadow(0 4px 2px rgba(30, 58, 45, .23));
 }
 
@@ -762,7 +836,16 @@ h2 {
   filter:
     drop-shadow(0 0 6px rgba(255, 220, 102, .9))
     drop-shadow(0 5px 2px rgba(30, 58, 45, .25));
-  transform: translate3d(-50%, -55%, 0) scale(1.04);
+  transform: translate3d(-50%, calc(-50% - 5px), 0) scale(1.04);
+}
+
+.cell.item-selected .ball-wrap {
+  transform: translate3d(-50%, calc(-50% - 6px), 0) scale(1.04);
+}
+
+.cell.item-selected .item-shadow {
+  width: 76%;
+  opacity: .38;
 }
 
 .cell.order-match {
@@ -862,7 +945,7 @@ h2 {
 .item-info-copy {
   position: absolute;
   left: 118px;
-  right: 58px;
+  right: 86px;
   top: 15px;
   min-width: 0;
   width: auto;
@@ -927,8 +1010,8 @@ h2 {
 
 .item-info-button {
   position: absolute;
-  right: 7px;
-  top: 6px;
+  right: 57px;
+  top: 8px;
   width: 24px;
   height: 24px;
   border: 2px solid white;
@@ -987,7 +1070,7 @@ h2 {
 .production-mode-control[hidden] { display: none !important; }
 
 .item-info-panel.is-producer {
-  padding-right: 82px;
+  padding-right: 112px;
 }
 
 .item-info-panel.is-producer .storage-button { display: none; }
@@ -1002,8 +1085,12 @@ h2 {
 .item-info-panel.is-producer .item-info-copy { padding-left: 0; }
 .item-info-panel.is-producer .item-info-copy {
   left: 84px;
-  right: 62px;
+  right: 108px;
   top: 14px;
+}
+.item-info-panel.is-producer .item-info-button {
+  right: 57px;
+  top: 29px;
 }
 .item-info-panel.is-producer #itemInfoName { font-size: 14px; }
 .item-info-panel.is-producer #itemInfoDescription {
@@ -1160,9 +1247,15 @@ h2 {
 }
 
 .item-detail-chain article {
+  position: relative;
   flex: 0 0 58px;
   min-width: 58px;
-  padding: 4px;
+  width: 58px;
+  height: 58px;
+  min-height: 58px;
+  max-height: 58px;
+  aspect-ratio: 1;
+  padding: 5px;
   border: 1px solid #d5b66d;
   border-radius: 11px;
   background: rgba(255,250,229,.74);
@@ -1170,9 +1263,26 @@ h2 {
 }
 
 .item-detail-chain article.is-target {
-  border-color: #4ba29a;
-  box-shadow: 0 0 0 2px rgba(75,162,154,.25);
+  border-color: #d69a2f;
+  background: linear-gradient(#fff0a8, #f3cb67);
+  box-shadow: 0 0 0 2px rgba(222,164,49,.28), 0 3px 7px rgba(93,66,25,.18);
 }
+
+.item-detail-chain article.is-useful {
+  border-color: #3f9d91;
+  background: linear-gradient(#dff4df, #b9ddd0);
+}
+
+.item-detail-chain article.is-owned {
+  box-shadow: inset 0 0 0 2px rgba(39,145,125,.22);
+}
+
+.item-detail-chain article.is-locked {
+  filter: saturate(.12);
+  opacity: .48;
+}
+
+.item-detail-chain article.is-locked img { filter: brightness(.76); }
 
 .item-detail-chain img {
   width: 48px;
@@ -1186,19 +1296,32 @@ h2 {
   font-size: 9px;
 }
 
+.item-detail-count {
+  position: absolute;
+  right: -3px;
+  top: -4px;
+  min-width: 18px;
+  padding: 2px 4px;
+  border: 1px solid white;
+  border-radius: 9px;
+  background: #168d87;
+  color: white;
+  font: 700 9px/1 "Fredoka", sans-serif;
+}
+
 /* Compact responsive calibration. */
 @media (max-width: 375px), (max-height: 800px) {
   .game { gap: 3px; padding-inline: 4px; }
   .game-header {
     width: calc(100% - 6px);
-    flex-basis: 52px;
-    height: 52px;
-    min-height: 52px;
+    flex-basis: 46px;
+    height: 46px;
+    min-height: 46px;
     grid-template-columns: minmax(0, 1.9fr) minmax(0, .84fr) minmax(0, .98fr) minmax(0, .94fr);
   }
-  .game-header .hud-capsule { height: 39px; }
-  .level-ring { width: 41px; height: 44px; }
-  .level-ring #playerLevelValue { font-size: 19px; }
+  .game-header .hud-capsule { height: 34px; }
+  .level-ring { width: 38px; height: 42px; }
+  .level-ring #playerLevelValue { font-size: 17px; }
   .orders-shell,
   .orders-strip { height: 164px; min-height: 164px; }
   .orders-shell { flex-basis: 164px; }
@@ -1207,7 +1330,12 @@ h2 {
   .customer-portrait { height: 80px; }
   .order-customer-name { top: 73px; }
   .order-items { top: 94px; height: 39px; }
-  .order-item-chip { width: 37px; height: 37px; }
+  .order-item-chip,
+  .order-items.multi-item .order-item-chip {
+    width: 37px;
+    height: 37px;
+    flex-basis: 37px;
+  }
   .order-card::before { height: 67px; }
   .order-deliver-button { top: 87px; }
   .order-rewards { bottom: 6px; }

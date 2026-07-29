@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="tr">
+<meta charset="utf-8">
+<title>Champion Tour Mastery Mixed Inventory Seed</title>
+<script>
+  const cells = Array(63).fill(null);
+  cells[0] = { type: 'ball', chainId: 'training', level: 12 };
+  cells[8] = { type: 'producer', producerId: 'ball_basket' };
+  cells[12] = { type: 'producer', producerId: 'equipment_locker' };
+  cells[50] = { type: 'producer', producerId: 'training_cart' };
+  cells[54] = { type: 'producer', producerId: 'trophy_cabinet' };
+  const storage = Array(8).fill(null);
+  storage[0] = { type: 'ball', chainId: 'training', level: 12 };
+  storage[1] = { type: 'ball', chainId: 'training', level: 12 };
+
+  [
+    'championTour.prototype.energy.v1',
+    'championTour.prototype.board.v2',
+    'championTour.prototype.progression.v1',
+    'championTour.prototype.producerProgression.v2',
+    'championTour.prototype.academy.v2',
+    'championTour.prototype.academy.v1'
+  ].forEach((key) => localStorage.removeItem(key));
+
+  localStorage.setItem('championTour.prototype.board.v2', JSON.stringify({
+    version: 3,
+    cells,
+    storageCapacity: 8,
+    storage,
+    selectedProductionEnergy: 1
+  }));
+  location.replace('../index.html?test=mastery-storage-browser');
+</script>

@@ -150,12 +150,12 @@ window.ChampionTour.GameData = Object.freeze({
       chainId: 'footballs',
       unlockLevel: 1,
       description: 'Futbol topu zincirinden nesneler üretir.',
-      artwork: 'assets/CozyAcademy/Full/Producers/producer_football.png',
+      artwork: 'assets/CozyAcademy/Full/Producers/producer_football_v2.png',
       artworks: Object.freeze([
         null,
-        'assets/CozyAcademy/Full/Producers/producer_football.png',
-        'assets/CozyAcademy/Progression/Producers/producer_football_lv2.png',
-        'assets/CozyAcademy/Progression/Producers/producer_football_lv3.png'
+        'assets/CozyAcademy/Full/Producers/producer_football_v2.png',
+        'assets/CozyAcademy/Full/Producers/producer_football_v2.png',
+        'assets/CozyAcademy/Full/Producers/producer_football_v2.png'
       ])
     }),
     equipment_locker: Object.freeze({
@@ -164,12 +164,12 @@ window.ChampionTour.GameData = Object.freeze({
       chainId: 'equipment',
       unlockLevel: 1,
       description: 'İçecek ve hidrasyon zincirinden nesneler üretir.',
-      artwork: 'assets/CozyAcademy/Full/Producers/producer_hydration.png',
+      artwork: 'assets/CozyAcademy/Full/Producers/producer_hydration_v2.png',
       artworks: Object.freeze([
         null,
-        'assets/CozyAcademy/Full/Producers/producer_hydration.png',
-        'assets/CozyAcademy/Progression/Producers/producer_hydration_lv2.png',
-        'assets/CozyAcademy/Progression/Producers/producer_hydration_lv3.png'
+        'assets/CozyAcademy/Full/Producers/producer_hydration_v2.png',
+        'assets/CozyAcademy/Full/Producers/producer_hydration_v2.png',
+        'assets/CozyAcademy/Full/Producers/producer_hydration_v2.png'
       ])
     }),
     training_cart: Object.freeze({
@@ -178,12 +178,12 @@ window.ChampionTour.GameData = Object.freeze({
       chainId: 'training',
       unlockLevel: 1,
       description: 'Koni ve saha işaretleme ekipmanları üretir.',
-      artwork: 'assets/CozyAcademy/Pilot/Training/Producers/producer_training_cart.png',
+      artwork: 'assets/CozyAcademy/Full/Producers/producer_training_v2.png',
       artworks: Object.freeze([
         null,
-        'assets/CozyAcademy/Pilot/Training/Producers/producer_training_cart.png',
-        'assets/CozyAcademy/Progression/Producers/producer_training_lv2.png',
-        'assets/CozyAcademy/Progression/Producers/producer_training_lv3.png'
+        'assets/CozyAcademy/Full/Producers/producer_training_v2.png',
+        'assets/CozyAcademy/Full/Producers/producer_training_v2.png',
+        'assets/CozyAcademy/Full/Producers/producer_training_v2.png'
       ])
     }),
     trophy_cabinet: Object.freeze({
@@ -192,12 +192,12 @@ window.ChampionTour.GameData = Object.freeze({
       chainId: 'trophies',
       unlockLevel: 1,
       description: 'Madalya ve kupa zincirinden nesneler üretir.',
-      artwork: 'assets/CozyAcademy/Full/Producers/producer_trophy.png',
+      artwork: 'assets/CozyAcademy/Full/Producers/producer_trophy_v2.png',
       artworks: Object.freeze([
         null,
-        'assets/CozyAcademy/Full/Producers/producer_trophy.png',
-        'assets/CozyAcademy/Progression/Producers/producer_trophy_lv2.png',
-        'assets/CozyAcademy/Progression/Producers/producer_trophy_lv3.png'
+        'assets/CozyAcademy/Full/Producers/producer_trophy_v2.png',
+        'assets/CozyAcademy/Full/Producers/producer_trophy_v2.png',
+        'assets/CozyAcademy/Full/Producers/producer_trophy_v2.png'
       ])
     })
   }),

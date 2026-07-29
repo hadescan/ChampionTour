@@ -345,7 +345,7 @@
     const producerElement = document.getElementById('itemInfoProducer');
     const rarityElement = document.getElementById('itemInfoRarity');
     const nextElement = document.getElementById('itemInfoNext');
-    const definition = DATA.items[level];
+    const nextLevel = level < MAX_LEVEL ? level + 1 : null;
     document.getElementById('itemInfoButton').hidden = false;
     document.getElementById('producerOutputChip').hidden = true;
     document.getElementById('productionModeControl').hidden = true;
@@ -377,8 +377,8 @@
         DATA.producers[DATA.chains[chainId].producerId].name
       );
       rarityElement.textContent = DATA.chains[chainId].name;
-      nextElement.textContent = definition.nextLevel
-        ? window.t('item.info.next').replace('{item}', itemName(chainId, definition.nextLevel))
+      nextElement.textContent = nextLevel
+        ? window.t('item.info.next').replace('{item}', itemName(chainId, nextLevel))
         : window.t('item.info.max');
       panel.setAttribute('aria-hidden', 'false');
       panel.classList.remove('is-empty');
@@ -612,11 +612,20 @@
       progressText.textContent = progress.text;
       progressCard.append(progressTitle, progressText);
 
+      const inventory = itemInventoryLevels(chainId);
+      const discoveryLevel = ProducerProgression.getState().discoveries[chainId] || 0;
+      const usefulLevel = Math.max(1, progress.sourceLevel || level);
       const chain = document.createElement('div');
       chain.className = 'item-detail-chain item-detail-chain-compact';
-      for (let chainLevel = 1; chainLevel <= Math.min(MAX_LEVEL, level + 1); chainLevel += 1) {
+      chain.setAttribute('aria-label', `${DATA.chains[chainId].name} ürün hikâyesi`);
+      for (let chainLevel = 1; chainLevel <= MAX_LEVEL; chainLevel += 1) {
         const entry = document.createElement('article');
-        if (chainLevel === level) entry.classList.add('is-target');
+        const discovered = chainLevel <= Math.max(discoveryLevel, usefulLevel);
+        entry.classList.toggle('is-target', chainLevel === level);
+        entry.classList.toggle('is-owned', inventory[chainLevel] > 0);
+        entry.classList.toggle('is-useful', chainLevel === usefulLevel && chainLevel !== level);
+        entry.classList.toggle('is-locked', !discovered);
+        entry.dataset.level = String(chainLevel);
         entry.appendChild(detailImage(
           itemSource(chainId, chainLevel),
           itemName(chainId, chainLevel)
@@ -624,9 +633,21 @@
         const badge = document.createElement('small');
         badge.textContent = `SV.${chainLevel}`;
         entry.appendChild(badge);
+        if (inventory[chainLevel] > 0) {
+          const count = document.createElement('b');
+          count.className = 'item-detail-count';
+          count.textContent = `×${inventory[chainLevel]}`;
+          entry.appendChild(count);
+        }
         chain.appendChild(entry);
       }
       content.append(description, producerLink(producerId), progressCard, chain, position);
+      requestAnimationFrame(() => {
+        chain.querySelector('.is-target')?.scrollIntoView({
+          block: 'nearest',
+          inline: 'center'
+        });
+      });
       return;
     }
 
@@ -760,7 +781,7 @@
         storage: state.storage,
         selectedProductionEnergy: state.selectedProductionEnergy
       }));
-      scheduleSpecialOrderCheck();
+      reconcileMasteryOrders();
       return true;
     } catch (error) {
       console.warn('Board kaydı yazılamadı.', error);
@@ -768,47 +789,29 @@
     }
   }
 
-  function scheduleSpecialOrderCheck() {
-    if (specialOrderCheckScheduled) return;
+  function reconcileMasteryOrders({ announce = true } = {}) {
+    if (specialOrderCheckScheduled) return [];
     specialOrderCheckScheduled = true;
-    queueMicrotask(() => {
-      specialOrderCheckScheduled = false;
-      const counts = {};
-      Object.keys(DATA.chains).forEach((chainId) => {
-        const maxLevel = MAX_LEVEL;
-        const boardCount = state.cells.reduce(
-          (total, item) => total + Number(
-            item?.type === 'ball' &&
-            item.chainId === chainId &&
-            item.level === maxLevel
-          ),
-          0
-        );
-        const storageCount = state.storage.reduce(
-          (total, item) => total + Number(
-            item?.type === 'ball' &&
-            item.chainId === chainId &&
-            item.level === maxLevel
-          ),
-          0
-        );
-        const count = boardCount + storageCount;
-        counts[chainId] = count;
-        const highestBoard = [...state.cells, ...state.storage].reduce(
-          (highest, item) => item?.type === 'ball' && item.chainId === chainId
-            ? Math.max(highest, item.level)
-            : highest,
-          0
-        );
-        if (highestBoard) ProducerProgression.recordDiscovery(chainId, highestBoard);
-      });
-      const opened = ProducerProgression.evaluateMastery(counts);
-      renderMasteryOrders();
-      if (opened.length) {
-        showToast('Yeni Ustalık Siparişi açıldı');
-        openAcademyInfo('mastery');
-      }
+    const inventory = [...state.cells, ...state.storage];
+    const counts = {};
+    Object.keys(DATA.chains).forEach((chainId) => {
+      const chainItems = inventory.filter(
+        (item) => item?.type === 'ball' && item.chainId === chainId
+      );
+      counts[chainId] = chainItems.filter((item) => item.level === MAX_LEVEL).length;
+      const highestLevel = chainItems.reduce(
+        (highest, item) => Math.max(highest, Number(item.level) || 0),
+        0
+      );
+      if (highestLevel) ProducerProgression.recordDiscovery(chainId, highestLevel);
     });
+    const opened = ProducerProgression.evaluateMastery(counts);
+    renderMasteryOrders();
+    specialOrderCheckScheduled = false;
+    if (announce && opened.length) {
+      showToast('Yeni Ustalık Siparişi açıldı');
+    }
+    return opened;
   }
 
   function loadBoardState() {
@@ -877,6 +880,7 @@
     state.cells.forEach((item, index) => {
       if (item) renderCell(index);
     });
+    reconcileMasteryOrders({ announce: false });
   }
 
   function itemVisualScale(chainId, level) {
@@ -1529,6 +1533,9 @@
         openItemDetail();
       };
       chip.addEventListener('click', openRequirementDetail);
+      chip.addEventListener('pointerdown', (event) => {
+        event.stopPropagation();
+      });
       chip.addEventListener('keydown', (event) => {
         if (event.key === 'Enter' || event.key === ' ') openRequirementDetail(event);
       });
