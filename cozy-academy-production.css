@@ -687,6 +687,29 @@ h2 {
   box-shadow: 0 2px 0 #2f7131;
 }
 
+/* The mastery banner joins the flow without pushing the board controls below 844 px. */
+.game:has(.mastery-orders:not([hidden])) .orders-shell,
+.game:has(.mastery-orders:not([hidden])) .orders-strip {
+  height: 152px;
+  min-height: 152px;
+}
+
+.game:has(.mastery-orders:not([hidden])) .orders-shell {
+  flex-basis: 152px;
+}
+
+.game:has(.mastery-orders:not([hidden])) .order-card,
+.game:has(.mastery-orders:not([hidden])) .order-card.multi-requirement {
+  height: 148px;
+  min-height: 148px;
+}
+
+.game:has(.mastery-orders:not([hidden])) .customer-portrait { height: 70px; }
+.game:has(.mastery-orders:not([hidden])) .order-customer-name { top: 63px; }
+.game:has(.mastery-orders:not([hidden])) .order-items { top: 84px; }
+.game:has(.mastery-orders:not([hidden])) .order-card::before { height: 66px; }
+.game:has(.mastery-orders:not([hidden])) .order-deliver-button { top: 78px; }
+
 /* Board — stone/teal layered frame, 7 × 9 grid. */
 .board-frame {
   position: relative;
