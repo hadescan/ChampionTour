@@ -1,0 +1,297 @@
+CHAMPION TOUR — MEKANİKLERİ DÜZELTME VE TEK SİSTEME İNDİRME
+UYGULAMA VE TEST RAPORU
+============================================================
+
+Tarih: 29 Temmuz 2026
+GitHub deposu: https://github.com/hadescan/ChampionTour
+Dal: main
+Uygulama commit'i: 38ff4d7
+
+
+1. GENEL SONUÇ
+---------------
+
+Champion Tour'un üretici, üretim enerjisi, normal sipariş ve ustalık
+sistemleri aynı çalışma modeli altında birleştirildi.
+
+Bu çalışma sırasında:
+
+- Mevcut görsel tasarım değiştirilmedi.
+- CSS dosyaları değiştirilmedi.
+- Oyun assetleri değiştirilmedi.
+- Board ölçüsü ve slot sistemi değiştirilmedi.
+- Merge, sürükle-bırak, depo, satış ve kayıt sistemleri korundu.
+
+
+2. ÜRETİCİ SİSTEMİ
+-------------------
+
+- Board üzerindeki dört aktif üretici korunmuştur:
+
+  1. Top Sepeti
+  2. Malzeme Dolabı
+  3. Antrenman Arabası
+  4. Kupa Dolabı
+
+- Dört üretici de tıklanabilir ve taşınabilirdir.
+- Üreticiler seçilen enerji miktarına göre anında üretim yapar.
+- Üretim kapasitesi kaldırılmıştır.
+- Charge sistemi kaldırılmıştır.
+- Cooldown sistemi kaldırılmıştır.
+- Refill ve bekleme süresi kaldırılmıştır.
+- Üretici üzerindeki kapasite/charge rozetleri kaldırılmıştır.
+- Üretici bilgi panelinde “Sınırsız üretim” bilgisi gösterilmektedir.
+- Test modunda enerji tükenmemektedir.
+
+
+3. ÜRETİM ENERJİSİ
+-------------------
+
+Global üretim enerjisi seçicisi görünür ve kullanılabilir hale getirildi.
+
+Seçim sırası:
+
+1 → 2 → 4 → 8 → 16 → 1
+
+Temel üretim seviyeleri:
+
+- 1 enerji  → en az Seviye 1
+- 2 enerji  → en az Seviye 2
+- 4 enerji  → en az Seviye 3
+- 8 enerji  → en az Seviye 4
+- 16 enerji → en az Seviye 5
+
+Üretici seviyesine bağlı olarak bir üst seviyenin çıkması için düşük bir
+bonus ihtimali korunmuştur.
+
+Seçilen enerji değeri localStorage üzerinden saklanır ve sayfa yeniden
+açıldığında geri yüklenir.
+
+
+4. SİPARİŞ SİSTEMİ
+-------------------
+
+- Aynı anda altı normal sipariş gösterilir.
+- Tek ürünlü siparişler desteklenir.
+- İki farklı ürün isteyen siparişler desteklenir.
+- Her sipariş grubu içinde hem tek ürünlü hem iki ürünlü sipariş bulunması
+  güvence altına alınmıştır.
+- Siparişler yalnızca aktif üretici zincirlerinden ürün ister.
+- Eski özel sipariş sistemi normal siparişlerden ayrılmıştır.
+- Eski special order kayıtları normal sipariş yuvalarına yüklenmez.
+- Hazır bir normal sipariş teslim edildiğinde:
+
+  - oyun durumu hemen güncellenir,
+  - ödül akışı çalışır,
+  - teslim edilen sipariş yenisiyle değiştirilir,
+  - aktif normal sipariş sayısı altıda kalır.
+
+- Siparişler kaydedilir.
+- Sayfa yenilendiğinde aynı siparişler geri yüklenir.
+- Yenileme sırasında sipariş kopyalanması oluşmaz.
+
+
+5. SİPARİŞ ÜRÜNÜ VURGULARI
+---------------------------
+
+Aktif siparişlerin istediği board ürünleri hazır olma durumuna göre
+vurgulanmaktadır.
+
+Vurgu sistemi şu işlemlerden sonra yeniden hesaplanır:
+
+- üretim,
+- taşıma,
+- merge,
+- satış,
+- depoya gönderme,
+- depodan geri alma,
+- kayıt yükleme,
+- sipariş teslimi.
+
+Gerçek tarayıcı testinde:
+
+- vurgulu ürünün boş hücreye taşındıktan sonra vurgusunu koruduğu,
+- iki ürün merge edildikten sonra oluşan yeni seviyenin sipariş ihtiyacına
+  göre yeniden değerlendirildiği
+
+doğrulanmıştır.
+
+
+6. USTALIK SİPARİŞİ
+--------------------
+
+- Eski özel sipariş sistemi yerine tek Ustalık Siparişi sistemi kullanılır.
+- Board ve depo içeriği birlikte değerlendirilir.
+- Aynı zincirden üç adet Seviye 12 ürün bulunduğunda ilgili zincirin Ustalık
+  Siparişi otomatik olarak açılır.
+- Her zincir için aynı anda yalnızca bir aktif Ustalık Siparişi bulunabilir.
+- Ustalık Siparişi altı normal sipariş yuvasından ayrı gösterilir.
+- Ustalık Siparişi kayıt altına alınır.
+- Sayfa yenilendiğinde ilerleme korunur.
+- Teslim sırasında tam olarak üç Seviye 12 ürün tüketilir.
+- Ödül yalnızca bir kez verilir.
+
+Gerçek tarayıcı testinde futbol zinciri için doğrulanan ödül:
+
+- 900 Altın
+- 1 Elmas
+- 100 Akademi İtibarı
+
+Teslimden sonra sayfa yenilenmiş ve:
+
+- ürünlerin yeniden oluşmadığı,
+- siparişin tekrar açılmadığı,
+- ödüllerin ikinci kez verilmediği
+
+doğrulanmıştır.
+
+
+7. ESKİ SİSTEMLERİN AYRILMASI
+------------------------------
+
+- Ortak/shared Producer XP aktif oyun akışından kaldırıldı.
+- Producer XP debug düğmesi kaldırıldı.
+- Sipariş tesliminin shared Producer XP vermesi kaldırıldı.
+- Producer XP seviye atlama animasyonu aktif teslim akışından kaldırıldı.
+- Eski charge/capacity/refill API'leri kaldırıldı.
+- Eski max item special order API'si kaldırıldı.
+- Eski kayıtların okunabilmesi için legacy producer verisi yalnızca kayıt
+  uyumluluğu amacıyla pasif biçimde tutulmaktadır.
+- Legacy producer verisi artık üretim, sipariş veya ödül sistemini yönetmez.
+
+
+8. KORUNAN SİSTEMLER
+---------------------
+
+Aşağıdaki sistemler korunmuş ve regresyon testleri uygulanmıştır:
+
+- 7 × 9 merge board
+- Sürükle-bırak
+- Aynı ürünleri merge etme
+- Üreticileri taşıma
+- Depo
+- Ürün satışı
+- localStorage kayıt/yükleme
+- Sipariş ödülleri
+- Akademi İtibarı
+- Üretici Seviye 1–3 ilerlemesi
+- Ustalık Siparişi
+- Üretici emeklilik verisi
+- Mevcut HUD ve görsel tasarım
+
+
+9. DEĞİŞTİRİLEN DOSYALAR
+-------------------------
+
+- index.html
+- script.js
+- js/game-data.js
+- js/producer-progression.js
+- js/production-rules.js
+- js/progression.js
+- tests/producer-progression.test.js
+- tests/production-rules.test.js
+- tests/mechanics-migration.test.js
+- tests/mastery-browser-seed.html
+- artifacts/mechanics-browser-test-results.txt
+- artifacts/mechanics-energy-selector.png
+- artifacts/mechanics-multi-order-highlight.png
+- artifacts/mechanics-mastery-open.png
+- artifacts/mechanics-mastery-delivered.png
+
+
+10. OTOMATİK TESTLER
+---------------------
+
+Geçen JavaScript sözdizimi kontrolleri: 9 / 9
+
+Kontrol edilen dosyalar:
+
+- script.js
+- js/i18n.js
+- js/game-data.js
+- js/production-rules.js
+- js/producer-progression.js
+- js/progression.js
+- js/sports-content.js
+- js/academy.js
+- js/audio.js
+
+Geçen test paketleri: 5 / 5
+
+- cozy-full-theme.test.js
+- cozy-pilot-assets.test.js
+- mechanics-migration.test.js
+- producer-progression.test.js
+- production-rules.test.js
+
+Ek kontrol:
+
+- git diff --check başarılı.
+
+
+11. GERÇEK TARAYICI TESTLERİ
+-----------------------------
+
+Testler gerçek uygulama ekranında, Chromium tabanlı uygulama içi tarayıcıda
+ve oyuncunun ana kaydını değiştirmeyen ayrı localhost originlerinde yapıldı.
+
+Başarılı testler:
+
+- Altı normal siparişin render edilmesi
+- Tek ve iki ürünlü siparişlerin birlikte gösterilmesi
+- Siparişlerin yenileme sonrası korunması
+- Hazır normal sipariş teslimi ve otomatik yenilenmesi
+- Enerji seçicisinin doğru sırada dolaşması
+- Enerji seçiminin yenileme sonrası korunması
+- Enerji seviyelerinin doğru minimum ürün seviyelerini üretmesi
+- Dört üreticinin her biriyle 25 ardışık üretim
+- Charge rozetinin bulunmaması
+- Refilling durumunun bulunmaması
+- Sipariş vurgularının çalışması
+- Vurgunun taşıma sonrası güncellenmesi
+- Vurgunun merge sonrası güncellenmesi
+- Ustalık Siparişinin otomatik açılması
+- Ustalık Siparişinin yenileme sonrası korunması
+- Tam olarak üç L12 ürünün tüketilmesi
+- Ustalık ödülünün bir kez verilmesi
+- Satış işlemi
+- Board ürününü depoya taşıma
+- Test edilen oturumlarda console error bulunmaması
+
+
+12. GITHUB KAYITLARI
+----------------------
+
+Durum raporu commit'i:
+
+85ef5cf docs: add current project status report
+
+Mekanik birleştirme sprinti commit'i:
+
+38ff4d7 feat: unify producer order and mastery mechanics
+
+Her iki commit GitHub üzerindeki main dalına gönderilmiştir.
+
+
+13. ÇALIŞAN SÜRÜM
+------------------
+
+Yerel HTTP adresi:
+
+http://127.0.0.1:4173/Champion%20Tour%20HTML/?sprint=mechanics-unification&view=mobile
+
+Yerel HTML dosyası:
+
+C:\Users\caner.sulek\OneDrive - techasaY\Masaüstü\Caner\ChampionTour\Champion Tour HTML\index.html
+
+
+14. SONUÇ
+----------
+
+Bu sprint ile üretim sistemi sınırsız ve enerji seçimine bağlı tek modele
+indirildi. Normal siparişler tek sistem altında toplandı. Eski special order
+akışı Ustalık Siparişi sisteminden ayrıldı. Shared Producer XP aktif
+mekaniklerden kaldırıldı. Ustalık, itibar ve üretici ilerlemesi korunarak
+gerçek tarayıcı ve otomatik testlerle doğrulandı.
+
