@@ -1,0 +1,1188 @@
+CHAMPION TOUR — MEVCUT DURUM VE YAPILAN İŞLER RAPORU
+=====================================================
+
+Bu rapor; AGENTS.md, ChampionTourDocs içindeki tüm belgeler, aktif HTML/CSS/JS
+kaynakları, Git geçmişi, mevcut testler ve son paylaşılan oyun ekranı incelenerek
+hazırlanmıştır.
+
+İnceleme sırasında hiçbir oyun dosyası değiştirilmemiş, silinmemiş veya commit
+edilmemiştir. İnceleme öncesinde ve sonrasında git status --short çıktısı temizdir.
+
+ÖNEMLİ BULGU
+-------------
+
+Mevcut kod çalışır bir web prototipi oluşturmaktadır; ancak bazı son özellikler
+resmi GDD ile çelişmektedir. Özellikle üretici şarj/cooldown sistemi, 12 seviyeli
+zincirler, üretim modları, Akademi İtibarı, ustalık ve emeklilik sistemi mevcut
+dokümantasyonda tanımlanan kalıcı tasarımdan sapmaktadır.
+
+
+1. PROJENİN MEVCUT TEKNİK YAPISI
+================================
+
+Kullanılan teknoloji
+---------------------
+
+- HTML5
+- CSS3
+- Vanilla JavaScript
+- Tarayıcı localStorage
+- Harici oyun framework'ü veya UI kütüphanesi yok
+- Paket yöneticisi, package.json, Vite/Webpack veya derleme adımı yok
+- Aktif Unity projesi yok
+
+Resmi teknik belgede web sürümü prototip, hedef üretim platformu ise Unity 6
+Universal 2D olarak belirtilmiştir.
+
+Ana aktif dosyalar
+------------------
+
+- index.html
+- script.js
+- style.css
+- sprint-9-1.css
+- modern-pixel-art.css
+- cozy-academy-pilot.css
+- cozy-academy-full.css
+
+Aktif JavaScript modülleri
+--------------------------
+
+- js/i18n.js
+- js/game-data.js
+- js/production-rules.js
+- js/producer-progression.js
+- js/progression.js
+- js/sports-content.js
+- js/academy.js
+- js/audio.js
+- script.js
+
+Aktif olmayan eski/paralel modüller
+-----------------------------------
+
+Aşağıdaki dosyalar repoda bulunmakta fakat index.html tarafından yüklenmemektedir:
+
+- js/data.js
+- js/energy.js
+- js/producer.js
+- js/board.js
+- js/merge.js
+- js/orders.js
+- js/main.js
+- css/style.css
+
+Bu dosyalar aktif sistemin eski veya paralel uygulamalarıdır ve teknik borç
+oluşturmaktadır.
+
+Oyunun çalıştırılması
+---------------------
+
+Doğrudan:
+
+Champion Tour HTML/index.html
+
+Yerel sunucuyla:
+
+cd "C:\Users\caner.sulek\OneDrive - techasaY\Masaüstü\Caner\ChampionTour"
+python -m http.server 4173 --bind 127.0.0.1
+
+Ardından:
+
+http://127.0.0.1:4173/Champion%20Tour%20HTML/
+
+
+2. BUGÜNE KADAR TAMAMLANAN SPRINTLER
+====================================
+
+Git geçmişi yalnızca bazı çalışmalara açık sprint numarası vermektedir. Commit
+veya belgelerden doğrulanamayan çalışmalara sonradan sprint numarası atanmamıştır.
+
+İlk HTML prototipi
+------------------
+
+Commitler:
+
+- a606e56 — Initial commit
+- db16711 — Initial Champion Tour project
+- f7e3fc8 — Auto update
+- 1ded44a — Auto update
+
+Yapılanlar:
+
+- Temel HTML/CSS/JS prototipi
+- Board ve ilk top zinciri
+- Enerji ve üretici temeli
+- İlk sürükle-bırak/merge yapısı
+
+Eksik:
+
+- Erken aşamanın kapsamı commit mesajlarından tam ayrıştırılamamaktadır.
+- Bu yapı sonraki sprintlerde büyük ölçüde değiştirilmiştir.
+
+Sprint 4.13 — UI polish and project documentation
+-------------------------------------------------
+
+Commit: 4576faa
+
+Değiştirilen ana dosyalar:
+
+- index.html
+- script.js
+- style.css
+- js/audio.js
+- js/game-data.js
+- js/i18n.js
+- js/progression.js
+- ChampionTourDocs içindeki belgeler
+
+Gerçek sonuç:
+
+- Resmi proje dokümantasyonu eklendi.
+- UI ve animasyon temelleri geliştirildi.
+- Modüler data/progression/i18n/audio dosyaları oluşturuldu.
+
+Eksik:
+
+- audio.js içindeki bütün ses kaynakları hâlâ null.
+- Belgeler ilerleyen commitlerde yapılan bazı mekaniklerle güncel değildir.
+
+Sprint 5.0 — Producer progression and spawn polish
+--------------------------------------------------
+
+Commitler:
+
+- 634ef66
+- 79c7132
+- c8e2dd1
+
+Gerçek sonuç:
+
+- Üretici görsel seviyeleri eklendi.
+- Üretilen nesne rastgele boş hücreye yerleştiriliyor.
+- Spawn üreticinin merkezinde başlayıp hedef hücreye gidiyor.
+- Landing animasyonu mevcut.
+
+Eksik:
+
+- Sistem daha sonra farklı producer progression yapısıyla üst üste bindirildi.
+- Eski ortak producer XP'si ile yeni itibar tabanlı producer seviyesi aynı anda
+  bulunuyor.
+
+Premium UI, merge/order presentation ve akademi progression
+------------------------------------------------------------
+
+Commit: bccdebc
+
+Gerçek sonuç:
+
+- Müşteri portreleri
+- Premium HUD/order görünümü
+- Akademi XP/seviye sistemi
+- Sipariş teslim ve ödül animasyonları
+- Merge/spawn sunum katmanı
+
+Eksik:
+
+- Commit mesajında sprint numarası yoktur.
+- Ses geri bildirimleri bağlı değildir.
+- Tam tarayıcı E2E testi yoktur.
+
+Sports Campus progression
+-------------------------
+
+Commitler:
+
+- 0874363
+- 4eb5d23
+
+Gerçek sonuç:
+
+- Sports Campus ekranı
+- Futbol akademisi için 29 yenileme adımı
+- Seviye 1–30 ilerlemesi
+- Yenilemelerin sırayla uygulanması
+- Gelecek akademilerin listelenmesi
+
+Eksik:
+
+- Yalnızca Football Academy içerik sahibidir.
+- Basketball yalnızca available durumuna gelebilir; oynanabilir içeriği yoktur.
+- Baseball, Shooting, Swimming ve Horse kilitli veri kayıtlarından ibarettir.
+
+Dört kalıcı üretici ve çoklu zincir sistemi
+-------------------------------------------
+
+Commitler:
+
+- 3e1a8cb
+- 1f66743
+- 5f2e17f
+
+Gerçek sonuç:
+
+- Board üzerinde dört üretici
+- Dört ürün zinciri
+- Üreticilerin taşınması
+- Farklı zincirlerden sipariş üretimi
+- Çoklu ürün sipariş altyapısı
+
+Eksik:
+
+- Aktif kodda üretici adları bazı GDD adlarından farklıdır.
+- GDD "şarj/cooldown yok" derken kodda ikisi de bulunmaktadır.
+
+Referans assetleri, item bilgisi ve sipariş carousel'i
+------------------------------------------------------
+
+Commitler:
+
+- 4a3d98a
+- cf4227d
+- 8295bac
+- f7e0eac
+- 84e5be3
+
+Gerçek sonuç:
+
+- Dört zincir için assetler
+- Alt item bilgi paneli
+- Altı aktif sipariş
+- Hazır siparişin carousel'de öne alınması
+- Dikey mobil düzen
+- Özgün futbol temalı asset seti
+
+Eksik:
+
+- Portreler üç müşteri arasında tekrar kullanılıyor.
+- Sipariş şeridi küçük ekranlarda yoğun ve yazılar küçüktür.
+
+Sprint 9.1 — Board storage and sales
+------------------------------------
+
+Commit: 2bade9a
+
+Gerçek sonuç:
+
+- 8 slot başlangıç deposu
+- Board–depo taşıma
+- Elmasla depo kapasitesi artırma
+- Item satışı
+- Çift onay
+- Satışı geri alma
+- Depo ve board state kaydı
+
+Eksik:
+
+- Depoda merge yoktur.
+- Üreticiler depoya alınamaz.
+- Bütün ürünler sabit +2 coin değerinde satılır.
+
+HUD, tipografi ve ikon polish
+-----------------------------
+
+Commitler:
+
+- bb9465a
+- 1b2da2a
+- 5a54927
+
+Gerçek sonuç:
+
+- Kompakt HUD
+- Üretici okunabilirliği
+- Self-hosted Fredoka ve Nunito Sans
+- Özel enerji, coin, gem, seviye, depo ve satış ikonları
+
+Eksik:
+
+- HUD ve order metinleri küçük ekranda çok küçüktür.
+- İtibar HUD'a sonradan eklenmiş ayrı bir kaynak gibi durmaktadır.
+- Üretici şarj bilgileri board üzerinde ek görsel yük oluşturmaktadır.
+
+Üretim modları ve özel siparişler
+---------------------------------
+
+Commitler:
+
+- 27b6ebd
+- c35d7fa
+
+Gerçek sonuç:
+
+- 1/2/4/8/16 enerji üretim modları
+- Enerji miktarına göre daha yüksek seviyeli ürün üretimi
+- Maksimum ürün özel sipariş altyapısı
+- Üretim kuralı testleri
+
+Eksik:
+
+- Resmi GDD her tıklamanın 1 enerji tüketip Lv1 üretmesini şart koşmaktadır.
+- Özellik aktif dokümantasyonla uyumsuzdur.
+- Eski pending-special-order sistemi ile yeni mastery sistemi paraleldir.
+
+Modern Pixel Art yönü
+---------------------
+
+Commitler:
+
+- cd8f639
+- 1d53f64
+- 774192f
+
+Gerçek sonuç:
+
+- Pixel-art asset ve UI katmanı
+- Mobil okunabilirlik düzenlemeleri
+- Sprite atlas edge-bleed düzeltmeleri
+
+Mevcut durum:
+
+- Bu yön daha sonra reddedilmiş ve Cozy Academy ile değiştirilmiştir.
+- modern-pixel-art.css hâlâ aktif olarak yüklenmektedir.
+- Güncel sanat yönü pixel art olmadığı için bu katman teknik borçtur.
+
+Cozy Academy pilotu
+-------------------
+
+Commit: dac8277
+
+Gerçek sonuç:
+
+- Cozy Academy Storybook — High-Clarity Casual yönü
+- Training zinciri Lv1–Lv6 pilot assetleri
+- Training producer asseti
+- Pilot CSS ve asset testi
+
+Cozy Academy full alignment
+---------------------------
+
+Commit: ae25c70
+
+Gerçek sonuç:
+
+- Futbol, hidrasyon ve kupa Lv1–Lv6 assetleri
+- Müşteri portreleri
+- HUD ikonları
+- Akademi arka planı
+- Producer assetleri
+- Full Cozy CSS katmanı
+- Tema asset testi
+
+Eksik:
+
+- Eski Pixel Art CSS/asset katmanı kaldırılmamıştır.
+- Ana CSS birikimi nedeniyle görsel sistem çok katmanlıdır.
+
+Producer progression, mastery guide ve emeklilik başlangıcı
+-----------------------------------------------------------
+
+Commit: 5896daf
+
+Gerçek sonuç:
+
+- Dört zincir Lv7–Lv12
+- Producer Lv2/Lv3 görselleri
+- Akademi İtibarı
+- İtibar kilometre taşları
+- Ustalık siparişleri
+- Football producer retirement koşulları
+- Forma üreticisi görseli
+- Akademi rehberi
+- Unit testler
+
+Eksik:
+
+- Sistem GDD ile uyumsuzdur.
+- Emeklilik sonrası forma üreticisi üretim yapmaz.
+- Forma zinciri yoktur.
+- Yeni üreticiye geçiş yalnızca görsel ve "yakında" durumundadır.
+- Eski shared producer XP ile yeni reputation progression birlikte çalışır.
+
+
+3. ŞU ANDA GERÇEKTEN ÇALIŞAN OYUN SİSTEMLERİ
+============================================
+
+Board — TAM ÇALIŞIYOR
+- 7 sütun × 9 satır, toplam 63 hücre.
+- Dört üretici kayıtta eksikse tekrar eklenir.
+- Board ve producer pozisyonları kaydedilir.
+
+Sürükle-bırak — TAM ÇALIŞIYOR
+- Item boş hücreye taşınabilir.
+- Merge, sipariş ve depo hedefleri desteklenir.
+- Üretici taşınabilir ve item ile yer değiştirebilir.
+
+Merge — TAM ÇALIŞIYOR
+- Aynı zincir ve aynı seviyedeki itemlar birleşir.
+- Lv12 maksimumdur.
+- Drag ve çift dokunma desteklenir.
+- Animasyon, glow ve parçacıklar mevcuttur.
+
+Üreticiler — KISMEN ÇALIŞIYOR
+- Dört üretici üretim yapar.
+- Enerji, şarj ve cooldown kullanır.
+- Emekli edilen producer çalışmayı bırakır.
+- Yerine gelen producer içeriksizdir.
+
+Ürün zincirleri — TAM ÇALIŞIYOR
+- Football, Hydration, Training ve Trophy zincirleri vardır.
+- Her zincir Lv1–Lv12 içerir.
+- Resmi GDD altı seviye tanımlar.
+
+Enerji — KISMEN ÇALIŞIYOR
+- Maksimum 100.
+- İki dakikada bir enerji yenilenmesi.
+- localStorage ve çevrimdışı geçen süre hesabı.
+- Aktif test ayarında sonsuz enerji açıktır.
+
+Siparişler — TAM ÇALIŞIYOR
+- Altı aktif sipariş.
+- Bir veya iki ürün türü.
+- Partial/full ready görünümü.
+- Checkmark ve drag-to-order.
+- Hazır sipariş öne taşınır.
+
+Sipariş ödülleri — TAM ÇALIŞIYOR
+- Coin, XP, event point ve reputation state'e anında eklenir.
+- Görsel uçuş ve counter animasyonları vardır.
+
+XP ve oyuncu seviyesi — KISMEN ÇALIŞIYOR
+- Academy XP/seviye 1–30 çalışır.
+- Ayrı shared producer XP sistemi de vardır.
+- İki progression katmanı birbirine karışmaktadır.
+
+Para ve elmas — TAM ÇALIŞIYOR
+- Kazanım, HUD ve kayıt vardır.
+- Coin satış, order ve mastery üzerinden kazanılır.
+- Gem depo kapasitesi ve mastery üzerinden kullanılır/kazanılır.
+- Ekonominin kullanım alanları sınırlıdır.
+
+Depo — TAM ÇALIŞIYOR
+- Başlangıç 8 slot.
+- Board-depo transferi.
+- Elmas ile kapasite artırımı.
+- Kayıt/yükleme.
+- Depoda merge yoktur.
+
+Satış — TAM ÇALIŞIYOR
+- Item seçimi.
+- Çift onay.
+- +2 coin.
+- Geri alma.
+- Fiyatlar seviye bağımsızdır.
+
+Kayıt/yükleme — KISMEN ÇALIŞIYOR
+- Board, depo, enerji, ekonomi, akademi ve producer progression saklanır.
+- Merkezi, sürümlü save/migration sistemi yoktur.
+
+Öğretici sistemi — HENÜZ YAPILMADI
+- tutorialsSeen ve markTutorialSeen altyapısı vardır.
+- Aktif kodda kullanılmaz.
+
+Bilgi ekranları — TAM ÇALIŞIYOR
+- Item bilgi paneli.
+- Producer detayları.
+- Zincir bilgisi.
+- Depo.
+- Sports Campus.
+- Akademi Rehberi.
+
+Akademi İtibarı — KISMEN ÇALIŞIYOR
+- Kazanım, kayıt ve kilometre taşları kod/test düzeyinde vardır.
+- GDD'de tanımlı değildir.
+- Tam tarayıcı E2E testi yoktur.
+
+Üretici geliştirme — KISMEN ÇALIŞIYOR
+- İtibar ile her producer Lv1–Lv3 olabilir.
+- Kapasite/drop/order sınırı değişir.
+- Legacy Lv1–Lv6 shared XP ile çakışır.
+
+Ustalık siparişi — KISMEN ÇALIŞIYOR
+- 3 adet Lv12 algılama.
+- Board ve depo itemlarını tüketme.
+- Ödül verme.
+- GDD dışıdır ve yalnızca state düzeyinde unit test vardır.
+
+Üretici emekliliği — KISMEN ÇALIŞIYOR
+- Koşul kontrolü, kayıt ve görsel replacement çalışır.
+- Sonraki producer zinciri yoktur.
+
+Yeni üreticiye geçiş — YALNIZCA GÖRSEL/PROTOTİP
+- Forma üreticisi asseti görüntülenir.
+- Üretim replacementPendingContent nedeniyle engellenir.
+
+Dil desteği — KISMEN ÇALIŞIYOR
+- Türkçe/İngilizce sözlük ve setLang API vardır.
+- Varsayılan dil sabit Türkçedir.
+- Dil seçim UI'ı ve persistence yoktur.
+- Birçok metin doğrudan Türkçe yazılmıştır.
+
+Ses — YALNIZCA ALTYAPI
+- Audio modülü vardır.
+- Bütün ses kaynakları null olduğu için oyun fiilen sessizdir.
+
+
+4. ÜRETİCİLER VE ÜRÜN ZİNCİRLERİ
+================================
+
+Aktif üretici sayısı: 4
+
+1. ball_basket
+   Aktif ad: Futbol Ekipmanı Sandığı
+   Zincir: footballs
+   Ürün seviyesi: 12
+
+2. equipment_locker
+   Aktif ad: Su ve İçecek İstasyonu
+   Zincir: equipment/hydration
+   Ürün seviyesi: 12
+
+3. training_cart
+   Aktif ad: Koni Arabası
+   Zincir: training
+   Ürün seviyesi: 12
+
+4. trophy_cabinet
+   Aktif ad: Kupa Atölyesi
+   Zincir: trophies
+   Ürün seviyesi: 12
+
+Taşıma:
+
+- Üreticiler sürüklenebilir.
+- Boş hücreye taşınabilir.
+- Item üzerine bırakıldığında yer değiştirebilir.
+- Birleştirilemez.
+- Depoya alınamaz.
+- Pozisyonları kaydedilir.
+
+Kapasite ve bekleme:
+
+Producer Lv1:
+- Kapasite: 12
+- Refill: 180 saniye
+- Sipariş üst sınırı: Lv6
+
+Producer Lv2:
+- Kapasite: 16
+- Refill: 150 saniye
+- Sipariş üst sınırı: Lv8
+
+Producer Lv3:
+- Kapasite: 20
+- Refill: 120 saniye
+- Sipariş üst sınırı: Lv10
+
+Bu sistem kaynakta çalışmaktadır fakat resmi GDD şarj/cooldown kullanılmamasını
+istemektedir.
+
+Drop oranları:
+
+Producer Lv1:
+- %85 Lv1
+- %15 Lv2
+
+Producer Lv2:
+- %55 Lv1
+- %40 Lv2
+- %5 Lv3
+
+Producer Lv3:
+- %30 Lv1
+- %50 Lv2
+- %18 Lv3
+- %2 Lv4
+
+Üretim modları ayrıca 1/2/4/8/16 enerjiye göre taban ürünü Lv1–Lv5 arasında
+yükseltebilir.
+
+Siparişler:
+
+- Dört zincirin tamamından ürün isteyebilir.
+- Altı aktif sipariş vardır.
+- En fazla iki farklı item türü kullanılır.
+- Normal siparişler Lv1–Lv10 aralığındadır.
+
+Bilgi ekranı:
+
+- Üretici adı
+- Zincir
+- Şarj/cooldown
+- Üretim modu
+- Ürün zinciri
+- İtibar seviyesi
+- Ustalık/emeklilik durumu
+- Akademi Rehberi
+
+
+5. KİLİTLİ GÖRSEL YÖNLE KARŞILAŞTIRMA
+=====================================
+
+Hedef: Cozy Academy Storybook — High-Clarity Casual
+
+Canlı file:// sekmesi otomasyon güvenlik politikası nedeniyle programatik olarak
+incelenememiştir. Değerlendirme aktif CSS/asset zinciri ve son paylaşılan mobil
+ekran görüntüsüne dayanmaktadır.
+
+Board — KISMEN UYUMLU
+- Teal/pastel yapı, yuvarlatılmış slotlar ve yumuşak çerçeve hedefe yakındır.
+- Mekanik grid ve geniş boşluk hissi hâlâ güçlüdür.
+
+Üreticiler — KISMEN UYUMLU
+- Cozy assetler kullanılır.
+- Mobilde küçük görünmektedir.
+- Şarj rozetleri görsel kimliği zayıflatmaktadır.
+
+Ürünler — KISMEN UYUMLU
+- Storybook/casual stile yakındır.
+- Lv7–Lv12 assetlerinin tam görsel tutarlılığı manuel doğrulanmamıştır.
+
+Sipariş kutuları — KISMEN UYUMLU
+- Portre, ürün ve ödül hiyerarşisi vardır.
+- Kartlar sıkışık, metin ve ikonlar küçüktür.
+
+HUD — KISMEN UYUMLU
+- Navy capsule, altın kenar ve özgün ikonlar uygundur.
+- Küçük ekranda bilgi yoğunluğu fazladır.
+
+Enerji — KISMEN UYUMLU
+- İkon tanınabilirdir.
+- Test sürümünde sonsuz enerji nedeniyle gerçek enerji sunumu doğrulanamamaktadır.
+
+Para ve elmas — HEDEFLE UYUMLU
+- Coin/gem ikonları ve capsule yapısı açıktır.
+- Değerler küçük ekranda biraz küçüktür.
+
+XP — KISMEN UYUMLU
+- Level ring vardır.
+- XP metni küçüktür.
+- Producer XP ve Academy XP ayrımı belirsizdir.
+
+Alt bilgi paneli — KISMEN UYUMLU
+- Krem, yumuşak ve işlevseldir.
+- Metin kesilebilmektedir.
+
+Fontlar — HEDEFLE UYUMLU
+- Fredoka ve Nunito Sans kullanılmaktadır.
+- Bazı boyutlar fazla küçüktür.
+
+Renkler — HEDEFLE UYUMLU
+- Krem, teal, lacivert, pastel yeşil ve altın paleti uygundur.
+
+İkonlar — KISMEN UYUMLU
+- Cozy ikon seti vardır.
+- Bazı alanlarda emoji ve karakter sembolleri kullanılmaya devam eder.
+
+Gölge ve katmanlar — KISMEN UYUMLU
+- Yumuşak gölge ve contact shadow vardır.
+- Birikmiş CSS katmanları tek bir derinlik dilini zorlaştırır.
+
+Genel bütünlük — KISMEN UYUMLU
+- Cozy yön açıkça görülür.
+- Küçük ölçek, prototip yoğunluğu, eski pixel CSS ve progression rozetleri ticari
+  kaliteyi sınırlar.
+
+
+6. KOD VE MİMARİ DURUMU
+=======================
+
+Veri odaklı sistemler:
+
+- Zincir isimleri ve asset yolları
+- Producer tanımları
+- Drop tabloları
+- Sipariş zorlukları ve ödüller
+- İtibar kilometre taşları
+- Spor/akademi tanımları
+- 29 futbol renovasyonu
+- Müşteri verileri
+- Depo ayarları
+- Test modu
+
+Kod içine sabit yazılmış değerler:
+
+- Board 7×9
+- Producer başlangıç hücreleri 8, 12, 50, 54
+- Enerji 100
+- Regeneration 120 saniye
+- Satış fiyatı +2
+- Double-tap 320 ms
+- Görsel ölçek tabloları
+- Çeşitli animasyon süreleri
+- Çok sayıda doğrudan Türkçe UI metni
+
+Birbirini tekrar eden sistemler:
+
+- Aktif script.js ile eski board.js/merge.js/orders.js/main.js
+- game-data.js ile data.js
+- Aktif enerji kodu ile energy.js
+- Shared producer XP ile reputation producer progression
+- Legacy special-order ile mastery order
+- Beş farklı CSS katmanı
+- Eski Pixel Art teması ile güncel Cozy tema
+
+Geçici veya sahte veriler:
+
+- Sonsuz test enerjisi
+- Üç müşteri portresinin altı siparişte döndürülmesi
+- Event point toplanmasına rağmen HUD'da gizli olması
+- Yeni forma üreticisinin placeholder olması
+- Basketball'ın available fakat içeriksiz olması
+- Ses kaynaklarının null olması
+- Tutorial state bulunmasına rağmen tutorial olmaması
+
+Teknik borçlar:
+
+1. GDD–kod uyuşmazlığı.
+2. script.js yaklaşık 3.200 satırlık monolit.
+3. style.css 5.451 satır ve dört ek override dosyası.
+4. Kullanılmayan eski JS modülleri.
+5. İki producer progression sistemi.
+6. İki özel sipariş yaklaşımı.
+7. Merkezi save schema/migration katmanı yok.
+8. Dil sistemi kısmen uygulanmış.
+9. Audio modülü bağlantısız.
+10. Browser/E2E testi yok.
+
+Mevcut kayıtlarla uyumluluk:
+
+Olumlu:
+
+- Academy v1 kaydı v2'ye dönüştürülür.
+- Eksik producerlar board'a tekrar eklenir.
+- Kaydedilen state değerleri normalize edilir.
+- Board yalnızca tam 63 hücreli kaydı kabul eder.
+
+Riskler:
+
+- Save verisi beş ayrı localStorage anahtarına bölünmüştür.
+- Tek atomik transaction yoktur.
+- Merkezi sürüm/migration sistemi yoktur.
+- Eski özel sipariş kayıtları yeni mastery sistemiyle tutarsız kalabilir.
+
+Yeni spor ve producer ekleme:
+
+- Yeni producer/zincir eklemek veri tarafında orta kolaylıktadır.
+- script.js, CSS, ölçek tabloları, sipariş ve bilgi panellerine de dokunmak gerekir.
+- Yeni spor eklemek kolay değildir.
+- Football dışındaki akademiler içeriksizdir.
+- Unity-ready modular hedefe kısmen yaklaşılmış olsa da ana akış monolitiktir.
+
+
+7. BİLİNEN HATALAR VE EKSİKLER
+==============================
+
+KRİTİK
+-------
+
+1. Resmi GDD ile aktif producer mekaniği çelişiyor.
+   GDD: Şarj/cooldown yok, her tıklama 1 enerji ve Lv1.
+   Kod: Şarj, cooldown, 1/2/4/8/16 enerji ve yüksek seviye drop.
+
+2. İki farklı producer progression sistemi aynı anda çalışıyor.
+   Shared producer XP Lv1–Lv6 ile reputation Lv1–Lv3 aynı bilgi yapısına karışıyor.
+
+3. Emeklilik producer üretimini durduruyor.
+   Forma producer görseli geliyor fakat üretim zinciri bulunmuyor.
+
+YÜKSEK
+------
+
+1. Tutorial fiilen yok.
+2. Basketball açılabilir görünmesine rağmen oynanabilir değil.
+3. GDD altı seviye derken kod 12 seviye kullanıyor.
+4. Test sürümünde enerji sonsuz.
+5. Ses modülü sessiz.
+6. Normal sipariş readiness yalnızca board'u sayıyor; depo dahil değil.
+7. İtibar, mastery ve retirement resmi belgelerde tanımlı değil.
+8. Kullanılmayan eski modüller yanlışlıkla yeniden devreye alınabilir.
+
+ORTA
+----
+
+1. UI küçük mobil ekranlarda sıkışık.
+2. Producer adları game-data.js ve sports-content.js arasında farklı.
+3. Event point kazanılıyor fakat görünür kullanım alanı yok.
+4. Satış fiyatı tüm seviyelerde +2.
+5. Dil değiştirici ve dil persistence yok.
+6. Birçok Türkçe metin i18n dışında.
+7. Normal ve legacy special-order sistemleri paralel.
+8. Pixel-art CSS, Cozy CSS ile beraber yükleniyor.
+9. Üç müşteri altı siparişte tekrar ediyor.
+10. Mastery teslimi atomik değildir.
+
+DÜŞÜK
+-----
+
+1. Eski atlaslar ve görsel kaynaklar repoda tutuluyor.
+2. Bazı ödüller PNG yerine emoji/sembol ile gösteriliyor.
+3. Klavye ve ekran okuyucu davranışları test edilmedi.
+4. Reduced-motion E2E doğrulaması yok.
+
+
+8. TEST DURUMU
+==============
+
+Kullanılan Node sürümü:
+
+v24.14.0
+
+JavaScript syntax kontrolleri:
+
+- PASS script.js
+- PASS js/i18n.js
+- PASS js/game-data.js
+- PASS js/production-rules.js
+- PASS js/producer-progression.js
+- PASS js/progression.js
+- PASS js/sports-content.js
+- PASS js/academy.js
+- PASS js/audio.js
+
+Unit testler:
+
+- PASS cozy-full-theme.test.js
+- PASS cozy-pilot-assets.test.js
+- PASS producer-progression.test.js
+- PASS production-rules.test.js
+
+Git doğrulamaları:
+
+- git diff --check — geçti, çıktı yok
+- git status --short — temiz, çıktı yok
+
+Testlerin kapsadığı alanlar:
+
+- Cozy asset dosyalarının bulunması
+- Training Lv1–Lv12 asset yolları
+- Producer Lv1/Lv3 kapasite ve order limitleri
+- Mastery açılması/tamamlanması
+- Retirement uygunluğu ve replacement state
+- Sonsuz test enerjisi config'i
+- Üretim modlarının level hesapları
+- Drop tablosu
+- Altı siparişin korunması
+- Legacy maksimum-item özel sipariş kuyruğu
+
+Otomasyonla test edilmemiş alanlar:
+
+- Drag-and-drop
+- Merge animasyonu
+- Double-tap merge
+- Spawn uçuşu ve landing
+- Sipariş checkmark interaction
+- Board → sipariş uçuşu
+- Coin/XP animasyonu
+- Depo drag işlemi
+- Satış ve geri alma
+- Enerji offline regeneration
+- Save migration uç durumları
+- Sports Campus UI
+- 29 renovasyonun uçtan uca tamamlanması
+- Responsive breakpointler
+- Reduced motion
+- Dil değişimi
+- Ses
+- Emeklilik sonrası yeni producer
+- Gerçek browser E2E
+
+Manuel kontrol:
+
+- Son paylaşılan mobil ekran görüntüsü incelendi.
+- Canlı file:// sekmesi tarayıcı güvenlik politikası nedeniyle otomasyonla
+  incelenemedi.
+
+
+9. SONUÇ TABLOSU
+================
+
+Konu: Web prototipi
+Planlanan: HTML/CSS/JS oynanabilir sürüm
+Mevcut durum: Mevcut ve açılabilir
+Kanıt: index.html, script.js
+Eksik: Build/deploy otomasyonu
+
+Konu: Unity üretim sürümü
+Planlanan: Unity 6 Universal 2D
+Mevcut durum: Henüz yok
+Kanıt: ChampionTourDocs/12_TECH_ARCHITECTURE.md
+Eksik: Unity projesinin tamamı
+
+Konu: Board
+Planlanan: 7×9
+Mevcut durum: Tam
+Kanıt: script.js
+Eksik: E2E test
+
+Konu: Dört producer
+Planlanan: Aynı anda board'da
+Mevcut durum: Tam
+Kanıt: game-data.js, sports-content.js
+Eksik: GDD dışı şarj sistemi
+
+Konu: Producer üretimi
+Planlanan: 1 enerji → Lv1
+Mevcut durum: Değiştirilmiş
+Kanıt: production-rules.js
+Eksik: GDD uyumu
+
+Konu: Merge
+Planlanan: Aynı zincir/seviye
+Mevcut durum: Tam
+Kanıt: script.js
+Eksik: Browser testi
+
+Konu: Ürün zincirleri
+Planlanan: Dört zincir, altı seviye
+Mevcut durum: Dört zincir, 12 seviye
+Kanıt: game-data.js
+Eksik: GDD kararı
+
+Konu: Enerji
+Planlanan: 100, +1/2 dakika
+Mevcut durum: Mantık var
+Kanıt: script.js
+Eksik: Test modunda sonsuz
+
+Konu: Sipariş
+Planlanan: Altı aktif, çoklu ürün
+Mevcut durum: Tam
+Kanıt: progression.js, script.js
+Eksik: Normal siparişte storage sayılmıyor
+
+Konu: Ödüller
+Planlanan: Coin + producer XP
+Mevcut durum: Coin, XP, event, reputation
+Kanıt: progression.js
+Eksik: GDD dışı ödüller
+
+Konu: Akademi
+Planlanan: Football Academy 1–30
+Mevcut durum: Kısmen tam
+Kanıt: academy.js, sports-content.js
+Eksik: Sonraki sporlar
+
+Konu: Depo
+Planlanan: Board dışı saklama
+Mevcut durum: Tam
+Kanıt: script.js, Sprint 9.1
+Eksik: Depoda merge
+
+Konu: Satış
+Planlanan: Ürün satma
+Mevcut durum: Tam
+Kanıt: script.js
+Eksik: Seviye bazlı fiyat
+
+Konu: Tutorial
+Planlanan: İlk oyuncu rehberi
+Mevcut durum: Yok
+Kanıt: Yalnızca tutorialsSeen stub
+Eksik: Gerçek tutorial akışı
+
+Konu: Reputation
+Planlanan: Sonradan eklenen sistem
+Mevcut durum: Kısmen çalışıyor
+Kanıt: producer-progression.js
+Eksik: GDD onayı ve E2E
+
+Konu: Mastery
+Planlanan: Lv12 özel hedef
+Mevcut durum: Kısmen çalışıyor
+Kanıt: producer-progression.js, testler
+Eksik: GDD uyumu
+
+Konu: Retirement
+Planlanan: Yeni producer geçişi
+Mevcut durum: Kısmi
+Kanıt: producer-progression.js
+Eksik: Yeni zincir/üretim
+
+Konu: Dil
+Planlanan: Türkçe/İngilizce
+Mevcut durum: Kısmi
+Kanıt: i18n.js
+Eksik: UI seçimi, persistence, tam çeviri
+
+Konu: Görsel yön
+Planlanan: Cozy Academy Storybook
+Mevcut durum: Kısmen uyumlu
+Kanıt: Cozy asset ve CSS dosyaları
+Eksik: Eski pixel katmanı, ölçek ve hiyerarşi
+
+Konu: Ses
+Planlanan: Premium geri bildirim
+Mevcut durum: Yok
+Kanıt: audio.js kaynakları null
+Eksik: Ses assetleri ve kayıt
+
+Konu: Save
+Planlanan: Kalıcı ilerleme
+Mevcut durum: Kısmen sağlam
+Kanıt: Beş localStorage anahtarı
+Eksik: Merkezi schema/migration
+
+
+10. DÜRÜST GENEL SONUÇ
+======================
+
+Oyun şu anda oynanabilir mi?
+
+Evet, prototip düzeyinde oynanabilir.
+
+Producer kullanma, item üretme, sürükleme, merge, sipariş tamamlama, ödül alma,
+depolama ve satıştan oluşan temel döngü kaynak kodda mevcuttur.
+
+Ancak test modundaki sonsuz enerji ve GDD dışı producer şarj sistemi nedeniyle
+bu sürüm gerçek ekonomi dengesini temsil etmemektedir.
+
+Görsel hedefe ne kadar yaklaştı?
+
+Yaklaşık %65–70.
+
+Cozy palet, font, ikon, yuvarlatılmış paneller ve yeni assetler doğru yöndedir.
+Eksik kalan bölüm:
+
+- Mobil hiyerarşi
+- Item/producer ölçeği
+- Order okunabilirliği
+- CSS katman temizliği
+- Tutarlı gölge/derinlik
+- Eski pixel-art mirası
+- Prototype rozetleri
+
+Temel sistemlerin yaklaşık yüzde kaçı tamamlandı?
+
+Resmi GDD'deki Football Academy ilk oynanabilir kapsamına göre yaklaşık %65.
+
+Bu oranın daha yüksek olmamasının nedenleri:
+
+- Producer kuralları GDD ile uyumsuz.
+- Renovation tam otomatik test edilmedi.
+- Tutorial yok.
+- Ses yok.
+- Yeni akademiler oynanabilir değil.
+- Save mimarisi üretim kalitesinde değil.
+- Unity üretim sürümü başlamadı.
+
+Geçici/prototip sistemlerin yaklaşık oranı:
+
+Aktif web kapsamının yaklaşık %30–35'i:
+
+- Test enerjisi
+- Emeklilik sonrası placeholder producer
+- İçeriksiz Basketball
+- Event points
+- Üç müşteri tekrarı
+- Sessiz audio API
+- Tutorial stub
+- Paralel progression sistemleri
+- Legacy JS/CSS katmanları
+
+Sıradaki sprintten önce düzeltilmesi gerekenler:
+
+1. GDD ile kod arasındaki producer kuralı karara bağlanmalı.
+2. Shared producer XP ile reputation progression tek sisteme indirilmeli.
+3. Emeklilik tamamlanmalı veya oyuncuya kapatılmalı.
+4. Test enerjisi ile gerçek enerji modu ayrılmalı.
+5. Aktif ve legacy JS/CSS dosyaları netleştirilmeli.
+6. Board/merge/order/storage için browser E2E testleri eklenmeli.
+7. Save şeması ve migration yaklaşımı belirlenmeli.
+8. Tutorial akışı yapılmalı.
+9. Audio sistemi bağlanmalı.
+10. Mobil UI okunabilirliği yeniden ele alınmalı.
+
+Daha önce tamamlandı denilen fakat gerçekte eksik olan işler:
+
+- Producer progression: İki ayrı progression sistemi var.
+- Retirement/yeni producer: Görsel var, oynanabilir içerik yok.
+- Academy progression: Football var, sonraki akademiler yok.
+- Dil desteği: Sözlük var, kullanıcı özelliği tamamlanmamış.
+- Audio: Modül var, ses yok.
+- Tutorial: State alanı var, tutorial yok.
+- Enerji: Sistem var, aktif sürümde sonsuz test enerjisi kullanılıyor.
+- Cozy dönüşüm: Yapıldı, fakat eski Pixel Art CSS hâlâ aktif yükleniyor.
+
+
+GIT STATUS --SHORT
+==================
+
+Çıktı yok — çalışma ağacı temiz.
+
+
+SON 15 COMMIT
+=============
+
+5896daf | 2026-07-28 18:55:34 +0300 | hadescan | feat: add producer progression and mastery guide
+ae25c70 | 2026-07-28 17:55:25 +0300 | hadescan | Complete Cozy Academy visual alignment
+dac8277 | 2026-07-28 16:44:43 +0300 | hadescan | Add Cozy Academy training pilot
+774192f | 2026-07-28 15:37:13 +0300 | hadescan | Remove sprite atlas edge bleed
+1d53f64 | 2026-07-28 15:16:04 +0300 | hadescan | Fix pixel art mobile readability
+cd8f639 | 2026-07-28 14:31:15 +0300 | hadescan | Adopt modern pixel art direction
+c35d7fa | 2026-07-28 13:05:47 +0300 | hadescan | Polish producer modes and special orders
+27b6ebd | 2026-07-28 12:43:59 +0300 | hadescan | Add production modes and max-item special orders
+5a54927 | 2026-07-28 12:07:33 +0300 | hadescan | Add self-hosted typography and custom UI icons
+1b2da2a | 2026-07-28 11:25:08 +0300 | hadescan | Polish producer readability and glass HUD
+2bade9a | 2026-07-28 10:57:25 +0300 | hadescan | Implement Sprint 9.1 board storage and sales
+bb9465a | 2026-07-28 10:11:16 +0300 | hadescan | Compact mobile gameplay HUD
+84e5be3 | 2026-07-27 18:21:54 +0300 | hadescan | Create original Champion Tour football asset set
+f7e0eac | 2026-07-27 16:47:23 +0300 | hadescan | Optimize portrait mobile game layout
+8295bac | 2026-07-27 16:29:21 +0300 | hadescan | Prioritize ready orders in carousel
+
+
+ÖNEMLİ DOSYALAR
+===============
+
+- AGENTS.md
+- ChampionTourDocs/README.md
+- ChampionTourDocs/00_PROJECT_RULES.md
+- ChampionTourDocs/04_PRODUCER_SYSTEM.md
+- ChampionTourDocs/05_ITEM_CHAINS.md
+- ChampionTourDocs/06_ORDER_SYSTEM.md
+- ChampionTourDocs/10_ART_DIRECTION.md
+- ChampionTourDocs/12_TECH_ARCHITECTURE.md
+- index.html
+- script.js
+- style.css
+- sprint-9-1.css
+- modern-pixel-art.css
+- cozy-academy-pilot.css
+- cozy-academy-full.css
+- js/game-data.js
+- js/production-rules.js
+- js/producer-progression.js
+- js/progression.js
+- js/sports-content.js
+- js/academy.js
+- js/i18n.js
+- js/audio.js
+
+
+ÇALIŞTIRILAN TEST KOMUTLARI VE SONUÇLARI
+========================================
+
+node --check script.js
+node --check js/i18n.js
+node --check js/game-data.js
+node --check js/production-rules.js
+node --check js/producer-progression.js
+node --check js/progression.js
+node --check js/sports-content.js
+node --check js/academy.js
+node --check js/audio.js
+
+Sonuç: 9/9 geçti.
+
+node tests/cozy-full-theme.test.js
+node tests/cozy-pilot-assets.test.js
+node tests/producer-progression.test.js
+node tests/production-rules.test.js
+
+Sonuç: 4/4 geçti.
+
+git diff --check
+git status --short
+
+İnceleme sonucunda ikisi de temizdi.
+
