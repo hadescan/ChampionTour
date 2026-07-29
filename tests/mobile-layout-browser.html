@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <title>Champion Tour — Mobil Yerleşim Denetimi</title>
+  <style>
+    body { margin: 0; padding: 16px; background: #102d3d; color: #fff; font: 14px/1.4 system-ui; }
+    h1 { margin: 0 0 12px; font-size: 20px; }
+    #summary { margin-bottom: 14px; font-weight: 700; }
+    .results { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+    article { padding: 10px; border: 2px solid #526c7b; border-radius: 12px; background: #173e52; }
+    article.pass { border-color: #68c56a; }
+    article.fail { border-color: #e46e5e; }
+    h2 { margin: 0 0 6px; font-size: 16px; }
+    pre { margin: 0; white-space: pre-wrap; font-size: 11px; }
+    iframe { position: fixed; left: -10000px; top: 0; border: 0; }
+  </style>
+</head>
+<body>
+  <h1>Mobil Bounding-Rect Denetimi</h1>
+  <div id="summary">Çalışıyor…</div>
+  <div class="results" id="results"></div>
+  <script>
+    const viewports = [
+      { width: 360, height: 800 },
+      { width: 390, height: 844 },
+      { width: 430, height: 932 }
+    ];
+    const tolerance = 1.5;
+
+    const rect = (element) => {
+      const value = element.getBoundingClientRect();
+      return {
+        left: value.left,
+        top: value.top,
+        right: value.right,
+        bottom: value.bottom,
+        width: value.width,
+        height: value.height
+      };
+    };
+    const intersects = (a, b) =>
+      a.left < b.right - tolerance &&
+      a.right > b.left + tolerance &&
+      a.top < b.bottom - tolerance &&
+      a.bottom > b.top + tolerance;
+    const contains = (outer, inner) =>
+      inner.left >= outer.left - tolerance &&
+      inner.right <= outer.right + tolerance &&
+      inner.top >= outer.top - tolerance &&
+      inner.bottom <= outer.bottom + tolerance;
+
+    function audit(frame, viewport) {
+      const doc = frame.contentDocument;
+      const pick = (selector) => doc.querySelector(selector);
+      const issues = [];
+      const regions = [
+        pick('.game-header'),
+        pick('.orders-shell'),
+        pick('.board-frame'),
+        pick('.item-info-panel')
+      ];
+      const regionRects = regions.map(rect);
+      const viewportRect = { left: 0, top: 0, right: viewport.width, bottom: viewport.height };
+
+      regionRects.forEach((value, index) => {
+        if (!contains(viewportRect, value)) issues.push(`Bölge ${index + 1} viewport dışında`);
+        if (index && regionRects[index - 1].bottom > value.top + tolerance) {
+          issues.push(`Bölge ${index} ile ${index + 1} çakışıyor`);
+        }
+      });
+
+      const capsules = [...doc.querySelectorAll('.game-header .hud-capsule')];
+      const headerRect = regionRects[0];
+      capsules.forEach((element, index) => {
+        const value = rect(element);
+        if (!contains(headerRect, value)) issues.push(`HUD kapsülü ${index + 1} panel dışında`);
+        capsules.slice(index + 1).forEach((other, offset) => {
+          if (intersects(value, rect(other))) {
+            issues.push(`HUD kapsülleri ${index + 1} ve ${index + offset + 2} çakışıyor`);
+          }
+        });
+      });
+
+      const strip = pick('.orders-strip');
+      const stripRect = rect(strip);
+      const visibleCards = [...doc.querySelectorAll('.order-card')]
+        .map((element) => ({ element, value: rect(element) }))
+        .filter(({ value }) => value.left < stripRect.right && value.right > stripRect.left)
+        .sort((a, b) => a.value.left - b.value.left)
+        .slice(0, 3);
+      if (visibleCards.length !== 3) issues.push(`Tam görünen sipariş sayısı ${visibleCards.length}`);
+      visibleCards.forEach(({ element, value }, index) => {
+        if (!contains(stripRect, value)) issues.push(`Sipariş ${index + 1} tam görünmüyor`);
+        ['.customer-portrait', '.order-customer-name', '.order-items', '.order-rewards']
+          .forEach((selector) => {
+            const child = element.querySelector(selector);
+            if (child && !contains(value, rect(child))) {
+              const childRect = rect(child);
+              issues.push(
+                `Sipariş ${index + 1} içeriği taşıyor: ${selector} ` +
+                `[kart ${value.left.toFixed(1)},${value.top.toFixed(1)}–${value.right.toFixed(1)},${value.bottom.toFixed(1)}; ` +
+                `içerik ${childRect.left.toFixed(1)},${childRect.top.toFixed(1)}–${childRect.right.toFixed(1)},${childRect.bottom.toFixed(1)}]`
+              );
+            }
+          });
+      });
+
+      const board = pick('.board');
+      if (board.children.length !== 63) issues.push(`Board hücre sayısı ${board.children.length}`);
+      if (doc.documentElement.scrollHeight > viewport.height + tolerance) {
+        issues.push(`Dikey scroll oluştu: ${doc.documentElement.scrollHeight}px`);
+      }
+      if (doc.documentElement.scrollWidth > viewport.width + tolerance) {
+        issues.push(`Yatay scroll oluştu: ${doc.documentElement.scrollWidth}px`);
+      }
+
+      const textSelectors = [
+        '#xpValue',
+        '#coinValue',
+        '.item-info-title-row',
+        '.item-info-copy p'
+      ];
+      textSelectors.forEach((selector) => {
+        const element = pick(selector);
+        if (element && (
+          element.scrollWidth > element.clientWidth + tolerance ||
+          element.scrollHeight > element.clientHeight + tolerance
+        )) issues.push(`Metin taşıyor: ${selector}`);
+      });
+
+      return { viewport, pass: issues.length === 0, issues, regions: regionRects };
+    }
+
+    async function run() {
+      const reports = [];
+      for (const viewport of viewports) {
+        const frame = document.createElement('iframe');
+        frame.width = viewport.width;
+        frame.height = viewport.height;
+        frame.src = `../index.html?sprint=mobile-layout-audit&view=mobile&w=${viewport.width}`;
+        document.body.appendChild(frame);
+        await new Promise((resolve) => frame.addEventListener('load', resolve, { once: true }));
+        await new Promise((resolve) => setTimeout(resolve, 900));
+        reports.push(audit(frame, viewport));
+        frame.remove();
+      }
+
+      const resultElement = document.getElementById('results');
+      reports.forEach((report) => {
+        const card = document.createElement('article');
+        card.className = report.pass ? 'pass' : 'fail';
+        card.innerHTML = `<h2>${report.viewport.width} × ${report.viewport.height}: ${
+          report.pass ? 'GEÇTİ' : 'BAŞARISIZ'
+        }</h2><pre>${report.issues.length ? report.issues.join('\n') : 'Taşma veya çakışma bulunmadı.'}</pre>`;
+        resultElement.appendChild(card);
+      });
+      const passed = reports.filter((report) => report.pass).length;
+      document.getElementById('summary').textContent = `${passed}/${reports.length} viewport geçti`;
+      document.body.dataset.complete = 'true';
+      window.__CHAMPION_TOUR_LAYOUT_REPORT__ = reports;
+    }
+    run();
+  </script>
+</body>
+</html>

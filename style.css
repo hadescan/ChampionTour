@@ -3228,27 +3228,28 @@ body {
   box-shadow: 0 0 0 1px rgba(28, 107, 136, .28);
 }
 
-/* Sprint 9.1 final override (must remain last). */
-.game-header { min-height: 30px !important; height: 30px !important; }
-.game-header .hud-capsule { min-height: 28px !important; height: 28px !important; }
+/* Legacy Sprint 9.1 values are intentionally non-authoritative.
+ * The active production theme owns gameplay-screen geometry. */
+.game-header { min-height: 30px; height: 30px; }
+.game-header .hud-capsule { min-height: 28px; height: 28px; }
 .campus-hud-button, .board-heading, .hint { display: none !important; }
 .board-frame {
-  width: min(calc(100vw - 12px), 424px) !important;
-  max-width: 424px !important;
-  margin-top: 2px !important;
-  padding: 4px !important;
+  width: min(calc(100vw - 12px), 424px);
+  max-width: 424px;
+  margin-top: 2px;
+  padding: 4px;
 }
-.board { padding: 2px !important; gap: 1px !important; }
-.ball-wrap { width: 87% !important; height: 87% !important; }
-.producer-wrap { width: 92% !important; height: 92% !important; }
+.board { padding: 2px; gap: 1px; }
+.ball-wrap { width: 87%; height: 87%; }
+.producer-wrap { width: 92%; height: 92%; }
 .producer-cell {
-  overflow: hidden !important;
-  border: 0 !important;
-  background-color: var(--board-grass) !important;
+  overflow: hidden;
+  border: 0;
+  background-color: var(--board-grass);
   background-image:
     radial-gradient(ellipse at 38% 24%, var(--grass-light), transparent 72%),
-    linear-gradient(82deg, transparent 47%, rgba(255,255,238,.022) 49%, transparent 52%) !important;
-  box-shadow: inset 0 0 10px rgba(255,255,235,.04), inset 0 -5px 11px var(--grass-shadow) !important;
+    linear-gradient(82deg, transparent 47%, rgba(255,255,238,.022) 49%, transparent 52%);
+  box-shadow: inset 0 0 10px rgba(255,255,235,.04), inset 0 -5px 11px var(--grass-shadow);
 }
 .producer-energy-badge {
   border: 0 !important;
@@ -3256,26 +3257,26 @@ body {
   box-shadow: none !important;
 }
 .item-info-panel {
-  display: grid !important;
-  grid-template-columns: 48px 42px minmax(0, 1fr) 26px 48px !important;
-  width: min(calc(100% - 12px), 424px) !important;
-  height: 56px !important;
-  min-height: 56px !important;
-  margin-top: 3px !important;
+  display: grid;
+  grid-template-columns: 48px 42px minmax(0, 1fr) 26px 48px;
+  width: min(calc(100% - 12px), 424px);
+  height: 56px;
+  min-height: 56px;
+  margin-top: 3px;
 }
 @media (max-height: 760px) {
-  .item-info-panel { height: 52px !important; min-height: 52px !important; }
+  .item-info-panel { height: 52px; min-height: 52px; }
 }
 
 /* Sprint 9.1 definitive cascade guard. */
 .game-header {
-  min-height: 30px !important;
-  height: 30px !important;
+  min-height: 30px;
+  height: 30px;
 }
 
 .game-header .hud-capsule {
-  min-height: 28px !important;
-  height: 28px !important;
+  min-height: 28px;
+  height: 28px;
 }
 
 .campus-hud-button,
@@ -3285,35 +3286,35 @@ body {
 }
 
 .board-frame {
-  width: min(calc(100vw - 12px), 424px) !important;
-  max-width: 424px !important;
-  margin-top: 2px !important;
-  padding: 4px !important;
+  width: min(calc(100vw - 12px), 424px);
+  max-width: 424px;
+  margin-top: 2px;
+  padding: 4px;
 }
 
 .board {
-  padding: 2px !important;
-  gap: 1px !important;
+  padding: 2px;
+  gap: 1px;
 }
 
 .ball-wrap {
-  width: 87% !important;
-  height: 87% !important;
+  width: 87%;
+  height: 87%;
 }
 
 .producer-wrap {
-  width: 92% !important;
-  height: 92% !important;
+  width: 92%;
+  height: 92%;
 }
 
 .producer-cell {
-  overflow: hidden !important;
-  border: 0 !important;
-  background-color: var(--board-grass) !important;
+  overflow: hidden;
+  border: 0;
+  background-color: var(--board-grass);
   background-image:
     radial-gradient(ellipse at 38% 24%, var(--grass-light), transparent 72%),
-    linear-gradient(82deg, transparent 47%, rgba(255,255,238,.022) 49%, transparent 52%) !important;
-  box-shadow: inset 0 0 10px rgba(255,255,235,.04), inset 0 -5px 11px var(--grass-shadow) !important;
+    linear-gradient(82deg, transparent 47%, rgba(255,255,238,.022) 49%, transparent 52%);
+  box-shadow: inset 0 0 10px rgba(255,255,235,.04), inset 0 -5px 11px var(--grass-shadow);
 }
 
 .producer-energy-badge {
@@ -3323,18 +3324,18 @@ body {
 }
 
 .item-info-panel {
-  display: grid !important;
-  grid-template-columns: 48px 42px minmax(0, 1fr) 26px 48px !important;
-  width: min(calc(100% - 12px), 424px) !important;
-  height: 56px !important;
-  min-height: 56px !important;
-  margin-top: 3px !important;
+  display: grid;
+  grid-template-columns: 48px 42px minmax(0, 1fr) 26px 48px;
+  width: min(calc(100% - 12px), 424px);
+  height: 56px;
+  min-height: 56px;
+  margin-top: 3px;
 }
 
 @media (max-height: 760px) {
   .item-info-panel {
-    height: 52px !important;
-    min-height: 52px !important;
+    height: 52px;
+    min-height: 52px;
   }
 }
 

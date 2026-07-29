@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <title>Champion Tour — Mobil Görsel Yakalama</title>
+  <style>
+    html, body { margin: 0; overflow: hidden; background: #173f61; }
+    iframe { display: block; border: 0; }
+  </style>
+</head>
+<body>
+  <script>
+    const query = new URLSearchParams(location.search);
+    const width = Number(query.get('w')) || 390;
+    const height = Number(query.get('h')) || 844;
+    const state = query.get('state') || 'normal';
+    const frame = document.createElement('iframe');
+    frame.width = width;
+    frame.height = height;
+    frame.src = `../index.html?sprint=mobile-layout-fix&view=mobile&capture=${state}`;
+    document.body.appendChild(frame);
+    frame.addEventListener('load', () => {
+      window.setTimeout(() => {
+        const doc = frame.contentDocument;
+        const tap = (element) => {
+          if (!element) return;
+          const bounds = element.getBoundingClientRect();
+          const eventInit = {
+            bubbles: true,
+            pointerId: 1,
+            pointerType: 'mouse',
+            button: 0,
+            clientX: bounds.left + bounds.width / 2,
+            clientY: bounds.top + bounds.height / 2
+          };
+          element.dispatchEvent(new PointerEvent('pointerdown', eventInit));
+          element.dispatchEvent(new PointerEvent('pointerup', eventInit));
+          element.click();
+        };
+        if (state === 'producer') tap(doc.querySelector('.producer-image'));
+        if (state === 'item' || state === 'detail') {
+          tap(doc.querySelector('.cell.occupied:not(.producer-cell)'));
+        }
+        if (state === 'detail') {
+          window.setTimeout(() => doc.querySelector('#itemInfoButton')?.click(), 140);
+        }
+        window.setTimeout(() => document.body.dataset.ready = 'true', 250);
+      }, 550);
+    }, { once: true });
+  </script>
+</body>
+</html>
