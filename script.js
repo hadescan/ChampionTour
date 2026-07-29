@@ -321,6 +321,8 @@
     );
     if (index < 0) return;
     const cell = cellElements[index];
+    closeItemDetail();
+    cell.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
     window.clearTimeout(producerHighlightTimers.get(producerId));
     cell.classList.remove('source-highlight');
     void cell.offsetWidth;
@@ -513,13 +515,72 @@
     button.appendChild(detailImage(producerSource(producerId), producer.name));
     const copy = document.createElement('span');
     const label = document.createElement('small');
-    label.textContent = 'HANGİ ÜRETİCİDEN GELİR?';
+    label.textContent = 'ÜRETİCİ';
     const name = document.createElement('strong');
     name.textContent = producer.name;
     copy.append(label, name);
     button.appendChild(copy);
+    const action = document.createElement('span');
+    action.className = 'item-detail-producer-action';
+    action.textContent = 'Producer’ı Göster';
+    button.appendChild(action);
     button.addEventListener('click', () => highlightProducer(producerId));
     return button;
+  }
+
+  function itemInventoryLevels(chainId) {
+    const counts = new Array(MAX_LEVEL + 1).fill(0);
+    [...state.cells, ...state.storage].forEach((item) => {
+      if (item?.type === 'ball' && item.chainId === chainId) {
+        counts[item.level] += 1;
+      }
+    });
+    return counts;
+  }
+
+  function closestMergeProgress(chainId, targetLevel, quantity = 1) {
+    const counts = itemInventoryLevels(chainId);
+    const ready = counts[targetLevel];
+    if (ready >= quantity) {
+      return {
+        ready: true,
+        text: `${ready} adet ${itemName(chainId, targetLevel)} hazır.`
+      };
+    }
+    if (targetLevel === 1) {
+      const producerName = DATA.producers[DATA.chains[chainId].producerId].name;
+      return {
+        ready: false,
+        sourceLevel: 1,
+        remaining: quantity - ready,
+        text:
+          `${producerName} üzerinden ` +
+          `${Math.max(1, quantity - ready)} adet ${itemName(chainId, 1)} üret.`
+      };
+    }
+    for (let level = targetLevel - 1; level >= 1; level -= 1) {
+      if (!counts[level]) continue;
+      const neededAtLevel = 2 ** (targetLevel - level);
+      const remaining = Math.max(1, neededAtLevel - counts[level]);
+      return {
+        ready: false,
+        sourceLevel: level,
+        remaining,
+        text:
+          `Elinde ${counts[level]} adet ${itemName(chainId, level)} var. ` +
+          `${itemName(chainId, targetLevel)} için ` +
+          `${remaining} adet ${itemName(chainId, level)} daha gerekiyor.`
+      };
+    }
+    const nearestLevel = Math.max(1, targetLevel - 1);
+    return {
+      ready: false,
+      sourceLevel: nearestLevel,
+      remaining: 2,
+      text:
+        `En yakın adım: iki ${itemName(chainId, nearestLevel)} birleştirerek ` +
+        `${itemName(chainId, nearestLevel + 1)} oluştur.`
+    };
   }
 
   function renderItemDetail() {
@@ -527,8 +588,9 @@
     const content = document.getElementById('itemDetailContent');
     content.innerHTML = '';
 
-    if (selectedInfo.type === 'item') {
+    if (selectedInfo.type === 'item' || selectedInfo.type === 'order-item') {
       const { chainId, level, producerId } = selectedInfo;
+      const quantity = selectedInfo.quantity || 1;
       content.appendChild(detailHeading(
         DATA.chains[chainId].name,
         itemName(chainId, level),
@@ -541,7 +603,30 @@
       const position = document.createElement('p');
       position.className = 'item-detail-position';
       position.textContent = `Zincirdeki yeri: ${level} / ${MAX_LEVEL}`;
-      content.append(description, producerLink(producerId), position);
+      const progress = closestMergeProgress(chainId, level, quantity);
+      const progressCard = document.createElement('section');
+      progressCard.className = `item-detail-progress${progress.ready ? ' is-ready' : ''}`;
+      const progressTitle = document.createElement('strong');
+      progressTitle.textContent = progress.ready ? 'Siparişe hazır' : 'En yakın merge adımı';
+      const progressText = document.createElement('p');
+      progressText.textContent = progress.text;
+      progressCard.append(progressTitle, progressText);
+
+      const chain = document.createElement('div');
+      chain.className = 'item-detail-chain item-detail-chain-compact';
+      for (let chainLevel = 1; chainLevel <= Math.min(MAX_LEVEL, level + 1); chainLevel += 1) {
+        const entry = document.createElement('article');
+        if (chainLevel === level) entry.classList.add('is-target');
+        entry.appendChild(detailImage(
+          itemSource(chainId, chainLevel),
+          itemName(chainId, chainLevel)
+        ));
+        const badge = document.createElement('small');
+        badge.textContent = `SV.${chainLevel}`;
+        entry.appendChild(badge);
+        chain.appendChild(entry);
+      }
+      content.append(description, producerLink(producerId), progressCard, chain, position);
       return;
     }
 
@@ -1357,16 +1442,20 @@
     return collected;
   }
 
+  function customerKey(order, index) {
+    const customerKeys = ['coach', 'captain', 'scout', 'keeper', 'physio', 'groundskeeper'];
+    return customerKeys[index % customerKeys.length] || order.customerId || 'coach';
+  }
+
   function createCustomerPortrait(order, index) {
-    const customerKeys = ['coach', 'captain', 'scout'];
-    const customerKey = order.customerId || customerKeys[index % customerKeys.length];
+    const customerKeyValue = customerKey(order, index);
     const portraitSources = DATA.customers;
     const portrait = document.createElement('div');
-    portrait.className = `customer-portrait customer-${customerKey}`;
-    portrait.dataset.customer = customerKey;
+    portrait.className = `customer-portrait customer-${customerKeyValue}`;
+    portrait.dataset.customer = customerKeyValue;
     portrait.setAttribute('aria-hidden', 'true');
     const image = document.createElement('img');
-    image.src = portraitSources[customerKey] || portraitSources.coach;
+    image.src = portraitSources[customerKeyValue] || portraitSources.coach;
     image.alt = '';
     image.draggable = false;
     portrait.appendChild(image);
@@ -1374,13 +1463,15 @@
   }
 
   function customerName(order, index) {
-    const customerKeys = ['coach', 'captain', 'scout'];
-    const customerKey = order.customerId || customerKeys[index % customerKeys.length];
+    const customerKeyValue = customerKey(order, index);
     return {
       coach: 'Koç Emre',
       captain: 'Maya',
-      scout: 'Derya'
-    }[customerKey];
+      scout: 'Derya',
+      keeper: 'Kaan',
+      physio: 'Selin',
+      groundskeeper: 'Hasan'
+    }[customerKeyValue];
   }
 
   function createOrderCard(order, index) {
@@ -1418,6 +1509,29 @@
       image.src = itemSource(requirement.chainId, requirement.level);
       image.alt = itemName(requirement.chainId, requirement.level);
       chip.appendChild(image);
+      chip.tabIndex = 0;
+      chip.setAttribute('role', 'button');
+      chip.setAttribute(
+        'aria-label',
+        `${itemName(requirement.chainId, requirement.level)} detayını aç`
+      );
+      const openRequirementDetail = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const producerId = DATA.chains[requirement.chainId].producerId;
+        selectedInfo = {
+          type: 'order-item',
+          chainId: requirement.chainId,
+          level: requirement.level,
+          quantity: requirement.quantity,
+          producerId
+        };
+        openItemDetail();
+      };
+      chip.addEventListener('click', openRequirementDetail);
+      chip.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') openRequirementDetail(event);
+      });
 
       if (requirement.quantity > 1) {
         const itemQuantity = document.createElement('small');

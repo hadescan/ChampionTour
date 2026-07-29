@@ -1,0 +1,93 @@
+Champion Tour — Locked Reference UI Browser Test Results
+=========================================================
+
+Date: 2026-07-29
+Primary viewport: 390 × 844
+Responsive viewports: 360 × 800, 430 × 932
+Browser: Real in-app Chromium browser
+
+Visual Architecture
+-------------------
+PASS — modern-pixel-art.css is not loaded.
+PASS — cozy-academy-pilot.css is not loaded.
+PASS — cozy-academy-full.css is not loaded.
+PASS — cozy-academy-production.css is the single active production theme.
+PASS — HUD, Orders, Board and information panel follow the locked reference hierarchy.
+PASS — Six distinct customer identities are available.
+PASS — At least three customer compositions and part of the next Order remain visible.
+
+Interaction
+-----------
+PASS — Four producers are visible.
+PASS — Every producer carries the shared lightning identity badge.
+PASS — A selected producer displays the circular Energy control.
+PASS — Energy control cycled 16 → 1 → 2 → 4 → 8 → 16.
+PASS — Selected Energy 16 survived reload.
+PASS — Five consecutive producer clicks created five items.
+PASS — Two hydration level-4 items merged into one level-5 item.
+PASS — Storage drawer opened and closed.
+PASS — Selling one item removed one board item and granted two Coins.
+PASS — Six Orders survived reload.
+PASS — Both single-item and two-item Orders rendered.
+
+Order Detail
+------------
+PASS — Requested item surfaces are interactive.
+PASS — Item detail displayed the correct item, level and chain.
+PASS — Item detail displayed the correct producer.
+PASS — A ready target displayed current ready inventory.
+PASS — A missing level-1 target instructed the player to use its producer.
+PASS — Producer Focus closed the detail view.
+PASS — Producer Focus highlighted the correct equipment_locker producer.
+
+Mastery
+-------
+PASS — Three football level-12 items opened one Mastery Order.
+PASS — Mastery delivery consumed the requirement.
+PASS — Mastery awarded 900 Coins, 1 Diamond and 100 Reputation.
+PASS — Reload did not recreate the completed Mastery Order or duplicate rewards.
+
+Asset Audit
+-----------
+PASS — 48 active chain item PNGs were checked for alpha bounds.
+PASS — Active item PNGs had no opaque pixels touching a canvas edge.
+PASS — 12 active producer-level PNGs were checked for alpha bounds.
+PASS — Active producer PNGs had no opaque pixels touching a canvas edge.
+PASS — Active UI icons had no opaque pixels touching a canvas edge.
+PASS — New customers were exported as separate transparent PNG files.
+PASS — No CSS atlas background-position is used by active gameplay assets.
+
+Responsive and Runtime
+----------------------
+PASS — 360 × 800 render captured.
+PASS — 390 × 844 render captured.
+PASS — 430 × 932 render captured.
+PASS — No horizontal document overflow was observed.
+PASS — No console error-level messages were recorded.
+PASS — Automated JavaScript syntax, mechanic and theme tests passed.
+
+Evidence
+--------
+- reference-ui-reference-390x844.png
+- reference-ui-final-390x844.png
+- reference-ui-overlay-50.png
+- reference-ui-side-by-side.png
+- reference-ui-hud-closeup.png
+- reference-ui-orders-closeup.png
+- reference-ui-producer-closeup.png
+- reference-ui-board-depth-closeup.png
+- reference-ui-bottom-panel-closeup.png
+- reference-ui-item-detail.png
+- reference-ui-asset-before-after.png
+- reference-ui-360x800.png
+- reference-ui-430x932.png
+- reference-ui-gameplay-30s.gif
+
+Known Evidence Limitation
+-------------------------
+The environment did not contain an approved MP4 encoder. Installing a new
+third-party encoder was rejected by the environment safety review. A 30-second
+animated gameplay proof assembled exclusively from real browser interaction
+frames is provided as reference-ui-gameplay-30s.gif. No gameplay feature is
+affected by this evidence-format limitation.
+

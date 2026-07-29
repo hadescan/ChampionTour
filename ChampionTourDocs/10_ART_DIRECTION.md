@@ -27,3 +27,15 @@ Visual rules:
 The training-chain pilot is the reference implementation for future asset
 conversion. Other chains retain their current assets until their own approved
 conversion sprint.
+
+## Locked Gameplay Reference
+
+`CT-Cozy-Academy-Master-Gameplay-Reference.png` is the mandatory visual
+acceptance reference for gameplay-screen sprints. It defines composition,
+scale, layer depth, palette relationships and mobile-casual density.
+
+Explicit user decisions override reference components where documented. The
+current explicit exception is the boxless customer Order presentation.
+
+Legacy pixel-art direction and mixed theme layers are invalid for the active
+production gameplay screen.

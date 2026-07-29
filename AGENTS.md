@@ -13,3 +13,4 @@ Before implementing ANY feature:
 7. Explain implementation plan before coding.
 8. After implementation list modified files.
 9. Keep code modular and Unity-ready.
+10. Görsel sprintlerde `CT-Cozy-Academy-Master-Gameplay-Reference.png` ana kabul referansıdır. Kullanıcının açıkça belirttiği istisnalar dışında ekran yerleşimi, oranları ve sanat dili bu referanstan değiştirilemez. Codex kendi görsel yorumunu ekleyemez.

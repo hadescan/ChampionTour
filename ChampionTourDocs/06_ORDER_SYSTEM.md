@@ -137,12 +137,21 @@ Producer XP awarded
 
 # 8. Order Card UI
 
-Each order card contains:
+Each normal Order composition contains:
 
+- A large transparent customer portrait without a closed card around the
+  complete character composition
 - Requested item icon(s)
 - Quantity
 - Reward preview
 - Deliver button (enabled only when requirements are met)
+
+Requested item icons are individually interactive. Selecting one opens the
+data-driven item detail view with the item's chain, producer, current
+board/storage progress, nearest useful merge step and a Producer Focus action.
+
+Three same-chain level-12 items open that chain's Mastery Order outside the six
+normal Order slots. Only one active Mastery Order may exist per chain.
 
 Design Rules:
 

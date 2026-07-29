@@ -16,7 +16,10 @@ window.ChampionTour.GameData = Object.freeze({
   customers: Object.freeze({
     coach: 'assets/CozyAcademy/Full/Customers/customer_emre.png',
     captain: 'assets/CozyAcademy/Full/Customers/customer_maya.png',
-    scout: 'assets/CozyAcademy/Full/Customers/customer_derya.png'
+    scout: 'assets/CozyAcademy/Full/Customers/customer_derya.png',
+    keeper: 'assets/CozyAcademy/Full/Customers/customer_kaan.png',
+    physio: 'assets/CozyAcademy/Full/Customers/customer_selin.png',
+    groundskeeper: 'assets/CozyAcademy/Full/Customers/customer_hasan.png'
   }),
 
   maxItemLevel: 12,

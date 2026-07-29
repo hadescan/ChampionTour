@@ -46,7 +46,11 @@ for (const producer of Object.values(data.producers)) {
 }
 
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-assert.match(html, /cozy-academy-full\.css/);
+assert.match(html, /cozy-academy-production\.css/);
+assert.doesNotMatch(html, /modern-pixel-art\.css/);
+assert.doesNotMatch(html, /cozy-academy-pilot\.css/);
+assert.doesNotMatch(html, /cozy-academy-full\.css/);
 assert.match(html, /data-ui-icon="menu"/);
+assert.equal(Object.keys(data.customers).length, 6);
 
 console.log('cozy-full-theme.test.js: all assertions passed');

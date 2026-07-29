@@ -1,5 +1,20 @@
 # Champion Tour Development Bible v1.0
 
+## Locked Gameplay Visual Reference
+
+For gameplay-screen visual work,
+`CT-Cozy-Academy-Master-Gameplay-Reference.png` is the mandatory acceptance
+reference for layout, proportion, density and Cozy Academy Storybook art
+language. Explicit user-approved exceptions take priority; the current Order
+presentation exception uses large transparent, boxless customer compositions.
+
+The active gameplay theme must remain a single production CSS authority.
+Legacy pixel-art and temporary stacked override layers must not be loaded.
+
+Producers are unlimited and have no charge or cooldown. Their shared lightning
+badge communicates production identity only. The circular Energy control cycles
+1 → 2 → 4 → 8 → 16 and is visible only for a selected producer.
+
 ## Core Rules
 - One Sprint = One Feature.
 - Never refactor unless explicitly requested.
