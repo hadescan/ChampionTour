@@ -542,13 +542,49 @@
     return counts;
   }
 
-  function closestMergeProgress(chainId, targetLevel, quantity = 1) {
+  function itemLocationCounts(chainId, level) {
+    const board = state.cells.reduce(
+      (count, item) =>
+        count + Number(
+          item?.type === 'ball' &&
+          item.chainId === chainId &&
+          item.level === level
+        ),
+      0
+    );
+    const storage = state.storage.reduce(
+      (count, item) =>
+        count + Number(
+          item?.type === 'ball' &&
+          item.chainId === chainId &&
+          item.level === level
+        ),
+      0
+    );
+    return { board, storage, total: board + storage };
+  }
+
+  function closestMergeProgress(chainId, targetLevel, quantity = 1, isOrderTarget = false) {
     const counts = itemInventoryLevels(chainId);
-    const ready = counts[targetLevel];
-    if (ready >= quantity) {
+    const locations = itemLocationCounts(chainId, targetLevel);
+    const ready = locations.total;
+    const missing = Math.max(0, quantity - ready);
+    const inventoryLine =
+      `Board: ×${locations.board} · Depo: ×${locations.storage}\n` +
+      `Hazır: ×${ready} · Eksik: ×${missing}`;
+    if (!isOrderTarget && targetLevel === chainMaxLevel(chainId)) {
+      return {
+        ready: false,
+        sourceLevel: targetLevel,
+        remaining: 0,
+        text: `${itemName(chainId, targetLevel)} bu zincirin maksimum seviyesidir.`
+      };
+    }
+    if (isOrderTarget && ready >= quantity) {
       return {
         ready: true,
-        text: `${ready} adet ${itemName(chainId, targetLevel)} hazır.`
+        sourceLevel: targetLevel,
+        text: `${inventoryLine}\nSipariş teslime hazır.`
       };
     }
     if (targetLevel === 1) {
@@ -556,10 +592,10 @@
       return {
         ready: false,
         sourceLevel: 1,
-        remaining: quantity - ready,
-        text:
-          `${producerName} üzerinden ` +
-          `${Math.max(1, quantity - ready)} adet ${itemName(chainId, 1)} üret.`
+        remaining: Math.max(1, missing),
+        text: isOrderTarget
+          ? `${inventoryLine}\n${producerName} üzerinden bir ${itemName(chainId, 1)} daha üret.`
+          : `${producerName} bu ürünün kaynağıdır. Bir üst seviye için iki ${itemName(chainId, 1)} birleştir.`
       };
     }
     for (let level = targetLevel - 1; level >= 1; level -= 1) {
@@ -570,10 +606,11 @@
         ready: false,
         sourceLevel: level,
         remaining,
-        text:
-          `Elinde ${counts[level]} adet ${itemName(chainId, level)} var. ` +
-          `${itemName(chainId, targetLevel)} için ` +
-          `${remaining} adet ${itemName(chainId, level)} daha gerekiyor.`
+        text: isOrderTarget
+          ? `${inventoryLine}\nEn yakın ara seviye: ${itemName(chainId, level)} ×${counts[level]}. ` +
+            `Sonraki adım: ${itemName(chainId, level)} ×${remaining} daha oluştur.`
+          : `En yakın ara seviye: ${itemName(chainId, level)} ×${counts[level]}. ` +
+            `${itemName(chainId, targetLevel)} için ${itemName(chainId, level)} ×${remaining} daha gerekiyor.`
       };
     }
     const nearestLevel = Math.max(1, targetLevel - 1);
@@ -581,9 +618,12 @@
       ready: false,
       sourceLevel: nearestLevel,
       remaining: 2,
-      text:
-        `En yakın adım: iki ${itemName(chainId, nearestLevel)} birleştirerek ` +
-        `${itemName(chainId, nearestLevel + 1)} oluştur.`
+      text: isOrderTarget
+        ? `${inventoryLine}\nEn yakın ara seviye henüz yok. ` +
+          `Sonraki adım: iki ${itemName(chainId, nearestLevel)} birleştirerek ` +
+          `${itemName(chainId, nearestLevel + 1)} oluştur.`
+        : `En yakın adım: iki ${itemName(chainId, nearestLevel)} birleştirerek ` +
+          `${itemName(chainId, nearestLevel + 1)} oluştur.`
     };
   }
 
@@ -607,14 +647,19 @@
       const position = document.createElement('p');
       position.className = 'item-detail-position';
       position.textContent = `Zincirdeki yeri: ${level} / ${chainMaxLevel(chainId)}`;
-      const progress = closestMergeProgress(chainId, level, quantity);
+      const isOrderTarget = selectedInfo.type === 'order-item';
+      const progress = closestMergeProgress(chainId, level, quantity, isOrderTarget);
       const progressCard = document.createElement('section');
       progressCard.className = `item-detail-progress${progress.ready ? ' is-ready' : ''}`;
       const progressTitle = document.createElement('strong');
-      progressTitle.textContent = progress.ready ? 'Siparişe hazır' : 'En yakın faydalı merge adımı';
+      progressTitle.textContent = progress.ready
+        ? 'Siparişe hazır'
+        : isOrderTarget
+          ? 'En yakın faydalı merge adımı'
+          : 'Ürün gelişimi';
       const progressText = document.createElement('p');
-      progressText.textContent = selectedInfo.type === 'order-item'
-        ? `Hedef: ${itemName(chainId, level)} — Seviye ${level}. ${progress.text}`
+      progressText.textContent = isOrderTarget
+        ? `Hedef: ${itemName(chainId, level)} — Seviye ${level} ×${quantity}\n${progress.text}`
         : progress.text;
       progressCard.append(progressTitle, progressText);
 
@@ -647,6 +692,18 @@
         const badge = document.createElement('small');
         badge.textContent = `SV.${chainLevel}`;
         entry.appendChild(badge);
+        if (isOrderTarget && chainLevel === level) {
+          const targetBadge = document.createElement('em');
+          targetBadge.className = 'item-detail-target-badge';
+          targetBadge.textContent = 'SİPARİŞ';
+          entry.appendChild(targetBadge);
+        }
+        if (chainLevel === chainMaxLevel(chainId)) {
+          const maxBadge = document.createElement('em');
+          maxBadge.className = 'item-detail-max-badge';
+          maxBadge.textContent = 'MAX';
+          entry.appendChild(maxBadge);
+        }
         if (inventory[chainLevel] > 0) {
           const count = document.createElement('b');
           count.className = 'item-detail-count';
@@ -1087,10 +1144,9 @@
       ? 'TAMAMLANDI'
       : `${academyState.xp} / ${requiredXp} XP`;
     xpRing.style.setProperty('--xp-progress', String(academyState.progress));
-    document.querySelector('.player-level-card')?.setAttribute(
-      'aria-label',
-      `Football Academy seviye ${academyState.level}`
-    );
+    const levelCard = document.querySelector('.player-level-card');
+    levelCard?.style.setProperty('--xp-fill', `${academyState.progress * 100}%`);
+    levelCard?.setAttribute('aria-label', `Football Academy seviye ${academyState.level}`);
   }
 
   function renderAcademyWorld() {
