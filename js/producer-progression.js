@@ -7,6 +7,10 @@ window.ChampionTour.ProducerProgression = (function () {
   const CONFIG = DATA.producerProgression;
   const STORAGE_KEY = 'championTour.prototype.producerProgression.v2';
   const producerIds = Object.keys(DATA.producers);
+  const chainMax = (chainId) => Math.min(
+    DATA.absoluteMaxItemLevel,
+    Math.max(1, Number(DATA.chains[chainId]?.maxItemLevel) || 1)
+  );
   const state = {
     reputation: 0,
     producers: {},
@@ -40,7 +44,7 @@ window.ChampionTour.ProducerProgression = (function () {
     Object.keys(DATA.chains).forEach((chainId) => {
       state.discoveries[chainId] = Math.max(
         0,
-        Math.min(DATA.maxItemLevel, Math.floor(Number(state.discoveries[chainId]) || 0))
+        Math.min(chainMax(chainId), Math.floor(Number(state.discoveries[chainId]) || 0))
       );
     });
     state.retiredProducers = Array.isArray(state.retiredProducers)
@@ -135,12 +139,13 @@ window.ChampionTour.ProducerProgression = (function () {
   function recordDiscovery(chainId, level) {
     if (!DATA.chains[chainId]) return { changed: false };
     const previous = state.discoveries[chainId] || 0;
-    const next = Math.max(previous, Math.min(DATA.maxItemLevel, Number(level) || 0));
+    const maximum = chainMax(chainId);
+    const next = Math.max(previous, Math.min(maximum, Number(level) || 0));
     state.discoveries[chainId] = next;
     save();
     return {
       changed: next > previous,
-      masteryDiscovered: previous < DATA.maxItemLevel && next === DATA.maxItemLevel
+      masteryDiscovered: previous < maximum && next === maximum
     };
   }
 
@@ -155,7 +160,7 @@ window.ChampionTour.ProducerProgression = (function () {
       ) {
         state.activeMasteryOrders[chainId] = {
           chainId,
-          level: DATA.maxItemLevel,
+          level: chainMax(chainId),
           quantity: DATA.specialOrders.maxItemRequiredCount,
           openedAt: Date.now(),
           rewards: { ...DATA.specialOrders.rewards }
@@ -194,11 +199,11 @@ window.ChampionTour.ProducerProgression = (function () {
     return {
       eligible:
         producer.level === 3 &&
-        state.discoveries[chainId] >= DATA.maxItemLevel &&
+        state.discoveries[chainId] >= chainMax(chainId) &&
         Boolean(state.completedMasteries[chainId]) &&
         state.reputation >= rule.reputation,
       levelReady: producer.level === 3,
-      discoveryReady: state.discoveries[chainId] >= DATA.maxItemLevel,
+      discoveryReady: state.discoveries[chainId] >= chainMax(chainId),
       masteryReady: Boolean(state.completedMasteries[chainId]),
       reputationReady: state.reputation >= rule.reputation,
       rule

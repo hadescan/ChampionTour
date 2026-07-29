@@ -1,12 +1,31 @@
 window.ChampionTour = window.ChampionTour || {};
 
+const championTourRenovationBalance = (() => {
+  const anchors = [
+    [1, 100, 250], [2, 180, 450], [3, 280, 700], [4, 400, 1000],
+    [5, 550, 1400], [10, 1750, 4000], [20, 7000, 15000], [29, 14700, 65000]
+  ];
+  return Object.freeze(Array.from({ length: 29 }, (_, offset) => {
+    const step = offset + 1;
+    const upperIndex = anchors.findIndex((anchor) => anchor[0] >= step);
+    const upper = anchors[Math.max(0, upperIndex)];
+    const lower = anchors[Math.max(0, upperIndex - 1)] || upper;
+    const ratio = upper[0] === lower[0] ? 0 : (step - lower[0]) / (upper[0] - lower[0]);
+    return Object.freeze({
+      step,
+      totalXp: Math.round(lower[1] + (upper[1] - lower[1]) * ratio),
+      coins: Math.round((lower[2] + (upper[2] - lower[2]) * ratio) / 10) * 10
+    });
+  }));
+})();
+
 window.ChampionTour.GameData = Object.freeze({
   uiIcons: Object.freeze({
     level: 'assets/CozyAcademy/Full/UI/level.png',
     energy: 'assets/CozyAcademy/Full/UI/energy.png',
     coins: 'assets/CozyAcademy/Full/UI/coin.png',
     gems: 'assets/CozyAcademy/Full/UI/gem.png',
-    storage: 'assets/CozyAcademy/Full/UI/storage.png',
+    storage: 'assets/CozyAcademy/Full/UI/storage_v2.svg',
     sell: 'assets/CozyAcademy/Full/UI/sell.png',
     info: 'assets/CozyAcademy/Full/UI/info.png',
     menu: 'assets/CozyAcademy/Full/UI/menu.png',
@@ -22,15 +41,17 @@ window.ChampionTour.GameData = Object.freeze({
     groundskeeper: 'assets/CozyAcademy/Full/Customers/customer_hasan.png'
   }),
 
-  maxItemLevel: 12,
+  absoluteMaxItemLevel: 12,
+  balanceVersion: 4,
 
   chains: Object.freeze({
     footballs: Object.freeze({
       id: 'footballs',
-      name: 'Top Zinciri',
+      maxItemLevel: 7,
+      name: 'Futbol Topları',
       producerId: 'ball_basket',
       unlockLevel: 1,
-      orderEligibleLevels: Object.freeze([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
+      orderEligibleLevels: Object.freeze([1, 2, 3, 4, 5, 6, 7]),
       assets: Object.freeze([
         null,
         'assets/CozyAcademy/Full/Items/football_lv1.png',
@@ -56,10 +77,11 @@ window.ChampionTour.GameData = Object.freeze({
     }),
     equipment: Object.freeze({
       id: 'equipment',
+      maxItemLevel: 6,
       name: 'Hidrasyon Zinciri',
       producerId: 'equipment_locker',
       unlockLevel: 1,
-      orderEligibleLevels: Object.freeze([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
+      orderEligibleLevels: Object.freeze([1, 2, 3, 4, 5, 6]),
       assets: Object.freeze([
         null,
         'assets/CozyAcademy/Full/Items/hydration_lv1.png',
@@ -85,10 +107,11 @@ window.ChampionTour.GameData = Object.freeze({
     }),
     training: Object.freeze({
       id: 'training',
+      maxItemLevel: 7,
       name: 'Antrenman Zinciri',
       producerId: 'training_cart',
       unlockLevel: 1,
-      orderEligibleLevels: Object.freeze([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
+      orderEligibleLevels: Object.freeze([1, 2, 3, 4, 5, 6, 7]),
       assets: Object.freeze([
         null,
         'assets/CozyAcademy/Pilot/Training/Items/training_lv1.png',
@@ -114,10 +137,11 @@ window.ChampionTour.GameData = Object.freeze({
     }),
     trophies: Object.freeze({
       id: 'trophies',
+      maxItemLevel: 6,
       name: 'Başarı Zinciri',
       producerId: 'trophy_cabinet',
       unlockLevel: 1,
-      orderEligibleLevels: Object.freeze([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
+      orderEligibleLevels: Object.freeze([1, 2, 3, 4, 5, 6]),
       assets: Object.freeze([
         null,
         'assets/CozyAcademy/Full/Items/trophy_lv1.png',
@@ -146,7 +170,7 @@ window.ChampionTour.GameData = Object.freeze({
   producers: Object.freeze({
     ball_basket: Object.freeze({
       id: 'ball_basket',
-      name: 'Futbol Ekipmanı Sandığı',
+      name: 'Futbol Topu Arabası',
       chainId: 'footballs',
       unlockLevel: 1,
       description: 'Futbol topu zincirinden nesneler üretir.',
@@ -256,11 +280,51 @@ window.ChampionTour.GameData = Object.freeze({
     defaultItemSellPrice: 2
   }),
 
+  academyEconomy: Object.freeze({
+    version: 2,
+    renovations: championTourRenovationBalance
+  }),
+
   productionModes: Object.freeze({
     energyOptions: Object.freeze([1, 2, 4, 8, 16]),
     defaultEnergy: 1,
     rareLevel3Chance: .02,
-    rareLevel4Chance: .005
+    rareLevel4Chance: .005,
+    dropTables: Object.freeze({
+      1: Object.freeze([{ level: 1, weight: .9 }, { level: 2, weight: .09 }, { level: 3, weight: .009 }, { level: 5, weight: .001 }]),
+      2: Object.freeze([{ level: 2, weight: .84 }, { level: 3, weight: .14 }, { level: 4, weight: .018 }, { level: 6, weight: .002 }]),
+      4: Object.freeze([{ level: 3, weight: .84 }, { level: 4, weight: .14 }, { level: 5, weight: .018 }, { level: 7, weight: .002 }]),
+      8: Object.freeze([{ level: 4, weight: .84 }, { level: 5, weight: .14 }, { level: 6, weight: .018 }, { level: 8, weight: .002 }]),
+      16: Object.freeze([{ level: 5, weight: .84 }, { level: 6, weight: .14 }, { level: 7, weight: .018 }, { level: 9, weight: .002 }])
+    })
+  }),
+
+  bubbles: Object.freeze({
+    durationMs: 30000,
+    byLevel: Object.freeze({
+      3: Object.freeze({ chance: .12, cost: 1 }),
+      4: Object.freeze({ chance: .10, cost: 2 }),
+      5: Object.freeze({ chance: .08, cost: 4 }),
+      6: Object.freeze({ chance: .06, cost: 7 }),
+      7: Object.freeze({ chance: .045, cost: 11 }),
+      8: Object.freeze({ chance: .035, cost: 17 }),
+      9: Object.freeze({ chance: .025, cost: 26 }),
+      10: Object.freeze({ chance: .015, cost: 40 }),
+      11: Object.freeze({ chance: .01, cost: 60 }),
+      12: Object.freeze({ chance: .005, cost: 90 })
+    })
+  }),
+
+  coinChain: Object.freeze({
+    maxLevel: 4,
+    level4Reward: 100,
+    assets: Object.freeze([
+      null,
+      'assets/CozyAcademy/Full/UI/coin.png',
+      'assets/CozyAcademy/Full/UI/coin.png',
+      'assets/CozyAcademy/Full/UI/coin.png',
+      'assets/CozyAcademy/Full/UI/coin.png'
+    ])
   }),
 
   specialOrders: Object.freeze({

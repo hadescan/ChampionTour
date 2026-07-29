@@ -19,6 +19,6 @@ assert.match(theme, /\.production-mode-control[\s\S]*border-radius:\s*50%/);
 assert.match(theme, /\.order-card[\s\S]*background:\s*transparent/);
 assert.match(script, /type:\s*'order-item'/);
 assert.match(script, /closestMergeProgress/);
-assert.match(script, /Producer’ı Göster/);
+assert.match(script, /Üreticiyi Göster/);
 
 console.log('reference-ui.test.js: all assertions passed');

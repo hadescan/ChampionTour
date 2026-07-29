@@ -37,9 +37,10 @@ for (const producerId of Object.keys(context.ChampionTour.GameData.producers)) {
   assert.equal(producer.normalOrderMaxLevel, 10);
 }
 
-progression.recordDiscovery('footballs', 12);
+progression.recordDiscovery('footballs', 7);
 progression.evaluateMastery({ footballs: 3 });
 const mastery = progression.getMasteryOrders()[0];
+assert.equal(mastery.level, 7);
 assert.deepEqual(
   [mastery.quantity, mastery.rewards.coins, mastery.rewards.gems, mastery.rewards.reputation],
   [3, 900, 1, 100]

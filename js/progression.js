@@ -87,7 +87,10 @@ window.ChampionTour.Progression = (function () {
     const quantityByItem = new Map();
     rawItems.forEach((item) => {
       const chainId = DATA.chains[item?.chainId] ? item.chainId : 'footballs';
-      const level = Math.max(1, Math.min(DATA.maxItemLevel, Number(item?.level) || 1));
+      const level = Math.max(
+        1,
+        Math.min(DATA.chains[chainId].maxItemLevel, Number(item?.level) || 1)
+      );
       const quantity = Math.max(1, Math.floor(Number(item?.quantity) || 1));
       const key = `${chainId}:${level}`;
       const current = quantityByItem.get(key);
@@ -123,7 +126,7 @@ window.ChampionTour.Progression = (function () {
     const special = Boolean(order?.special);
     const chainMaxLevel = window.ChampionTour.ProductionRules.maxLevelForChain(
       primary.chainId
-    ) || DATA.maxItemLevel;
+    ) || DATA.chains[primary.chainId].maxItemLevel;
     const specialMaxLevel = special
       ? Math.max(1, Math.min(chainMaxLevel, Number(order?.specialMaxLevel) || primary.level))
       : null;

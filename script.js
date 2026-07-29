@@ -17,7 +17,9 @@
     Object.freeze({ index: 50, producerId: 'training_cart' }),
     Object.freeze({ index: 54, producerId: 'trophy_cabinet' })
   ]);
-  const MAX_LEVEL = DATA.maxItemLevel;
+  const ABSOLUTE_MAX_LEVEL = DATA.absoluteMaxItemLevel || 12;
+  const chainMaxLevel = (chainId = 'footballs') =>
+    Math.min(ABSOLUTE_MAX_LEVEL, Math.max(1, Number(DATA.chains[chainId]?.maxItemLevel) || 1));
   const MAX_ENERGY = 100;
   const PRODUCTION_COST = DATA.producer.energyCost;
   const REGEN_INTERVAL_MS = 2 * 60 * 1000;
@@ -86,6 +88,7 @@
   let itemInfoTimer;
   let lastItemTapIndex = -1;
   let lastItemTapAt = 0;
+  const bubbleConfirmations = new Map();
   const pendingSpawnTargets = new Set();
   const spawnVisualQueue = [];
   let activeSpawnVisuals = 0;
@@ -244,6 +247,7 @@
   function energyTick() {
     if (updateRegeneration(Date.now())) saveEnergy();
     renderEnergy();
+    expireBubbles();
   }
 
   function showToast(message) {
@@ -301,7 +305,7 @@
   }
 
   function itemDescription(chainId, level) {
-    if (level >= MAX_LEVEL) {
+    if (level >= chainMaxLevel(chainId)) {
       return `${itemName(chainId, level)}, ${DATA.chains[chainId].name.toLocaleLowerCase('tr-TR')} içindeki en yüksek seviyedir.`;
     }
     return `İki ${itemName(chainId, level)} birleştirerek ${itemName(chainId, level + 1)} oluştur.`;
@@ -345,7 +349,7 @@
     const producerElement = document.getElementById('itemInfoProducer');
     const rarityElement = document.getElementById('itemInfoRarity');
     const nextElement = document.getElementById('itemInfoNext');
-    const nextLevel = level < MAX_LEVEL ? level + 1 : null;
+    const nextLevel = level < chainMaxLevel(chainId) ? level + 1 : null;
     document.getElementById('itemInfoButton').hidden = false;
     document.getElementById('producerOutputChip').hidden = true;
     document.getElementById('productionModeControl').hidden = true;
@@ -473,7 +477,7 @@
         item?.type === 'ball' &&
         item.chainId === chainId &&
         item.level === level &&
-        level < MAX_LEVEL
+        level < chainMaxLevel(chainId)
       );
     });
     window.setTimeout(
@@ -522,14 +526,14 @@
     button.appendChild(copy);
     const action = document.createElement('span');
     action.className = 'item-detail-producer-action';
-    action.textContent = 'Producer’ı Göster';
+    action.textContent = 'Üreticiyi Göster';
     button.appendChild(action);
     button.addEventListener('click', () => highlightProducer(producerId));
     return button;
   }
 
   function itemInventoryLevels(chainId) {
-    const counts = new Array(MAX_LEVEL + 1).fill(0);
+    const counts = new Array(chainMaxLevel(chainId) + 1).fill(0);
     [...state.cells, ...state.storage].forEach((item) => {
       if (item?.type === 'ball' && item.chainId === chainId) {
         counts[item.level] += 1;
@@ -602,14 +606,16 @@
       description.textContent = itemDescription(chainId, level);
       const position = document.createElement('p');
       position.className = 'item-detail-position';
-      position.textContent = `Zincirdeki yeri: ${level} / ${MAX_LEVEL}`;
+      position.textContent = `Zincirdeki yeri: ${level} / ${chainMaxLevel(chainId)}`;
       const progress = closestMergeProgress(chainId, level, quantity);
       const progressCard = document.createElement('section');
       progressCard.className = `item-detail-progress${progress.ready ? ' is-ready' : ''}`;
       const progressTitle = document.createElement('strong');
-      progressTitle.textContent = progress.ready ? 'Siparişe hazır' : 'En yakın merge adımı';
+      progressTitle.textContent = progress.ready ? 'Siparişe hazır' : 'En yakın faydalı merge adımı';
       const progressText = document.createElement('p');
-      progressText.textContent = progress.text;
+      progressText.textContent = selectedInfo.type === 'order-item'
+        ? `Hedef: ${itemName(chainId, level)} — Seviye ${level}. ${progress.text}`
+        : progress.text;
       progressCard.append(progressTitle, progressText);
 
       const inventory = itemInventoryLevels(chainId);
@@ -618,10 +624,18 @@
       const chain = document.createElement('div');
       chain.className = 'item-detail-chain item-detail-chain-compact';
       chain.setAttribute('aria-label', `${DATA.chains[chainId].name} ürün hikâyesi`);
-      for (let chainLevel = 1; chainLevel <= MAX_LEVEL; chainLevel += 1) {
+      for (let chainLevel = 1; chainLevel <= chainMaxLevel(chainId); chainLevel += 1) {
         const entry = document.createElement('article');
         const discovered = chainLevel <= Math.max(discoveryLevel, usefulLevel);
-        entry.classList.toggle('is-target', chainLevel === level);
+        entry.classList.toggle(
+          'is-target',
+          selectedInfo.type === 'order-item' && chainLevel === level
+        );
+        entry.classList.toggle(
+          'is-selected',
+          selectedInfo.type === 'item' && chainLevel === level
+        );
+        entry.classList.toggle('is-max', chainLevel === chainMaxLevel(chainId));
         entry.classList.toggle('is-owned', inventory[chainLevel] > 0);
         entry.classList.toggle('is-useful', chainLevel === usefulLevel && chainLevel !== level);
         entry.classList.toggle('is-locked', !discovered);
@@ -642,12 +656,6 @@
         chain.appendChild(entry);
       }
       content.append(description, producerLink(producerId), progressCard, chain, position);
-      requestAnimationFrame(() => {
-        chain.querySelector('.is-target')?.scrollIntoView({
-          block: 'nearest',
-          inline: 'center'
-        });
-      });
       return;
     }
 
@@ -667,7 +675,7 @@
     const chain = document.createElement('div');
     chain.className = 'item-detail-chain';
     chain.setAttribute('aria-label', `${producer.name} ürün zinciri`);
-    for (let level = 1; level <= MAX_LEVEL; level += 1) {
+    for (let level = 1; level <= chainMaxLevel(producer.chainId); level += 1) {
       const entry = document.createElement('article');
       entry.appendChild(detailImage(
         itemSource(producer.chainId, level),
@@ -763,10 +771,25 @@
       return { type: 'producer', producerId: item.producerId };
     }
     if (item?.type === 'ball' && DATA.chains[item.chainId || 'footballs']) {
+      const chainId = item.chainId || 'footballs';
+      const level = Math.max(1, Math.min(ABSOLUTE_MAX_LEVEL, Number(item.level) || 1));
       return {
         type: 'ball',
-        chainId: item.chainId || 'footballs',
-        level: Math.max(1, Math.min(MAX_LEVEL, Number(item.level) || 1))
+        chainId,
+        level,
+        legacyOverMax: level > chainMaxLevel(chainId)
+      };
+    }
+    if (item?.type === 'coin') {
+      return { type: 'coin', level: Math.max(1, Math.min(3, Number(item.level) || 1)) };
+    }
+    if (item?.type === 'bubble' && DATA.chains[item.chainId]) {
+      return {
+        type: 'bubble',
+        chainId: item.chainId,
+        level: Math.max(3, Math.min(chainMaxLevel(item.chainId), Number(item.level) || 3)),
+        cost: Math.max(1, Number(item.cost) || 1),
+        expiresAt: Math.max(0, Number(item.expiresAt) || 0)
       };
     }
     return null;
@@ -775,7 +798,8 @@
   function saveBoardState() {
     try {
       localStorage.setItem(BOARD_STORAGE_KEY, JSON.stringify({
-        version: 3,
+        version: 4,
+        balanceVersion: DATA.balanceVersion,
         cells: state.cells,
         storageCapacity: state.storageCapacity,
         storage: state.storage,
@@ -798,7 +822,9 @@
       const chainItems = inventory.filter(
         (item) => item?.type === 'ball' && item.chainId === chainId
       );
-      counts[chainId] = chainItems.filter((item) => item.level === MAX_LEVEL).length;
+      counts[chainId] = chainItems.filter(
+        (item) => item.level === chainMaxLevel(chainId)
+      ).length;
       const highestLevel = chainItems.reduce(
         (highest, item) => Math.max(highest, Number(item.level) || 0),
         0
@@ -832,6 +858,13 @@
       { length: state.storageCapacity },
       (_, index) => normalizeSavedItem(saved?.storage?.[index], false)
     );
+    const legacyOverMaxCount = [...state.cells, ...state.storage]
+      .filter((item) => item?.legacyOverMax).length;
+    if (legacyOverMaxCount) {
+      console.warn(
+        `[Champion Tour migration] ${legacyOverMaxCount} zincir sınırı üzerindeki eski item korundu.`
+      );
+    }
     state.selectedProductionEnergy = PRODUCTION_ENERGY_OPTIONS.includes(
       Number(saved?.selectedProductionEnergy)
     )
@@ -880,6 +913,7 @@
     state.cells.forEach((item, index) => {
       if (item) renderCell(index);
     });
+    expireBubbles();
     reconcileMasteryOrders({ announce: false });
   }
 
@@ -934,26 +968,100 @@
       return;
     }
 
+    if (item.type === 'bubble') {
+      cell.classList.add('bubble-cell');
+      const bubble = document.createElement('button');
+      bubble.type = 'button';
+      bubble.className = 'merge-bubble';
+      bubble.innerHTML = `<img src="${itemSource(item.chainId, item.level)}" alt="">` +
+        `<span class="bubble-cost">◆ ${item.cost}</span>` +
+        `<span class="bubble-time">${Math.max(0, Math.ceil((item.expiresAt - Date.now()) / 1000))}</span>`;
+      bubble.addEventListener('click', () => activateBubble(index));
+      cell.appendChild(bubble);
+      cell.setAttribute('aria-label', `${itemName(item.chainId, item.level)} balonu`);
+      return;
+    }
+
     const wrapper = document.createElement('div');
     wrapper.className = 'ball-wrap';
     wrapper.style.background = 'transparent';
     wrapper.style.setProperty(
       '--item-visual-scale',
-      String(itemVisualScale(item.chainId, item.level))
+      String(item.type === 'coin' ? 1 : itemVisualScale(item.chainId, item.level))
     );
     wrapper.appendChild(createItemShadow());
 
     const image = document.createElement('img');
     image.className = 'ball';
-    image.src = itemSource(item.chainId, item.level);
-    image.alt = itemName(item.chainId, item.level);
+    image.src = item.type === 'coin'
+      ? DATA.coinChain.assets[item.level]
+      : itemSource(item.chainId, item.level);
+    image.alt = item.type === 'coin' ? `Para Seviye ${item.level}` : itemName(item.chainId, item.level);
     image.draggable = false;
     image.style.background = 'transparent';
     image.style.objectFit = 'contain';
     wrapper.appendChild(image);
     cell.appendChild(wrapper);
     if (index === selectedCellIndex) cell.classList.add('item-selected');
-    cell.setAttribute('aria-label', itemName(item.chainId, item.level));
+    cell.setAttribute('aria-label', image.alt);
+  }
+
+  function expireBubbles(now = Date.now()) {
+    let changed = false;
+    state.cells.forEach((item, index) => {
+      if (item?.type !== 'bubble') return;
+      if (now <= item.expiresAt) {
+        cellElements[index]?.querySelector('.bubble-time')?.replaceChildren(
+          String(Math.max(0, Math.ceil((item.expiresAt - now) / 1000)))
+        );
+        return;
+      }
+      state.cells[index] = { type: 'coin', level: 1 };
+      bubbleConfirmations.delete(index);
+      changed = true;
+      renderCell(index, 'spawned');
+    });
+    if (changed) saveBoardState();
+  }
+
+  function activateBubble(index) {
+    const item = state.cells[index];
+    if (item?.type !== 'bubble') return;
+    const now = Date.now();
+    if ((bubbleConfirmations.get(index) || 0) < now) {
+      bubbleConfirmations.set(index, now + 2500);
+      showToast(`${item.cost} elmasla açmak için tekrar dokun`);
+      return;
+    }
+    if (!Progression.adjustEconomy({ gems: -item.cost })) {
+      showToast('Yeterli elmasın yok');
+      return;
+    }
+    state.cells[index] = { type: 'ball', chainId: item.chainId, level: item.level };
+    bubbleConfirmations.delete(index);
+    saveBoardState();
+    renderCell(index, 'spawned');
+    renderEconomy();
+    showToast('Balon açıldı');
+  }
+
+  function maybeCreateBubble(chainId, level) {
+    const config = DATA.bubbles.byLevel[level];
+    if (!config || Math.random() >= config.chance) return false;
+    const emptyIndex = state.cells.findIndex(
+      (item, index) => item === null && !pendingSpawnTargets.has(index)
+    );
+    if (emptyIndex < 0) return false;
+    state.cells[emptyIndex] = {
+      type: 'bubble',
+      chainId,
+      level,
+      cost: config.cost,
+      expiresAt: Date.now() + DATA.bubbles.durationMs
+    };
+    saveBoardState();
+    renderCell(emptyIndex, 'spawned');
+    return true;
   }
 
   function updateProducerReadiness() {
@@ -1123,9 +1231,11 @@
       renovation?.title || `Seviye ${academyState.level + 1}'e ulaş`;
     document.getElementById('renovationActionDescription').textContent =
       renovation?.description || 'Yeni bir sipariş tamamlayarak akademi XP’si kazan.';
-    actionButton.disabled = !renovation;
+    actionButton.disabled = !renovation?.affordable;
     actionButton.innerHTML = renovation
-      ? '<span>Geliştirmeyi yap</span><small>Tek kampüs yenilemesi</small>'
+      ? `<span>Geliştirmeyi yap</span><small>` +
+        `XP ${academyState.totalXp}/${renovation.requiredTotalXp} • ` +
+        `🪙 ${Progression.getEconomy().coins}/${renovation.coinCost}</small>`
       : '<span>Henüz hazır değil</span><small>Oyuna dön ve XP kazan</small>';
     actionButton.onclick = renovation
       ? () => {
@@ -1192,7 +1302,7 @@
         : 'footballs';
       const level = Math.max(
         1,
-        Math.min(MAX_LEVEL, Number(requirement?.level) || 1)
+        Math.min(chainMaxLevel(chainId), Number(requirement?.level) || 1)
       );
       const quantity = Math.max(1, Math.floor(Number(requirement?.quantity) || 1));
       const key = `${chainId}:${level}`;
@@ -1615,7 +1725,7 @@
     let remaining = quantity;
     for (let index = 0; index < state.cells.length && remaining > 0; index += 1) {
       const item = state.cells[index];
-      if (item?.type === 'ball' && item.chainId === chainId && item.level === MAX_LEVEL) {
+      if (item?.type === 'ball' && item.chainId === chainId && item.level === chainMaxLevel(chainId)) {
         state.cells[index] = null;
         renderCell(index);
         remaining -= 1;
@@ -1623,7 +1733,7 @@
     }
     for (let index = 0; index < state.storage.length && remaining > 0; index += 1) {
       const item = state.storage[index];
-      if (item?.type === 'ball' && item.chainId === chainId && item.level === MAX_LEVEL) {
+      if (item?.type === 'ball' && item.chainId === chainId && item.level === chainMaxLevel(chainId)) {
         state.storage[index] = null;
         remaining -= 1;
       }
@@ -1634,7 +1744,7 @@
   function completeMasteryOrder(chainId) {
     const order = ProducerProgression.getMasteryOrders()
       .find((candidate) => candidate.chainId === chainId);
-    if (!order || totalItemCount(chainId, MAX_LEVEL) < order.quantity) return;
+    if (!order || totalItemCount(chainId, chainMaxLevel(chainId)) < order.quantity) return;
     if (!removeMasteryItems(chainId, order.quantity)) return;
     Progression.adjustEconomy({
       coins: order.rewards.coins,
@@ -2417,7 +2527,7 @@
   function createGhost(item, x, y) {
     let ghost;
 
-    if (item.type === 'ball') {
+    if (item.type === 'ball' || item.type === 'coin') {
       ghost = document.createElement('div');
       ghost.className = 'drag-ghost ball-ghost';
 
@@ -2430,7 +2540,9 @@
 
       const image = document.createElement('img');
       image.className = 'drag-ghost-ball';
-      image.src = itemSource(item.chainId, item.level);
+      image.src = item.type === 'coin'
+        ? DATA.coinChain.assets[item.level]
+        : itemSource(item.chainId, item.level);
       image.alt = '';
       image.draggable = false;
       content.appendChild(image);
@@ -2590,6 +2702,7 @@
       beginProducerPointer(event);
       return;
     }
+    if (item.type === 'bubble') return;
 
     startPointer(fromIndex, event);
   }
@@ -2639,11 +2752,11 @@
     const from = state.cells[fromIndex];
     const to = state.cells[toIndex];
     if (!to) return true;
-    return from.type === 'ball' &&
-      to.type === 'ball' &&
-      from.chainId === to.chainId &&
+    return ['ball', 'coin'].includes(from.type) &&
+      from.type === to.type &&
+      (from.type === 'coin' || from.chainId === to.chainId) &&
       from.level === to.level &&
-      from.level < MAX_LEVEL;
+      from.level < (from.type === 'coin' ? DATA.coinChain.maxLevel : chainMaxLevel(from.chainId));
   }
 
   function movePointer(event) {
@@ -2693,7 +2806,7 @@
 
     if (target.matches('.storage-button, .storage-slot')) {
       const storageIndex = Number(target.dataset.storageIndex);
-      const available = state.drag.item.type === 'ball' && (
+      const available = ['ball', 'coin'].includes(state.drag.item.type) && (
         target.classList.contains('storage-button') ||
         (Number.isInteger(storageIndex) && state.storage[storageIndex] === null)
       );
@@ -2745,7 +2858,7 @@
       (orderCard && !orderMatches) ||
       (target && toIndex === fromIndex) ||
       (target && !isValidTarget(fromIndex, toIndex)) ||
-      (storageTarget && item.type !== 'ball')
+      (storageTarget && !['ball', 'coin'].includes(item.type))
     );
     const deliveryGhost = finishPointer(invalidDrop, Boolean(orderMatches));
 
@@ -2787,7 +2900,7 @@
 
   function autoMerge(fromIndex) {
     const from = state.cells[fromIndex];
-    if (!from || from.type !== 'ball' || from.level >= MAX_LEVEL) return false;
+    if (!from || from.type !== 'ball' || from.level >= chainMaxLevel(from.chainId)) return false;
 
     const fromRow = Math.floor(fromIndex / BOARD_COLUMNS);
     const fromColumn = fromIndex % BOARD_COLUMNS;
@@ -2833,7 +2946,7 @@
     sourceCell.classList.remove('drag-source');
     clearTarget();
 
-    if (dragState.ghost && dragState.item.type === 'ball') {
+    if (dragState.ghost && ['ball', 'coin'].includes(dragState.item.type)) {
       if (preserveGhost) {
         retainedGhost = dragState.ghost;
       } else if (invalidDrop) {
@@ -2885,11 +2998,11 @@
     }
 
     if (
-      from.type === 'ball' &&
-      to.type === 'ball' &&
-      from.chainId === to.chainId &&
+      ['ball', 'coin'].includes(from.type) &&
+      from.type === to.type &&
+      (from.type === 'coin' || from.chainId === to.chainId) &&
       from.level === to.level &&
-      from.level < MAX_LEVEL
+      from.level < (from.type === 'coin' ? DATA.coinChain.maxLevel : chainMaxLevel(from.chainId))
     ) {
       const nextLevel = from.level + 1;
       const fromCell = cellElements[fromIndex];
@@ -2921,11 +3034,15 @@
         fromCell.classList.add('merge-away');
 
         state.cells[fromIndex] = null;
-        state.cells[toIndex] = {
-          type: 'ball',
-          chainId: from.chainId,
-          level: nextLevel
-        };
+        state.cells[toIndex] = from.type === 'coin'
+          ? { type: 'coin', level: nextLevel }
+          : { type: 'ball', chainId: from.chainId, level: nextLevel };
+        if (from.type === 'coin' && nextLevel === DATA.coinChain.maxLevel) {
+          state.cells[toIndex] = null;
+          Progression.adjustEconomy({ coins: DATA.coinChain.level4Reward });
+          renderEconomy();
+          showToast(`+${DATA.coinChain.level4Reward} altın`);
+        }
         saveBoardState();
         if (selectedCellIndex === fromIndex || selectedCellIndex === toIndex) {
           selectedCellIndex = toIndex;
@@ -2933,9 +3050,10 @@
         renderCell(toIndex, 'merge-pop');
         playMergeSparks(cellElements[toIndex]);
         GameAudio.play('merge');
-        if (selectedItemLevel === from.level) {
+        if (from.type === 'ball' && selectedItemLevel === from.level) {
           showItemInfo(nextLevel, toIndex, from.chainId);
         }
+        if (from.type === 'ball') maybeCreateBubble(from.chainId, nextLevel);
         cellElements[toIndex].appendChild(targetEcho);
 
         window.setTimeout(() => {
@@ -2950,8 +3068,8 @@
       from.type === 'ball' &&
       to.type === 'ball' &&
       from.chainId === to.chainId &&
-      from.level === MAX_LEVEL &&
-      to.level === MAX_LEVEL
+      from.level === chainMaxLevel(from.chainId) &&
+      to.level === chainMaxLevel(to.chainId)
     ) {
       showToast(TEXT.maxReached);
     } else if (from.type === 'ball' && to.type === 'ball') {
@@ -3015,10 +3133,15 @@
       slot.type = 'button';
       slot.className = 'storage-slot';
       slot.dataset.storageIndex = String(index);
-      slot.setAttribute('aria-label', item ? itemName(item.chainId, item.level) : 'Boş depo slotu');
+      slot.setAttribute(
+        'aria-label',
+        item ? (item.type === 'coin' ? `Para Seviye ${item.level}` : itemName(item.chainId, item.level)) : 'Boş depo slotu'
+      );
       if (item) {
         const image = document.createElement('img');
-        image.src = itemSource(item.chainId, item.level);
+        image.src = item.type === 'coin'
+          ? DATA.coinChain.assets[item.level]
+          : itemSource(item.chainId, item.level);
         image.alt = '';
         image.draggable = false;
         slot.appendChild(image);
@@ -3049,7 +3172,7 @@
 
   function storeBoardItem(fromIndex, preferredSlot = -1) {
     const item = state.cells[fromIndex];
-    if (item?.type !== 'ball') {
+    if (!['ball', 'coin'].includes(item?.type)) {
       showToast('Üreticiler depoya taşınamaz');
       return false;
     }

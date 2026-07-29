@@ -5,19 +5,27 @@ window.ChampionTour.ProductionRules = (function () {
 
   const DATA = window.ChampionTour.GameData;
 
+  function validateChainConfig(chains = DATA.chains) {
+    Object.values(chains).forEach((chain) => {
+      const maximum = Number(chain.maxItemLevel);
+      if (!Number.isInteger(maximum) || maximum < 1 || maximum > DATA.absoluteMaxItemLevel) {
+        throw new RangeError(`${chain.id || 'chain'} maxItemLevel 1–${DATA.absoluteMaxItemLevel} arasında olmalı.`);
+      }
+    });
+    return true;
+  }
+
   function levelForEnergy(energy) {
     const normalized = Number(energy);
     if (!DATA.productionModes.energyOptions.includes(normalized)) return 1;
-    return Math.min(DATA.maxItemLevel, Math.log2(normalized) + 1);
+    return Math.min(DATA.absoluteMaxItemLevel, Math.log2(normalized) + 1);
   }
 
   function maxLevelForChain(chainId) {
-    const chain = DATA.chains[chainId];
-    if (!chain) return 0;
-    for (let level = chain.assets.length - 1; level >= 1; level -= 1) {
-      if (chain.assets[level]) return level;
-    }
-    return 0;
+    return Math.min(
+      DATA.absoluteMaxItemLevel,
+      Math.max(1, Number(DATA.chains[chainId]?.maxItemLevel) || 0)
+    );
   }
 
   function supportedEnergyOptions(chainId) {
@@ -28,22 +36,36 @@ window.ChampionTour.ProductionRules = (function () {
   }
 
   function resultForEnergy(energy, random = Math.random, producerId = 'ball_basket') {
-    const baseLevel = levelForEnergy(energy);
     const producer = window.ChampionTour.ProducerProgression
       ?.getProducerState(producerId);
-    const drops = producer?.drops || { 1: 1 };
+    const chainMax = maxLevelForChain(producer?.chainId || DATA.producers[producerId]?.chainId);
+    const table = DATA.productionModes.dropTables[energy] ||
+      DATA.productionModes.dropTables[DATA.productionModes.defaultEnergy];
     const roll = random();
     let cumulative = 0;
-    let bonusLevel = 0;
-    Object.entries(drops).some(([levelBonus, chance]) => {
-      cumulative += chance;
-      if (roll > cumulative) return false;
-      bonusLevel = Math.max(0, Math.min(1, Number(levelBonus) || 0));
+    let selected = table[0].level;
+    table.some((drop) => {
+      cumulative += drop.weight;
+      if (roll >= cumulative) return false;
+      selected = drop.level;
       return true;
     });
-    const level = Math.min(DATA.maxItemLevel, baseLevel + bonusLevel);
-    return { level, rare: bonusLevel > 0, producerLevel: producer?.level || 1 };
+    const baseLevel = levelForEnergy(energy);
+    const level = Math.min(chainMax, selected);
+    return {
+      level,
+      rare: selected > baseLevel,
+      exceptional: selected >= baseLevel + 2,
+      producerLevel: producer?.level || 1
+    };
   }
 
-  return { levelForEnergy, maxLevelForChain, supportedEnergyOptions, resultForEnergy };
+  validateChainConfig();
+  return {
+    levelForEnergy,
+    maxLevelForChain,
+    supportedEnergyOptions,
+    resultForEnergy,
+    validateChainConfig
+  };
 })();

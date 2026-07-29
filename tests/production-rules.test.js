@@ -34,15 +34,22 @@ assert.deepEqual(
   [1, 2, 4, 8, 16]
 );
 assert.deepEqual([1, 2, 4, 8, 16].map(rules.levelForEnergy), [1, 2, 3, 4, 5]);
-assert.equal(rules.maxLevelForChain('footballs'), 12);
+assert.deepEqual(
+  ['footballs', 'training', 'equipment', 'trophies'].map(rules.maxLevelForChain),
+  [7, 7, 6, 6]
+);
+assert.throws(
+  () => rules.validateChainConfig({ future: { id: 'future', maxItemLevel: 13 } }),
+  /1–12 arasında/
+);
 assert.deepEqual(
   Array.from(rules.supportedEnergyOptions('footballs')),
   [1, 2, 4, 8, 16]
 );
 assert.equal(rules.resultForEnergy(4, () => 0).level, 3);
 assert.equal(rules.resultForEnergy(16, () => 0).level, 5);
-assert.equal(rules.resultForEnergy(1, () => 0.9).level, 2);
-assert.equal(rules.resultForEnergy(1, () => 0.9).rare, true);
+assert.equal(rules.resultForEnergy(1, () => 0.905).level, 2);
+assert.equal(rules.resultForEnergy(1, () => 0.905).rare, true);
 assert.equal(rules.resultForEnergy(1, () => 0.1).level, 1);
 assert.equal(rules.resultForEnergy(1, () => 0.1).rare, false);
 
@@ -55,7 +62,7 @@ assert.equal(producerProgression.getProducerState('ball_basket').level, 2);
 
 producerProgression.evaluateMastery({ footballs: 3 });
 assert.equal(producerProgression.getMasteryOrders().length, 1);
-assert.equal(producerProgression.getMasteryOrders()[0].level, 12);
+assert.equal(producerProgression.getMasteryOrders()[0].level, 7);
 assert.equal(producerProgression.getMasteryOrders()[0].quantity, 3);
 
 const progression = context.ChampionTour.Progression;
