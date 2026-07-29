@@ -6,40 +6,27 @@ window.ChampionTour.Progression = (function () {
   const DATA = window.ChampionTour.GameData;
   const ProducerProgression = window.ChampionTour.ProducerProgression;
   const STORAGE_KEY = 'championTour.prototype.progression.v1';
-  const producer = {
+  const legacyProducer = {
     level: 1,
     xp: 0,
     rewardedLevels: []
   };
   const economy = { coins: 0, gems: 0, eventPoints: 0 };
   let orders = [];
-  let pendingSpecialOrders = [];
   let loadedExistingOrders = false;
   const recentPrimaryChains = [];
-
-  function normalizeProducerProgress() {
-    producer.level = Math.max(1, Math.min(DATA.producer.maxLevel, producer.level));
-    producer.xp = Math.max(0, Math.floor(producer.xp));
-    while (producer.level < DATA.producer.maxLevel) {
-      const requiredXp = DATA.producer.levels[producer.level].xpToNext;
-      if (producer.xp < requiredXp) break;
-      producer.xp -= requiredXp;
-      producer.level += 1;
-    }
-    if (producer.level === DATA.producer.maxLevel) producer.xp = 0;
-  }
 
   function load() {
     try {
       const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
       if (!saved) return;
       if (saved.producer) {
-        producer.level = Math.max(
+        legacyProducer.level = Math.max(
           1,
           Math.min(DATA.producer.maxLevel, Math.floor(Number(saved.producer.level) || 1))
         );
-        producer.xp = Math.max(0, Math.floor(Number(saved.producer.xp) || 0));
-        producer.rewardedLevels = Array.isArray(saved.producer.rewardedLevels)
+        legacyProducer.xp = Math.max(0, Math.floor(Number(saved.producer.xp) || 0));
+        legacyProducer.rewardedLevels = Array.isArray(saved.producer.rewardedLevels)
           ? saved.producer.rewardedLevels.map(Number)
           : [];
       }
@@ -49,13 +36,10 @@ window.ChampionTour.Progression = (function () {
       if (Array.isArray(saved.orders) && saved.orders.length > 0) {
         orders = saved.orders
           .slice(0, DATA.orders.slotCount)
-          .map(normalizeOrder);
+          .map(normalizeOrder)
+          .filter((order) => !order.special);
         loadedExistingOrders = true;
       }
-      pendingSpecialOrders = Array.isArray(saved.pendingSpecialOrders)
-        ? saved.pendingSpecialOrders.map(normalizeOrder).filter((order) => order.special)
-        : [];
-      normalizeProducerProgress();
     } catch (error) {
       console.warn('Progression kaydı okunamadı.', error);
     }
@@ -65,10 +49,9 @@ window.ChampionTour.Progression = (function () {
   function save() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        producer,
+        producer: legacyProducer,
         economy,
-        orders,
-        pendingSpecialOrders
+        orders
       }));
       return true;
     } catch (error) {
@@ -86,45 +69,9 @@ window.ChampionTour.Progression = (function () {
       if (next[key] < 0) return null;
     }
     Object.assign(economy, next);
-    if (save()) return { ...economy, xp: producer.xp };
+    if (save()) return { ...economy };
     Object.assign(economy, previous);
     return null;
-  }
-
-  function applyProducerXp(amount) {
-    const levelUps = [];
-    let remainingXp = Math.max(0, Math.floor(Number(amount) || 0));
-    while (remainingXp > 0 && producer.level < DATA.producer.maxLevel) {
-      const requiredXp = DATA.producer.levels[producer.level].xpToNext;
-      const acceptedXp = Math.min(remainingXp, requiredXp - producer.xp);
-      producer.xp += acceptedXp;
-      remainingXp -= acceptedXp;
-      if (producer.xp < requiredXp) continue;
-      producer.xp = 0;
-      producer.level += 1;
-      const reward = DATA.producer.levels[producer.level].diamondReward;
-      const rewarded = producer.rewardedLevels.includes(producer.level);
-      if (!rewarded) {
-        producer.rewardedLevels.push(producer.level);
-        economy.gems += reward;
-      }
-      levelUps.push({
-        level: producer.level,
-        diamondReward: rewarded ? 0 : reward
-      });
-    }
-    if (producer.level === DATA.producer.maxLevel) producer.xp = 0;
-    return levelUps;
-  }
-
-  function addProducerXp(amount) {
-    const levelUps = applyProducerXp(amount);
-    save();
-    return {
-      awardedXp: Math.max(0, Math.floor(Number(amount) || 0)),
-      levelUps,
-      state: getProducerState()
-    };
   }
 
   function normalizeOrder(order) {
@@ -227,10 +174,7 @@ window.ChampionTour.Progression = (function () {
 
   function activeChainIds() {
     return Object.values(DATA.chains)
-      .filter((chain) => (
-        chain.unlockLevel <= producer.level &&
-        DATA.producers[chain.producerId]?.unlockLevel <= producer.level
-      ))
+      .filter((chain) => DATA.producers[chain.producerId])
       .map((chain) => chain.id);
   }
 
@@ -262,7 +206,7 @@ window.ChampionTour.Progression = (function () {
   function createOrder(forcedItemCount = 0, preferredPrimaryChain = null, difficulty = 'variable') {
     const itemCount = forcedItemCount > 0
       ? Math.max(1, Math.min(2, forcedItemCount))
-      : producer.level >= 2 && Math.random() < .5 ? 2 : 1;
+      : Math.random() < .5 ? 2 : 1;
     const items = [];
     while (items.length < itemCount) {
       const shouldMixChains = items.length > 0 && Math.random() < .55;
@@ -314,42 +258,13 @@ window.ChampionTour.Progression = (function () {
         DATA.orders.difficultyPattern[orders.length]
       ));
     }
-    if (
-      producer.level >= 2 &&
-      orders.length > 1 &&
-      !orders.some((order) => order.items.length > 1)
-    ) {
+    if (orders.length > 1 && !orders.some((order) => order.items.length > 1)) {
       orders[1] = createOrder(2, chainIds[1 % chainIds.length], 'easy');
     }
+    if (orders.length > 0 && !orders.some((order) => order.items.length === 1)) {
+      orders[0] = createOrder(1, chainIds[0], 'easy');
+    }
     save();
-  }
-
-  function queueMaxItemSpecialOrder(chainId, requestedMaxLevel) {
-    if (!DATA.chains[chainId]) return false;
-    const chainMaxLevel = window.ChampionTour.ProductionRules.maxLevelForChain(chainId);
-    const maxLevel = Math.max(
-      1,
-      Math.min(chainMaxLevel, Number(requestedMaxLevel) || chainMaxLevel)
-    );
-    const exists = [...orders, ...pendingSpecialOrders].some(
-      (order) => order.special && order.specialChainId === chainId
-    );
-    if (exists) return false;
-    const special = normalizeOrder({
-      special: true,
-      customerId: 'scout',
-      specialMaxLevel: maxLevel,
-      specialRequiredCount: DATA.specialOrders.maxItemRequiredCount,
-      items: [{
-        chainId,
-        level: maxLevel,
-        quantity: DATA.specialOrders.maxItemRequiredCount
-      }]
-    });
-    if (orders.length < DATA.orders.slotCount) orders.push(special);
-    else pendingSpecialOrders.push(special);
-    save();
-    return true;
   }
 
   function tick(now) {
@@ -358,33 +273,19 @@ window.ChampionTour.Progression = (function () {
 
   function canProduce(producerId = 'ball_basket', now = Date.now()) {
     const state = ProducerProgression.getProducerState(producerId, now);
-    return Boolean(state && state.charges > 0 && !state.replacementPendingContent);
-  }
-
-  function consumeCharge(producerId = 'ball_basket', now = Date.now()) {
-    return ProducerProgression.consumeCharge(producerId, now);
+    return Boolean(state);
   }
 
   function getProducerState(producerId = 'ball_basket', now = Date.now()) {
     const definition = DATA.producers[producerId] || DATA.producers.ball_basket;
     const progressionState = ProducerProgression.getProducerState(definition.id, now);
-    const levelData = DATA.producer.levels[producer.level];
     return {
       id: definition.id,
       name: definition.name,
       chainId: definition.chainId,
       symbol: definition.symbol || null,
-      charges: progressionState.charges,
-      maxCharges: progressionState.capacity,
-      cooldownEndsAt: progressionState.refillRemainingMs
-        ? now + progressionState.refillRemainingMs
-        : null,
-      cooldownRemainingMs: progressionState.refillRemainingMs,
       level: progressionState.level,
-      xp: producer.xp,
-      xpToNext: levelData.xpToNext,
-      isMaxLevel: producer.level === DATA.producer.maxLevel,
-      artwork: progressionState.artwork || definition.artwork || levelData.artwork,
+      artwork: progressionState.artwork || definition.artwork,
       normalOrderMaxLevel: progressionState.normalOrderMaxLevel,
       replacementPendingContent: progressionState.replacementPendingContent
     };
@@ -432,13 +333,11 @@ window.ChampionTour.Progression = (function () {
     const reputationProgress = ProducerProgression.addReputation(
       order.rewards.reputation
     );
-    const producerProgress = applyProducerXp(order.rewards.xp);
     const completed = {
       chainId: order.chainId,
       level: order.level,
       items: order.items.map((item) => ({ ...item })),
       rewards: { ...order.rewards },
-      producerProgress,
       reputationProgress
     };
     orders[slotIndex] = createOrder(
@@ -451,7 +350,7 @@ window.ChampionTour.Progression = (function () {
   }
 
   function getEconomy() {
-    return { ...economy, xp: producer.xp };
+    return { ...economy };
   }
 
   load();
@@ -459,14 +358,11 @@ window.ChampionTour.Progression = (function () {
 
   return {
     canProduce,
-    consumeCharge,
     getProducerState,
-    addProducerXp,
     getOrders,
     fulfillOrder,
     getEconomy,
     adjustEconomy,
-    queueMaxItemSpecialOrder,
     tick
   };
 })();

@@ -202,22 +202,16 @@ window.ChampionTour.GameData = Object.freeze({
   producerProgression: Object.freeze({
     levels: Object.freeze({
       1: Object.freeze({
-        capacity: 12,
-        refillMs: 180000,
         normalOrderMaxLevel: 6,
-        drops: Object.freeze({ 1: .85, 2: .15 })
+        drops: Object.freeze({ 0: .85, 1: .15 })
       }),
       2: Object.freeze({
-        capacity: 16,
-        refillMs: 150000,
         normalOrderMaxLevel: 8,
-        drops: Object.freeze({ 1: .55, 2: .40, 3: .05 })
+        drops: Object.freeze({ 0: .80, 1: .20 })
       }),
       3: Object.freeze({
-        capacity: 20,
-        refillMs: 120000,
         normalOrderMaxLevel: 10,
-        drops: Object.freeze({ 1: .30, 2: .50, 3: .18, 4: .02 })
+        drops: Object.freeze({ 0: .75, 1: .25 })
       })
     }),
     reputationMilestones: Object.freeze([
@@ -247,9 +241,7 @@ window.ChampionTour.GameData = Object.freeze({
   testing: Object.freeze({
     enabled: true,
     bypassEnergy: false,
-    infiniteEnergyInTest: true,
-    bypassProducerCooldown: false,
-    producerXpIncrement: 25
+    infiniteEnergyInTest: true
   }),
 
   storage: Object.freeze({

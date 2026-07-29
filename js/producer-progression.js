@@ -18,29 +18,22 @@ window.ChampionTour.ProducerProgression = (function () {
     tutorialsSeen: {}
   };
 
-  function defaultProducerState(producerId, now = Date.now()) {
+  function defaultProducerState(producerId) {
     const level = 1;
     return {
       producerId,
       level,
-      charges: CONFIG.levels[level].capacity,
-      refillAnchor: now,
       masteryPoints: 0
     };
   }
 
-  function normalize(now = Date.now()) {
+  function normalize() {
     state.reputation = Math.max(0, Math.floor(Number(state.reputation) || 0));
     producerIds.forEach((producerId) => {
       const saved = state.producers[producerId] || {};
       state.producers[producerId] = {
-        ...defaultProducerState(producerId, now),
-        ...saved,
+        ...defaultProducerState(producerId),
         level: Math.max(1, Math.min(3, Math.floor(Number(saved.level) || 1))),
-        charges: Number.isFinite(Number(saved.charges))
-          ? Math.max(0, Math.floor(Number(saved.charges)))
-          : CONFIG.levels[Math.max(1, Math.min(3, Math.floor(Number(saved.level) || 1)))].capacity,
-        refillAnchor: Number(saved.refillAnchor) || now,
         masteryPoints: Math.max(0, Math.floor(Number(saved.masteryPoints) || 0))
       };
     });
@@ -58,7 +51,6 @@ window.ChampionTour.ProducerProgression = (function () {
     state.replacements = state.replacements || {};
     state.tutorialsSeen = state.tutorialsSeen || {};
     syncLevels();
-    producerIds.forEach((producerId) => refill(producerId, now));
   }
 
   function load() {
@@ -88,31 +80,12 @@ window.ChampionTour.ProducerProgression = (function () {
       const current = state.producers[milestone.producerId];
       if (state.reputation < milestone.reputation || current.level >= milestone.level) return;
       current.level = milestone.level;
-      current.charges = CONFIG.levels[milestone.level].capacity;
-      current.refillAnchor = Date.now();
       upgrades.push({ ...milestone });
     });
     return upgrades;
   }
 
-  function refill(producerId, now = Date.now()) {
-    const producer = state.producers[producerId];
-    if (!producer) return;
-    const config = CONFIG.levels[producer.level];
-    if (producer.charges >= config.capacity) {
-      producer.charges = config.capacity;
-      producer.refillAnchor = now;
-      return;
-    }
-    const elapsed = Math.max(0, now - producer.refillAnchor);
-    const gained = Math.floor(elapsed / config.refillMs);
-    if (!gained) return;
-    producer.charges = Math.min(config.capacity, producer.charges + gained);
-    producer.refillAnchor += gained * config.refillMs;
-  }
-
-  function getProducerState(producerId, now = Date.now()) {
-    refill(producerId, now);
+  function getProducerState(producerId) {
     const producer = state.producers[producerId];
     const definition = DATA.producers[producerId];
     const config = CONFIG.levels[producer.level];
@@ -126,37 +99,10 @@ window.ChampionTour.ProducerProgression = (function () {
       artwork: replacement?.replacementArtwork ||
         definition.artworks?.[producer.level] ||
         definition.artwork,
-      capacity: config.capacity,
-      refillMs: config.refillMs,
-      refillRemainingMs: producer.charges >= config.capacity
-        ? 0
-        : Math.max(0, config.refillMs - (now - producer.refillAnchor)),
       normalOrderMaxLevel: config.normalOrderMaxLevel,
       drops: { ...config.drops },
       replacementPendingContent: Boolean(replacement)
     };
-  }
-
-  function consumeCharge(producerId, now = Date.now()) {
-    const producer = state.producers[producerId];
-    if (!producer || state.replacements[producerId]) return false;
-    refill(producerId, now);
-    if (producer.charges <= 0) return false;
-    producer.charges -= 1;
-    if (producer.charges === CONFIG.levels[producer.level].capacity - 1) {
-      producer.refillAnchor = now;
-    }
-    save();
-    return true;
-  }
-
-  function refundCharge(producerId) {
-    const producer = state.producers[producerId];
-    if (!producer) return false;
-    const capacity = CONFIG.levels[producer.level].capacity;
-    producer.charges = Math.min(capacity, producer.charges + 1);
-    save();
-    return true;
   }
 
   function addReputation(amount) {
@@ -301,8 +247,6 @@ window.ChampionTour.ProducerProgression = (function () {
   return {
     getState,
     getProducerState,
-    consumeCharge,
-    refundCharge,
     addReputation,
     nextMilestones,
     recordDiscovery,

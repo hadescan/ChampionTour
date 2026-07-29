@@ -125,6 +125,12 @@
           <span id="itemInfoLevel"></span>
         </div>
         <p id="itemInfoDescription"></p>
+        <button class="production-mode-control" id="productionModeControl" type="button"
+          aria-label="Üretim enerji modunu değiştir" hidden>
+          <img data-ui-icon="energy" alt="" aria-hidden="true">
+          <strong id="productionModeValue">1</strong>
+          <span id="productionModeSummary">1 enerji • Standart</span>
+        </button>
         <div class="item-info-meta">
           <span id="itemInfoProducer"></span>
           <span id="itemInfoRarity"></span>
@@ -134,14 +140,7 @@
             <img id="producerOutputIcon" alt="">
             <strong id="producerOutputName"></strong>
           </span>
-          <button class="production-mode-control" id="productionModeControl" type="button"
-            aria-label="Üretim enerji modunu değiştir" hidden>
-            <img data-ui-icon="energy" alt="" aria-hidden="true">
-            <strong id="productionModeValue">1</strong>
-            <span id="productionModeSummary">1 enerji • Standart</span>
-          </button>
         </div>
-        <button class="producer-xp-debug" id="producerXpDebug" type="button" hidden></button>
       </div>
       <button class="item-info-button" id="itemInfoButton" type="button" aria-label="Detaylı bilgiyi aç" hidden>i</button>
       <button class="sell-button" id="sellButton" type="button" aria-label="Seçili ürünü sat" disabled>

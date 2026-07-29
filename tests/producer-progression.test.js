@@ -25,7 +25,8 @@ const progression = context.ChampionTour.ProducerProgression;
 for (const producerId of Object.keys(context.ChampionTour.GameData.producers)) {
   const producer = progression.getProducerState(producerId);
   assert.equal(producer.level, 1);
-  assert.equal(producer.charges, 12);
+  assert.equal('charges' in producer, false);
+  assert.equal('refillRemainingMs' in producer, false);
   assert.equal(producer.normalOrderMaxLevel, 6);
 }
 
@@ -33,7 +34,6 @@ progression.addReputation(1520);
 for (const producerId of Object.keys(context.ChampionTour.GameData.producers)) {
   const producer = progression.getProducerState(producerId);
   assert.equal(producer.level, 3);
-  assert.equal(producer.charges, 20);
   assert.equal(producer.normalOrderMaxLevel, 10);
 }
 

@@ -47,36 +47,25 @@ assert.equal(rules.resultForEnergy(1, () => 0.1).level, 1);
 assert.equal(rules.resultForEnergy(1, () => 0.1).rare, false);
 
 const producerProgression = context.ChampionTour.ProducerProgression;
-assert.equal(producerProgression.getProducerState('ball_basket').charges, 12);
-assert.equal(producerProgression.consumeCharge('ball_basket'), true);
-assert.equal(producerProgression.getProducerState('ball_basket').charges, 11);
+assert.equal('charges' in producerProgression.getProducerState('ball_basket'), false);
+assert.equal(typeof producerProgression.consumeCharge, 'undefined');
 const upgrade = producerProgression.addReputation(100);
 assert.equal(upgrade.upgrades[0].producerId, 'ball_basket');
 assert.equal(producerProgression.getProducerState('ball_basket').level, 2);
-assert.equal(producerProgression.getProducerState('ball_basket').charges, 16);
 
 producerProgression.evaluateMastery({ footballs: 3 });
 assert.equal(producerProgression.getMasteryOrders().length, 1);
 assert.equal(producerProgression.getMasteryOrders()[0].level, 12);
 assert.equal(producerProgression.getMasteryOrders()[0].quantity, 3);
 
-/*
- * Legacy special-order API remains callable for save compatibility, while the
- * active mastery system above is deliberately separate from the six normal slots.
- */
-assert.equal(rules.resultForEnergy(1, () => 0.1).level, 1);
-/*
-assert.equal(rules.resultForEnergy(1, () => 0.001).rare, true);
-assert.equal(rules.resultForEnergy(1, () => 0.01).level, 3);
-assert.equal(rules.resultForEnergy(1, () => 0.9).level, 1);
-assert.equal(rules.resultForEnergy(1, () => 0.9).rare, false);
-*/
-
 const progression = context.ChampionTour.Progression;
 assert.equal(progression.getOrders().length, 6);
-assert.equal(progression.queueMaxItemSpecialOrder('footballs'), true);
-assert.equal(progression.queueMaxItemSpecialOrder('footballs'), false);
+assert.equal(typeof progression.queueMaxItemSpecialOrder, 'undefined');
+assert.equal(typeof progression.addProducerXp, 'undefined');
+assert.equal(typeof progression.consumeCharge, 'undefined');
 assert.equal(progression.getOrders().length, 6);
+assert.equal(progression.getOrders().some((order) => order.items.length === 1), true);
+assert.equal(progression.getOrders().some((order) => order.items.length === 2), true);
 
 const first = progression.getOrders()[0];
 const delivered = first.items.flatMap((item) =>

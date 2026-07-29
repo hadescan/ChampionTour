@@ -344,7 +344,6 @@
     const rarityElement = document.getElementById('itemInfoRarity');
     const nextElement = document.getElementById('itemInfoNext');
     const definition = DATA.items[level];
-    document.getElementById('producerXpDebug').hidden = true;
     document.getElementById('itemInfoButton').hidden = false;
     document.getElementById('producerOutputChip').hidden = true;
     document.getElementById('productionModeControl').hidden = true;
@@ -402,7 +401,6 @@
     const panel = document.getElementById('itemInfoPanel');
     const producerId = state.cells[index]?.producerId || 'ball_basket';
     const producerState = Progression.getProducerState(producerId);
-    const debugButton = document.getElementById('producerXpDebug');
     clearTimeout(itemInfoTimer);
     selectedItemLevel = null;
     selectedItemChainId = null;
@@ -416,10 +414,7 @@
     document.getElementById('itemInfoDescription').textContent =
       DATA.producers[producerId].description;
     document.getElementById('itemInfoProducer').textContent = 'Üretici';
-    document.getElementById('itemInfoRarity').textContent =
-      producerState.charges > 0
-        ? `${producerState.charges}/${producerState.maxCharges} üretim hazır`
-        : `Dolum: ${formatCountdown(producerState.cooldownRemainingMs)}`;
+    document.getElementById('itemInfoRarity').textContent = 'Sınırsız üretim';
     document.getElementById('itemInfoNext').textContent =
       'Üretmek için dokun. Taşımak için sürükle.';
     const producer = DATA.producers[producerId];
@@ -429,12 +424,7 @@
     document.getElementById('producerOutputName').textContent = itemName(producer.chainId, 1);
     outputChip.hidden = false;
     renderProductionModeControl(producer.chainId);
-    debugButton.hidden = true;
     document.getElementById('itemInfoButton').hidden = false;
-    debugButton.textContent = window.t('producer.progress.debug_xp').replace(
-      '{amount}',
-      String(TESTING_MODE.producerXpIncrement)
-    );
     panel.setAttribute('aria-hidden', 'false');
     panel.classList.add('is-producer');
     panel.classList.remove('is-empty');
@@ -465,7 +455,6 @@
     document.getElementById('producerOutputChip').hidden = true;
     document.getElementById('productionModeControl').hidden = true;
     cellElements.forEach((cell) => cell.classList.remove('merge-partner-hint'));
-    document.getElementById('producerXpDebug').hidden = true;
     document.getElementById('itemInfoButton').hidden = true;
     panel.classList.remove('is-empty', 'content-change');
     panel.classList.add('is-visible');
@@ -612,7 +601,7 @@
         `<img src="${producer.artwork}" alt="">` +
         `<div><small>${DATA.chains[producer.chainId].name}</small>` +
         `<strong>${producer.name} • Sv.${producer.level}</strong>` +
-        `<span>${producer.charges}/${producer.maxCharges} üretim • Sipariş üst sınırı Sv.${producer.normalOrderMaxLevel}</span>` +
+        `<span>Sınırsız üretim • Sipariş üst sınırı Sv.${producer.normalOrderMaxLevel}</span>` +
         (retirement ? `<em>${retirement.eligible ? 'Yeni uzmanlık üreticisine dönüşmeye hazır' : 'Ustalık ve itibar ile uzmanlaşır'}</em>` : '') +
         `</div>` +
         (retirement?.eligible
@@ -851,17 +840,6 @@
       producerImage.addEventListener('pointerdown', beginProducerPointer);
       producerWrapper.appendChild(producerImage);
       cell.appendChild(producerWrapper);
-      const energyBadge = document.createElement('span');
-      energyBadge.className = 'producer-energy-badge';
-      const energyIcon = document.createElement('img');
-      energyIcon.src = DATA.uiIcons.producerEnergy;
-      energyIcon.alt = '';
-      energyBadge.appendChild(energyIcon);
-      const chargeText = document.createElement('strong');
-      chargeText.textContent = `${producerState.charges}/${producerState.maxCharges}`;
-      energyBadge.appendChild(chargeText);
-      energyBadge.setAttribute('aria-hidden', 'true');
-      cell.appendChild(energyBadge);
       if (index === selectedCellIndex) cell.classList.add('item-selected');
       updateProducerReadiness();
       return;
@@ -893,14 +871,10 @@
     cellElements.forEach((producerCell, index) => {
       const item = state.cells[index];
       if (item?.type !== 'producer') return;
-      const producerState = Progression.getProducerState(item.producerId);
       const energyReady =
-        state.energy >= PRODUCTION_COST && producerState.charges > 0 &&
-        !producerState.replacementPendingContent;
+        TESTING_MODE.infiniteEnergyInTest ||
+        state.energy >= state.selectedProductionEnergy;
       producerCell.classList.toggle('ready', energyReady);
-      producerCell.classList.toggle('is-refilling', producerState.charges === 0);
-      const badge = producerCell.querySelector('.producer-energy-badge strong');
-      if (badge) badge.textContent = `${producerState.charges}/${producerState.maxCharges}`;
     });
   }
 
@@ -1350,7 +1324,6 @@
     document.getElementById('reputationValue').textContent =
       String(completed.reputationProgress.reputation);
     playReputationUpgrades(completed.reputationProgress);
-    playProducerUpgrade(completed.producerProgress);
     handleAcademyProgress(academyProgress);
     card.classList.add('order-presenting', 'order-complete');
     GameAudio.play('reward');
@@ -1802,61 +1775,6 @@
     );
   }
 
-  function playProducerUpgrade(levelUps) {
-    if (!levelUps.length) return;
-    const producerIndices = state.cells
-      .map((item, index) => item?.type === 'producer' ? index : -1)
-      .filter((index) => index >= 0);
-    const producerIndex = producerIndices[0];
-    const totalDiamonds = levelUps.reduce(
-      (total, levelUp) => total + levelUp.diamondReward,
-      0
-    );
-
-    producerIndices.forEach((index) => renderCell(index, 'producer-upgrade'));
-    if (producerIndices.includes(selectedCellIndex)) {
-      showProducerInfo(selectedCellIndex);
-    }
-
-    const producerCell = cellElements[producerIndex];
-    window.setTimeout(
-      () => producerIndices.forEach(
-        (index) => cellElements[index]?.classList.remove('producer-upgrade')
-      ),
-      1200
-    );
-    const target = document.getElementById('gemValue');
-    if (totalDiamonds > 0 && producerCell && target) {
-      const sourceRect = producerCell.getBoundingClientRect();
-      const targetRect = target.getBoundingClientRect();
-      const flight = document.createElement('span');
-      flight.className = 'reward-flight producer-diamond-flight';
-      flight.textContent = `◆ +${totalDiamonds}`;
-      flight.style.left = `${sourceRect.left + sourceRect.width / 2}px`;
-      flight.style.top = `${sourceRect.top + sourceRect.height / 2}px`;
-      flight.style.setProperty(
-        '--reward-x',
-        `${targetRect.left + targetRect.width / 2 - (sourceRect.left + sourceRect.width / 2)}px`
-      );
-      flight.style.setProperty(
-        '--reward-y',
-        `${targetRect.top + targetRect.height / 2 - (sourceRect.top + sourceRect.height / 2)}px`
-      );
-      flight.style.setProperty('--reward-delay', '180ms');
-      document.body.appendChild(flight);
-      window.setTimeout(() => pulseRewardCounter('gemValue'), 615);
-      window.setTimeout(() => flight.remove(), 700);
-    }
-
-    const finalLevel = levelUps[levelUps.length - 1].level;
-    const message = window.t('producer.progress.upgraded')
-      .replace('{level}', String(finalLevel));
-    const rewardMessage = totalDiamonds > 0
-      ? ` ${window.t('producer.progress.diamonds').replace('{amount}', String(totalDiamonds))}`
-      : '';
-    showToast(`${message}${rewardMessage}`);
-  }
-
   function playReputationUpgrades(result) {
     if (!result?.upgrades?.length) return;
     result.upgrades.forEach((upgrade) => {
@@ -1970,7 +1888,6 @@
       completed.rewards,
       rewardTotals,
       () => {
-        playProducerUpgrade(completed.producerProgress);
         handleAcademyProgress(academyProgress);
       }
     );
@@ -2349,17 +2266,7 @@
       window.ChampionTour.testingRandom || Math.random,
       producerId
     );
-    if (!Progression.consumeCharge(producerId)) {
-      showToast(
-        producerState.replacementPendingContent
-          ? 'Yeni üretim zinciri yakında açılacak'
-          : 'Üretici dolum yapıyor'
-      );
-      renderCell(producerIndex);
-      return false;
-    }
     if (!spendEnergy(energyCost)) {
-      ProducerProgression.refundCharge?.(producerId);
       producerCell.classList.remove('energy-denied');
       void producerCell.offsetWidth;
       producerCell.classList.add('energy-denied');
@@ -2416,14 +2323,6 @@
       image.alt = '';
       image.draggable = false;
       ghost.appendChild(image);
-      const badge = document.createElement('span');
-      badge.className = 'producer-energy-badge';
-      const energyIcon = document.createElement('img');
-      energyIcon.src = DATA.uiIcons.producerEnergy;
-      energyIcon.alt = '';
-      badge.appendChild(energyIcon);
-      badge.setAttribute('aria-hidden', 'true');
-      ghost.appendChild(badge);
     }
 
     ghost.classList.add('drag-ghost');
@@ -3176,16 +3075,6 @@
     document.getElementById('itemDetailClose').addEventListener('click', closeItemDetail);
     document.getElementById('itemDetailOverlay').addEventListener('click', (event) => {
       if (event.target.id === 'itemDetailOverlay') closeItemDetail();
-    });
-    document.getElementById('producerXpDebug').addEventListener('click', () => {
-      if (!TESTING_MODE.enabled) return;
-      const result = Progression.addProducerXp(TESTING_MODE.producerXpIncrement);
-      const academyResult = Academy.addXp(TESTING_MODE.producerXpIncrement);
-      playProducerUpgrade(result.levelUps);
-      handleAcademyProgress(academyResult);
-      renderEconomy();
-      const producerIndex = state.cells.findIndex((item) => item?.type === 'producer');
-      if (!result.levelUps.length && producerIndex >= 0) showProducerInfo(producerIndex);
     });
     renderOrders();
     renderMasteryOrders();

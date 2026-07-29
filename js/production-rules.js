@@ -34,15 +34,15 @@ window.ChampionTour.ProductionRules = (function () {
     const drops = producer?.drops || { 1: 1 };
     const roll = random();
     let cumulative = 0;
-    let rolledLevel = 1;
-    Object.entries(drops).some(([level, chance]) => {
+    let bonusLevel = 0;
+    Object.entries(drops).some(([levelBonus, chance]) => {
       cumulative += chance;
       if (roll > cumulative) return false;
-      rolledLevel = Number(level);
+      bonusLevel = Math.max(0, Math.min(1, Number(levelBonus) || 0));
       return true;
     });
-    const level = Math.min(DATA.maxItemLevel, baseLevel + rolledLevel - 1);
-    return { level, rare: rolledLevel > 1, producerLevel: producer?.level || 1 };
+    const level = Math.min(DATA.maxItemLevel, baseLevel + bonusLevel);
+    return { level, rare: bonusLevel > 0, producerLevel: producer?.level || 1 };
   }
 
   return { levelForEnergy, maxLevelForChain, supportedEnergyOptions, resultForEnergy };

@@ -1,0 +1,46 @@
+Champion Tour — Mechanics Unification Browser Test Results
+===========================================================
+
+Environment
+-----------
+- Real in-app Chromium browser
+- Isolated localhost origins; the player's existing save was not modified
+- Test mode infinite Energy enabled
+
+Results
+-------
+PASS — Six normal Order cards rendered.
+PASS — Both one-item and two-item Orders rendered in the real game screen.
+PASS — Saved Orders survived reload with the same six cards and no duplication.
+PASS — Delivering a ready normal Order immediately replaced it while keeping six active cards.
+PASS — Production selector cycled 1 -> 2 -> 4 -> 8 -> 16 -> 1.
+PASS — Selected production Energy 16 survived reload.
+PASS — Energy 1 produced at least L1.
+PASS — Energy 2 produced at least L2.
+PASS — Energy 4 produced at least L3.
+PASS — Energy 8 produced at least L4.
+PASS — Energy 16 produced at least L5.
+PASS — ball_basket produced 25 consecutive items.
+PASS — equipment_locker produced 25 consecutive items.
+PASS — training_cart produced 25 consecutive items.
+PASS — trophy_cabinet produced 25 consecutive items.
+PASS — No producer charge badge was rendered.
+PASS — No producer entered the is-refilling state.
+PASS — Required board items received partial/full Order highlights.
+PASS — Highlight followed an item after drag to an empty cell.
+PASS — Highlight recalculated after merging two matching items.
+PASS — Three football L12 items automatically opened one visible Mastery Order.
+PASS — Mastery Order remained singular and retained its 3/3 state after reload.
+PASS — Mastery delivery consumed exactly three football L12 items.
+PASS — Mastery delivery awarded 900 Coins, 1 Diamond and 100 Reputation.
+PASS — After reload, the Mastery Order remained completed and rewards did not duplicate.
+PASS — Item sale reduced board item count by one and awarded 2 Coins.
+PASS — Board-to-Storage drag reduced board count and updated Storage to 1/8.
+PASS — Browser console contained no error-level messages in tested sessions.
+
+Evidence
+--------
+- mechanics-energy-selector.png
+- mechanics-multi-order-highlight.png
+- mechanics-mastery-open.png
+- mechanics-mastery-delivered.png
