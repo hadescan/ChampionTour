@@ -24,7 +24,7 @@
   --ct-order-gap: 4px;
   --ct-soft-shadow: 0 6px 14px rgba(25, 59, 44, .23);
   --ct-hud-height: clamp(54px, 7.1dvh, 66px);
-  --ct-orders-height: clamp(218px, 27.5dvh, 260px);
+  --ct-orders-height: clamp(190px, 24.5dvh, 230px);
   --ct-info-height: clamp(78px, 10.2dvh, 92px);
 }
 
@@ -186,42 +186,18 @@ h2 {
   height: clamp(45px, 5.55dvh, 49px);
   transform: translateY(-50%);
   overflow: visible;
-  border: 3px solid #efbd4d;
-  border-radius: 6px 13px 13px 6px;
-  background:
-    linear-gradient(90deg, rgba(255,255,255,.28) 0 5%, transparent 5% 11%, rgba(255,255,255,.26) 11% 14%, transparent 14%),
-    linear-gradient(105deg, #478fc1 0%, #236092 55%, #123b66 100%);
-  box-shadow:
-    0 0 0 1.5px #092a47,
-    0 3px 0 #0c2a49,
-    0 5px 7px rgba(5, 21, 35, .38),
-    inset 1px 1px 0 rgba(255, 255, 255, .35),
-    inset -2px 0 0 rgba(0, 0, 0, .2),
-    inset 0 -7px 0 rgba(7, 45, 78, .42);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .level-ring::before {
-  content: "★";
-  position: absolute;
-  z-index: 2;
-  left: 50%;
-  top: 1px;
-  transform: translateX(-50%);
-  color: #ffdc62;
-  font: 700 clamp(10px, 3vw, 13px)/1 "Fredoka", sans-serif;
-  text-shadow: 0 1px 0 #744515;
+  content: none;
 }
 
 .level-ring::after {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  left: 5px;
-  bottom: -9px;
-  width: 23px;
-  height: 13px;
-  background: linear-gradient(90deg, #266494 0 44%, #e3ae3a 44% 50%, #17456f 50%);
-  clip-path: polygon(0 0, 45% 0, 50% 33%, 56% 0, 100% 0, 83% 100%, 50% 70%, 17% 100%);
+  content: none;
 }
 
 .level-ring svg,
@@ -231,27 +207,15 @@ h2 {
   display: none;
 }
 
-.level-book-pages {
-  position: absolute;
-  z-index: 1;
-  left: 4px;
-  bottom: 7px;
-  width: 9px;
-  height: 23px;
-  border-radius: 3px 0 0 3px;
-  background: linear-gradient(90deg, rgba(255,255,255,.65), rgba(255,255,255,.1));
-  opacity: .42;
-}
-
 .level-ring #playerLevelValue {
   position: absolute;
   inset: 0;
   z-index: 3;
   display: grid;
   place-items: center;
-  padding-top: 7px;
+  padding-top: 4px;
   color: #fff9e7;
-  font: 700 clamp(19px, 5.4vw, 24px)/1 "Fredoka", sans-serif;
+  font: 700 clamp(17px, 4.7vw, 21px)/1 "Fredoka", sans-serif;
   text-shadow: 0 2px 0 #17374e;
 }
 
@@ -352,6 +316,43 @@ h2 {
   top: 50%;
   transform: translateY(-50%);
   pointer-events: none;
+}
+
+/* Extracted directly from the approved Cozy Academy gameplay reference. */
+.hud-reference-image {
+  position: absolute;
+  z-index: 7;
+  top: 50%;
+  display: block;
+  object-fit: contain;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.level-reference-image {
+  z-index: 1;
+  inset: -6px -7px -10px -7px;
+  width: calc(100% + 14px);
+  height: calc(100% + 16px);
+  transform: none;
+}
+
+.energy-reference-image {
+  left: -9px;
+  width: 34px;
+  height: 43px;
+}
+
+.coin-reference-image {
+  left: -8px;
+  width: 35px;
+  height: 39px;
+}
+
+.gem-reference-image {
+  left: -8px;
+  width: 35px;
+  height: 42px;
 }
 
 /* Reference HUD: a free-standing lightning token, not a square icon. */
@@ -1481,8 +1482,8 @@ h2 {
 @media (max-height: 800px) {
   :root {
     --ct-hud-height: 54px;
-    --ct-orders-height: 218px;
-    --ct-info-height: 88px;
+    --ct-orders-height: 190px;
+    --ct-info-height: 78px;
   }
 
   .game {
