@@ -972,15 +972,15 @@ h2 {
   z-index: 4;
   left: 50%;
   top: 50%;
-  width: 72%;
-  height: 78%;
+  width: 92%;
+  height: 96%;
   margin: 0;
   padding: 0;
   display: grid;
   place-items: center;
   transform:
     translate3d(-50%, calc(-50% - 2px), 0)
-    scale(calc(var(--item-visual-scale, 1) * .82));
+    scale(calc(var(--item-visual-scale, 1) * .9));
   background: transparent;
   will-change: transform;
 }
@@ -1003,8 +1003,8 @@ h2 {
 
 .producer-wrap {
   z-index: 6;
-  width: 92%;
-  height: 97%;
+  width: 120%;
+  height: 125%;
   transform: translate3d(-50%, calc(-50% - 1px), 0);
   animation: ct-producer-idle 2.3s ease-in-out infinite;
 }
