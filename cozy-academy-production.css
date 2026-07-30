@@ -1647,3 +1647,18 @@ h2 {
   font-weight: 400;
   letter-spacing: .01em;
 }
+
+/* Warm academy gold replaces white while retaining HUD contrast. */
+.level-ring #playerLevelValue,
+.player-level-card .level-copy strong,
+.game-header #energyValue,
+.game-header #coinValue,
+.game-header #gemValue {
+  color: #f5c85c;
+  text-shadow:
+    -1px -1px 0 rgba(15, 50, 70, .92),
+    1px -1px 0 rgba(15, 50, 70, .92),
+    -1px 1px 0 rgba(15, 50, 70, .92),
+    1px 1px 0 rgba(15, 50, 70, .92),
+    0 2px 2px rgba(5, 33, 48, .48);
+}
