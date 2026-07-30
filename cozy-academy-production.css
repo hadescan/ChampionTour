@@ -133,19 +133,19 @@ h2 {
 .game-header {
   position: relative;
   z-index: 40;
-  width: calc(100% - 4px);
+  width: calc(100% - 12px);
   height: 100%;
   min-height: 0;
   margin: 0 auto;
-  padding: 10px 0 0;
+  padding: 13px 0 0;
   display: grid;
   grid-template-columns:
-    minmax(0, 1.67fr)
-    minmax(0, .79fr)
-    minmax(0, 1fr)
-    minmax(0, .94fr);
+    minmax(0, 1.72fr)
+    minmax(0, .82fr)
+    minmax(0, 1.02fr)
+    minmax(0, .95fr);
   align-items: center;
-  gap: 3px;
+  gap: 5px;
   border: 0;
   background: transparent;
   box-shadow: none;
@@ -154,7 +154,7 @@ h2 {
 
 .game-header .hud-capsule {
   position: relative;
-  height: clamp(31px, 4dvh, 35px);
+  height: clamp(32px, 4.15dvh, 36px);
   min-width: 0;
   border: 2px solid #f1bd43;
   border-radius: 17px;
@@ -172,7 +172,7 @@ h2 {
 .player-level-card {
   display: flex;
   align-items: center;
-  padding: 3px 5px 3px 48px;
+  padding: 3px 5px 3px 51px;
   overflow: visible;
 }
 
@@ -182,21 +182,22 @@ h2 {
   z-index: 5;
   left: -2px;
   top: 50%;
-  width: clamp(43px, 11.5vw, 49px);
-  height: clamp(50px, 6.25dvh, 55px);
+  width: clamp(42px, 11.2vw, 48px);
+  height: clamp(53px, 6.55dvh, 58px);
   transform: translateY(-50%);
   overflow: visible;
   border: 3px solid #efbd4d;
-  border-radius: 7px 12px 12px 7px;
+  border-radius: 6px 13px 13px 6px;
   background:
-    linear-gradient(90deg, transparent 45%, rgba(255, 255, 255, .38) 45% 52%, transparent 52%),
-    linear-gradient(105deg, #397bb0 0%, #1d5082 56%, #123c68 100%);
+    linear-gradient(90deg, rgba(255,255,255,.28) 0 5%, transparent 5% 11%, rgba(255,255,255,.26) 11% 14%, transparent 14%),
+    linear-gradient(105deg, #478fc1 0%, #236092 55%, #123b66 100%);
   box-shadow:
     0 0 0 1.5px #092a47,
     0 3px 0 #0c2a49,
     0 5px 7px rgba(5, 21, 35, .38),
     inset 1px 1px 0 rgba(255, 255, 255, .35),
-    inset -2px 0 0 rgba(0, 0, 0, .2);
+    inset -2px 0 0 rgba(0, 0, 0, .2),
+    inset 0 -7px 0 rgba(7, 45, 78, .42);
 }
 
 .level-ring::before {
@@ -215,13 +216,12 @@ h2 {
   content: "";
   position: absolute;
   z-index: -1;
-  left: 50%;
-  bottom: -10px;
-  width: 18px;
-  height: 13px;
-  transform: translateX(-50%);
-  background: linear-gradient(180deg, #1d4d7d, #112f50);
-  clip-path: polygon(0 0, 100% 0, 100% 62%, 50% 100%, 0 62%);
+  left: 7px;
+  bottom: -12px;
+  width: 27px;
+  height: 17px;
+  background: linear-gradient(90deg, #266494 0 44%, #e3ae3a 44% 50%, #17456f 50%);
+  clip-path: polygon(0 0, 45% 0, 50% 33%, 56% 0, 100% 0, 83% 100%, 50% 70%, 17% 100%);
 }
 
 .level-ring svg,
@@ -229,6 +229,18 @@ h2 {
 .level-ring-progress,
 .level-emblem {
   display: none;
+}
+
+.level-book-pages {
+  position: absolute;
+  z-index: 1;
+  left: 4px;
+  bottom: 7px;
+  width: 9px;
+  height: 23px;
+  border-radius: 3px 0 0 3px;
+  background: linear-gradient(90deg, rgba(255,255,255,.65), rgba(255,255,255,.1));
+  opacity: .42;
 }
 
 .level-ring #playerLevelValue {
@@ -311,11 +323,11 @@ h2 {
 }
 
 .energy-card {
-  padding: 1px 4px 1px 25px;
+  padding: 1px 4px 1px 28px;
 }
 
 .resource-pill {
-  padding: 1px 4px 1px 27px;
+  padding: 1px 4px 1px 29px;
 }
 
 .game-header .hud-icon {
@@ -333,11 +345,94 @@ h2 {
     drop-shadow(0 3px 2px rgba(5, 30, 46, .52));
 }
 
-.resource-pill > .hud-icon {
-  left: -8px;
-  width: clamp(33px, 9vw, 38px);
-  height: clamp(33px, 4.7dvh, 41px);
+.game-header .hud-emblem {
+  position: absolute;
+  z-index: 6;
+  left: -11px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
 }
+
+/* Reference HUD: a free-standing lightning token, not a square icon. */
+.energy-emblem {
+  width: 39px;
+  height: 50px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #0c477b 0 39%, #1778bc 40% 68%, #0a3e70 69%);
+  border: 2px solid #092f57;
+  border-radius: 43% 57% 54% 46% / 34% 36% 64% 66%;
+  clip-path: polygon(55% 0, 100% 15%, 73% 43%, 93% 55%, 39% 100%, 47% 63%, 6% 52%);
+  filter: drop-shadow(0 2px 0 #e7b33d) drop-shadow(0 4px 2px rgba(2,23,42,.45));
+}
+
+.energy-emblem::before {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  background: linear-gradient(135deg, #dcffff, #20c8ff 45%, #1687e3);
+  clip-path: polygon(55% 0, 100% 15%, 73% 43%, 93% 55%, 39% 100%, 47% 63%, 6% 52%);
+}
+
+.energy-emblem i {
+  position: relative;
+  z-index: 1;
+  margin-left: -1px;
+  color: #fffef4;
+  font: 900 30px/1 Arial, sans-serif;
+  text-shadow: 0 2px 0 #1673b6;
+}
+
+/* Reference HUD: gold star-rosette medallion, not the football coin asset. */
+.coin-emblem {
+  width: 39px;
+  height: 39px;
+  display: grid;
+  place-items: center;
+  border: 3px solid #eab43c;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 28%, #fff2a6 0 7%, #ffc84a 8% 29%, #d78017 30% 48%, #ffdc5b 49% 62%, #b96712 63% 100%);
+  box-shadow: 0 0 0 2px #6c3c12, 0 2px 0 #a15b15, 0 4px 3px rgba(3,25,41,.45);
+}
+
+.coin-emblem::before {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border: 1px solid rgba(255,250,186,.85);
+  border-radius: 50%;
+}
+
+.coin-emblem i {
+  position: relative;
+  z-index: 1;
+  color: #ffe978;
+  font: 900 21px/1 Arial, sans-serif;
+  text-shadow: 0 1px 0 #9b5a12;
+}
+
+.gem-emblem {
+  left: -9px !important;
+  width: 40px;
+  height: 42px;
+  background: linear-gradient(135deg, #ffd6ff 0 18%, #ed42cf 19% 52%, #9d0c98 53% 100%);
+  clip-path: polygon(20% 0, 80% 0, 100% 31%, 50% 100%, 0 31%);
+  filter: drop-shadow(0 0 0 #74306d) drop-shadow(0 3px 2px rgba(3,25,41,.5));
+}
+
+.gem-emblem::before,
+.gem-emblem::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  width: 50%;
+  height: 38%;
+  background: rgba(255,255,255,.34);
+}
+
+.gem-emblem::before { left: 2px; clip-path: polygon(0 0, 100% 0, 56% 100%); }
+.gem-emblem::after { right: 2px; clip-path: polygon(0 0, 100% 0, 43% 100%); }
 
 .energy-content,
 .energy-row,
