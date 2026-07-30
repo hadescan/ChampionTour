@@ -1609,3 +1609,22 @@ h2 {
 .resource-gems .resource-copy {
   transform: translateX(-13px);
 }
+
+
+/* DynaPuff provides a visibly friendlier casual-game HUD face. */
+@font-face {
+  font-family: "DynaPuff HUD";
+  src: url("assets/fonts/dynapuff-latin-ext-600-normal.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+.level-ring #playerLevelValue,
+.player-level-card .level-copy strong,
+.game-header #energyValue,
+.game-header #coinValue,
+.game-header #gemValue {
+  font-family: "DynaPuff HUD", sans-serif;
+  font-weight: 600;
+  letter-spacing: .01em;
+}
