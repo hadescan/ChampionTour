@@ -1628,3 +1628,22 @@ h2 {
   font-weight: 600;
   letter-spacing: .01em;
 }
+
+/* Selected HUD face: Bowlby One SC has full Turkish glyph coverage. */
+@font-face {
+  font-family: "Bowlby HUD";
+  src: url("assets/fonts/bowlby-one-sc-turkish-400.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+.level-ring #playerLevelValue,
+.player-level-card .level-copy strong,
+.game-header #energyValue,
+.game-header #coinValue,
+.game-header #gemValue {
+  font-family: "Bowlby HUD", sans-serif;
+  font-weight: 400;
+  letter-spacing: .01em;
+}
