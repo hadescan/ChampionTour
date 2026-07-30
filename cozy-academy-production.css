@@ -1556,3 +1556,32 @@ h2 {
     1px 1px 0 rgba(11, 48, 70, .86),
     0 2px 2px rgba(5, 33, 48, .42);
 }
+
+
+/* Final HUD alignment: optical centers, not only element-box centers. */
+@font-face {
+  font-family: "Nunito HUD";
+  src: url("assets/fonts/nunito-sans-latin-ext-700.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
+
+.level-ring #playerLevelValue {
+  transform: translate(5px, -4px);
+  font-family: "Nunito HUD", "Nunito Sans", sans-serif;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.resource-gems .resource-copy {
+  transform: translateX(-8px);
+}
+
+.player-level-card .level-copy strong,
+.game-header #energyValue,
+.game-header #coinValue,
+.game-header #gemValue {
+  font-family: "Nunito HUD", "Nunito Sans", sans-serif;
+  font-weight: 700;
+  letter-spacing: 0;
+}
