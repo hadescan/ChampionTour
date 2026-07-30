@@ -462,6 +462,12 @@ h2 {
   min-height: 0;
   margin: 0;
   padding: 0;
+  display: block;
+  grid-template-columns: none;
+  grid-template-rows: none;
+  align-items: normal;
+  column-gap: 0;
+  row-gap: 0;
   overflow: visible;
   isolation: isolate;
   scroll-snap-align: start;
@@ -480,6 +486,9 @@ h2 {
 .customer-portrait {
   position: absolute;
   z-index: 1;
+  grid-area: auto;
+  align-self: auto;
+  justify-self: auto;
   left: 50%;
   top: 0;
   width: 118%;
@@ -505,6 +514,8 @@ h2 {
 .order-customer-name {
   position: absolute;
   z-index: 5;
+  grid-area: auto;
+  align-self: auto;
   left: 3px;
   right: 3px;
   top: 59%;
@@ -528,6 +539,8 @@ h2 {
 .order-items {
   position: absolute;
   z-index: 4;
+  grid-area: auto;
+  align-self: auto;
   left: 4px;
   right: 4px;
   top: 68%;
@@ -647,6 +660,8 @@ h2 {
 .order-rewards {
   position: absolute;
   z-index: 6;
+  grid-area: auto;
+  align-self: auto;
   left: 4px;
   right: 4px;
   bottom: 0;
