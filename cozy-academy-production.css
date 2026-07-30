@@ -24,7 +24,7 @@
   --ct-order-gap: 4px;
   --ct-soft-shadow: 0 6px 14px rgba(25, 59, 44, .23);
   --ct-hud-height: clamp(54px, 7.1dvh, 66px);
-  --ct-orders-height: clamp(190px, 24.5dvh, 230px);
+  --ct-orders-height: clamp(172px, 21.5dvh, 205px);
   --ct-info-height: clamp(78px, 10.2dvh, 92px);
 }
 
@@ -186,18 +186,34 @@ h2 {
   height: clamp(45px, 5.55dvh, 49px);
   transform: translateY(-50%);
   overflow: visible;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
+  border: 2px solid #efbd4d;
+  border-radius: 5px 11px 11px 5px;
+  background: linear-gradient(105deg, #478fc1 0%, #236092 55%, #123b66 100%);
+  box-shadow: 0 0 0 1px #092a47, 0 2px 0 #0c2a49, 0 4px 5px rgba(5,21,35,.32);
 }
 
 .level-ring::before {
-  content: none;
+  content: "★";
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  top: 1px;
+  transform: translateX(-50%);
+  color: #ffdc62;
+  font: 700 11px/1 "Fredoka", sans-serif;
+  text-shadow: 0 1px 0 #744515;
 }
 
 .level-ring::after {
-  content: none;
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: 5px;
+  bottom: -9px;
+  width: 23px;
+  height: 13px;
+  background: linear-gradient(90deg, #266494 0 44%, #e3ae3a 44% 50%, #17456f 50%);
+  clip-path: polygon(0 0, 45% 0, 50% 33%, 56% 0, 100% 0, 83% 100%, 50% 70%, 17% 100%);
 }
 
 .level-ring svg,
@@ -217,6 +233,18 @@ h2 {
   color: #fff9e7;
   font: 700 clamp(17px, 4.7vw, 21px)/1 "Fredoka", sans-serif;
   text-shadow: 0 2px 0 #17374e;
+}
+
+.level-book-pages {
+  position: absolute;
+  z-index: 1;
+  left: 4px;
+  bottom: 6px;
+  width: 7px;
+  height: 18px;
+  border-radius: 2px 0 0 2px;
+  background: linear-gradient(90deg, rgba(255,255,255,.65), rgba(255,255,255,.1));
+  opacity: .42;
 }
 
 .level-copy {
@@ -338,21 +366,21 @@ h2 {
 }
 
 .energy-reference-image {
-  left: -9px;
-  width: 34px;
-  height: 43px;
+  left: -7px;
+  width: 29px;
+  height: 37px;
 }
 
 .coin-reference-image {
-  left: -8px;
-  width: 35px;
-  height: 39px;
+  left: -7px;
+  width: 29px;
+  height: 33px;
 }
 
 .gem-reference-image {
-  left: -8px;
-  width: 35px;
-  height: 42px;
+  left: -7px;
+  width: 29px;
+  height: 34px;
 }
 
 /* Reference HUD: a free-standing lightning token, not a square icon. */
@@ -570,9 +598,9 @@ h2 {
   align-self: auto;
   justify-self: auto;
   left: 50%;
-  top: 5%;
-  width: 98%;
-  height: 56%;
+  top: 7%;
+  width: 88%;
+  height: 45%;
   margin: 0;
   transform: translateX(-50%);
   overflow: visible;
@@ -598,7 +626,7 @@ h2 {
   align-self: auto;
   left: 3px;
   right: 3px;
-  top: 53%;
+  top: 45%;
   height: clamp(20px, 2.75dvh, 25px);
   display: grid;
   place-items: center;
@@ -623,9 +651,9 @@ h2 {
   align-self: auto;
   left: 4px;
   right: 4px;
-  top: 63%;
+  top: 56%;
   width: auto;
-  height: 28%;
+  height: 32%;
   min-height: 48px;
   display: flex;
   align-items: center;
@@ -986,8 +1014,8 @@ h2 {
   z-index: 4;
   left: 50%;
   top: 50%;
-  width: 90%;
-  height: 100%;
+  width: 76%;
+  height: 82%;
   margin: 0;
   padding: 0;
   display: grid;
@@ -1482,7 +1510,7 @@ h2 {
 @media (max-height: 800px) {
   :root {
     --ct-hud-height: 54px;
-    --ct-orders-height: 190px;
+    --ct-orders-height: 172px;
     --ct-info-height: 78px;
   }
 
