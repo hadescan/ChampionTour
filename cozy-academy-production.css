@@ -749,6 +749,40 @@ h2 {
   pointer-events: none;
 }
 
+/* Decorative climbing vine along the board frame — matches the locked
+   gameplay reference's leafy border treatment. Presentation only. */
+.board-vine {
+  position: absolute;
+  top: -6px;
+  bottom: -6px;
+  width: 16px;
+  z-index: 12;
+  pointer-events: none;
+  background-repeat: repeat-y;
+  background-size: 100% 84px;
+  opacity: .92;
+}
+
+.board-vine-left {
+  left: -9px;
+  background-image:
+    radial-gradient(circle at 30% 10%, #7cb95a 0 5px, transparent 6px),
+    radial-gradient(circle at 65% 26%, #5ea246 0 6px, transparent 7px),
+    radial-gradient(circle at 25% 44%, #8fc766 0 5px, transparent 6px),
+    radial-gradient(circle at 60% 62%, #eb9fc2 0 3px, transparent 4px),
+    radial-gradient(circle at 30% 78%, #5ea246 0 6px, transparent 7px);
+}
+
+.board-vine-right {
+  right: -9px;
+  background-image:
+    radial-gradient(circle at 70% 14%, #5ea246 0 6px, transparent 7px),
+    radial-gradient(circle at 35% 30%, #8fc766 0 5px, transparent 6px),
+    radial-gradient(circle at 75% 48%, #7cb95a 0 5px, transparent 6px),
+    radial-gradient(circle at 40% 66%, #eb9fc2 0 3px, transparent 4px),
+    radial-gradient(circle at 70% 82%, #5ea246 0 6px, transparent 7px);
+}
+
 .board-heading { display: none; }
 
 .board {
@@ -1484,39 +1518,51 @@ h2 {
 }
 
 .player-level-card {
-  padding-left: 47px;
+  padding-left: 50px;
 }
 
+/* Book-shaped level badge, matching the locked gameplay reference. */
 .level-ring {
-  left: -1px;
-  width: 48px;
-  height: 55px;
+  left: -2px;
+  top: 50%;
+  width: 40px;
+  height: 46px;
+  transform: translateY(-50%);
   border: 0;
-  border-radius: 0;
+  border-radius: 4px 10px 10px 4px;
   background:
-    linear-gradient(90deg, transparent 7%, #b67828 7% 13%, transparent 13% 87%, #b67828 87% 93%, transparent 93%) 50% 95% / 100% 13px no-repeat,
-    linear-gradient(145deg, #2c78a2, #0d3d66 66%);
-  clip-path: polygon(12% 5%, 50% 0, 88% 5%, 96% 17%, 90% 86%, 68% 100%, 50% 92%, 32% 100%, 10% 86%, 4% 17%);
-  box-shadow: none;
-  filter:
-    drop-shadow(0 0 1px #f8d66f)
-    drop-shadow(0 3px 0 #70451d)
-    drop-shadow(0 5px 5px rgba(21,45,31,.3));
+    linear-gradient(90deg, transparent 44%, rgba(255,255,255,.4) 44% 52%, transparent 52%),
+    linear-gradient(100deg, #3576ac 0%, #1c4d80 55%, #163f6b 100%);
+  clip-path: none;
+  box-shadow:
+    0 3px 0 #0d2c4d,
+    0 5px 7px rgba(5, 20, 35, .4),
+    inset 1px 1px 0 rgba(255,255,255,.35),
+    inset -2px 0 0 rgba(0,0,0,.22);
+  filter: none;
 }
 
+/* Ribbon bookmark hanging from the bottom of the book. */
 .level-ring::after {
   content: "";
   position: absolute;
-  inset: 4px;
-  border: 2px solid #efbd4d;
-  clip-path: inherit;
+  z-index: -1;
+  left: 50%;
+  bottom: -8px;
+  width: 13px;
+  height: 11px;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, #1c4d80, #123253);
+  clip-path: polygon(0 0, 100% 0, 100% 62%, 50% 100%, 0 62%);
+  border: none;
+  inset: auto;
   pointer-events: none;
 }
 
 .level-ring::before {
-  top: 2px;
+  top: 3px;
   z-index: 2;
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .level-copy {
@@ -1525,39 +1571,51 @@ h2 {
   display: grid;
   place-items: center;
   overflow: hidden;
+  padding: 0 6px;
 }
 
+/* XP track (empty portion of the bar). */
 .level-copy::after {
   content: "";
   position: absolute;
   z-index: 0;
-  left: 0;
-  right: 0;
-  bottom: 3px;
-  height: 5px;
-  border-radius: 4px;
-  background: rgba(2, 29, 48, .7);
-  box-shadow: inset 0 1px 2px rgba(0,0,0,.35);
+  left: 3px;
+  right: 3px;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 72%;
+  border-radius: 20px;
+  background: rgba(2, 29, 48, .6);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,.4), inset 0 -1px 0 rgba(255,255,255,.06);
 }
 
+/* XP fill — width driven by the --xp-fill custom property set in script.js. */
 .level-copy::before {
   content: "";
   position: absolute;
   z-index: 1;
-  left: 0;
-  bottom: 3px;
+  left: 3px;
+  top: 50%;
+  transform: translateY(-50%);
   width: var(--xp-fill, 0%);
-  height: 5px;
-  border-radius: 4px;
+  max-width: calc(100% - 6px);
+  height: 72%;
+  border-radius: 20px;
   background: linear-gradient(90deg, #24caa8, #7ce4bd);
-  box-shadow: 0 0 4px rgba(94,230,192,.65);
+  box-shadow: 0 0 5px rgba(94,230,192,.65);
+  transition: width .4s ease;
 }
 
 .player-level-card .level-copy strong {
   position: relative;
   z-index: 2;
-  padding-bottom: 5px;
-  font-size: clamp(9px, 2.6vw, 11px);
+  padding: 0;
+  font-size: clamp(10px, 2.9vw, 12px);
+  font-weight: 700;
+  letter-spacing: 0;
+  white-space: nowrap;
+  color: #fff7dc;
+  text-shadow: 0 1px 2px rgba(0,0,0,.6), 0 0 3px rgba(0,0,0,.35);
 }
 
 .game-header .hud-icon {

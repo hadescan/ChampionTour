@@ -3134,8 +3134,8 @@ body {
   padding: 3px;
   border: 2px solid #f7edc4;
   border-radius: 10px;
-  background: #eef0cf !important;
-  background-image: none !important;
+  background: #eef0cf;
+  background-image: none;
   box-shadow: inset 0 2px 0 rgba(107, 133, 79, .24);
 }
 
@@ -3143,7 +3143,7 @@ body {
   border: 1px solid rgba(255, 252, 217, .9);
   border-radius: 5px;
   background:
-    linear-gradient(145deg, rgba(246, 246, 211, .96), rgba(219, 230, 184, .96)) !important;
+    linear-gradient(145deg, rgba(246, 246, 211, .96), rgba(219, 230, 184, .96));
   box-shadow:
     inset 1px 1px 0 rgba(255,255,255,.74),
     inset -1px -1px 0 rgba(133, 157, 102, .16);
@@ -3151,7 +3151,7 @@ body {
 
 .cell:nth-child(even) {
   background:
-    linear-gradient(145deg, rgba(239, 242, 204, .96), rgba(211, 225, 177, .96)) !important;
+    linear-gradient(145deg, rgba(239, 242, 204, .96), rgba(211, 225, 177, .96));
 }
 
 .cell.item-selected {
