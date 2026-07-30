@@ -25,7 +25,7 @@
   --ct-soft-shadow: 0 6px 14px rgba(25, 59, 44, .23);
   --ct-hud-height: clamp(54px, 7.1dvh, 66px);
   --ct-orders-height: clamp(218px, 27.5dvh, 260px);
-  --ct-info-height: clamp(88px, 11.8dvh, 110px);
+  --ct-info-height: clamp(78px, 10.2dvh, 92px);
 }
 
 @font-face {
@@ -172,7 +172,7 @@ h2 {
 .player-level-card {
   display: flex;
   align-items: center;
-  padding: 3px 5px 3px 51px;
+  padding: 3px 5px 3px 43px;
   overflow: visible;
 }
 
@@ -182,8 +182,8 @@ h2 {
   z-index: 5;
   left: -2px;
   top: 50%;
-  width: clamp(42px, 11.2vw, 48px);
-  height: clamp(53px, 6.55dvh, 58px);
+  width: clamp(36px, 9.3vw, 40px);
+  height: clamp(45px, 5.55dvh, 49px);
   transform: translateY(-50%);
   overflow: visible;
   border: 3px solid #efbd4d;
@@ -216,10 +216,10 @@ h2 {
   content: "";
   position: absolute;
   z-index: -1;
-  left: 7px;
-  bottom: -12px;
-  width: 27px;
-  height: 17px;
+  left: 5px;
+  bottom: -9px;
+  width: 23px;
+  height: 13px;
   background: linear-gradient(90deg, #266494 0 44%, #e3ae3a 44% 50%, #17456f 50%);
   clip-path: polygon(0 0, 45% 0, 50% 33%, 56% 0, 100% 0, 83% 100%, 50% 70%, 17% 100%);
 }
@@ -348,7 +348,7 @@ h2 {
 .game-header .hud-emblem {
   position: absolute;
   z-index: 6;
-  left: -11px;
+  left: -8px;
   top: 50%;
   transform: translateY(-50%);
   pointer-events: none;
@@ -356,12 +356,12 @@ h2 {
 
 /* Reference HUD: a free-standing lightning token, not a square icon. */
 .energy-emblem {
-  width: 39px;
-  height: 50px;
+  width: 30px;
+  height: 39px;
   display: grid;
   place-items: center;
   background: linear-gradient(135deg, #0c477b 0 39%, #1778bc 40% 68%, #0a3e70 69%);
-  border: 2px solid #092f57;
+  border: 1.5px solid #092f57;
   border-radius: 43% 57% 54% 46% / 34% 36% 64% 66%;
   clip-path: polygon(55% 0, 100% 15%, 73% 43%, 93% 55%, 39% 100%, 47% 63%, 6% 52%);
   filter: drop-shadow(0 2px 0 #e7b33d) drop-shadow(0 4px 2px rgba(2,23,42,.45));
@@ -375,22 +375,15 @@ h2 {
   clip-path: polygon(55% 0, 100% 15%, 73% 43%, 93% 55%, 39% 100%, 47% 63%, 6% 52%);
 }
 
-.energy-emblem i {
-  position: relative;
-  z-index: 1;
-  margin-left: -1px;
-  color: #fffef4;
-  font: 900 30px/1 Arial, sans-serif;
-  text-shadow: 0 2px 0 #1673b6;
-}
+.energy-emblem i { display: none; }
 
 /* Reference HUD: gold star-rosette medallion, not the football coin asset. */
 .coin-emblem {
-  width: 39px;
-  height: 39px;
+  width: 31px;
+  height: 31px;
   display: grid;
   place-items: center;
-  border: 3px solid #eab43c;
+  border: 2px solid #eab43c;
   border-radius: 50%;
   background: radial-gradient(circle at 35% 28%, #fff2a6 0 7%, #ffc84a 8% 29%, #d78017 30% 48%, #ffdc5b 49% 62%, #b96712 63% 100%);
   box-shadow: 0 0 0 2px #6c3c12, 0 2px 0 #a15b15, 0 4px 3px rgba(3,25,41,.45);
@@ -408,14 +401,14 @@ h2 {
   position: relative;
   z-index: 1;
   color: #ffe978;
-  font: 900 21px/1 Arial, sans-serif;
+  font: 900 17px/1 Arial, sans-serif;
   text-shadow: 0 1px 0 #9b5a12;
 }
 
 .gem-emblem {
-  left: -9px !important;
-  width: 40px;
-  height: 42px;
+  left: -7px !important;
+  width: 32px;
+  height: 34px;
   background: linear-gradient(135deg, #ffd6ff 0 18%, #ed42cf 19% 52%, #9d0c98 53% 100%);
   clip-path: polygon(20% 0, 80% 0, 100% 31%, 50% 100%, 0 31%);
   filter: drop-shadow(0 0 0 #74306d) drop-shadow(0 3px 2px rgba(3,25,41,.5));
@@ -576,9 +569,9 @@ h2 {
   align-self: auto;
   justify-self: auto;
   left: 50%;
-  top: 0;
-  width: 118%;
-  height: 66%;
+  top: 5%;
+  width: 98%;
+  height: 56%;
   margin: 0;
   transform: translateX(-50%);
   overflow: visible;
@@ -604,7 +597,7 @@ h2 {
   align-self: auto;
   left: 3px;
   right: 3px;
-  top: 59%;
+  top: 53%;
   height: clamp(20px, 2.75dvh, 25px);
   display: grid;
   place-items: center;
@@ -629,9 +622,9 @@ h2 {
   align-self: auto;
   left: 4px;
   right: 4px;
-  top: 68%;
+  top: 63%;
   width: auto;
-  height: 24%;
+  height: 28%;
   min-height: 48px;
   display: flex;
   align-items: center;
@@ -914,6 +907,7 @@ h2 {
 }
 
 .board-vine {
+  display: none;
   position: absolute;
   z-index: 18;
   top: -6px;
