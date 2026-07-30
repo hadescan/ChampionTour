@@ -24,7 +24,8 @@
   --ct-order-gap: 4px;
   --ct-soft-shadow: 0 6px 14px rgba(25, 59, 44, .23);
   --ct-hud-height: clamp(54px, 7.1dvh, 66px);
-  --ct-orders-height: clamp(172px, 21.5dvh, 205px);
+  /* Keep the board as the dominant play area, as in the reference. */
+  --ct-orders-height: clamp(158px, 19.25dvh, 184px);
   --ct-info-height: clamp(78px, 10.2dvh, 92px);
 }
 
@@ -598,9 +599,9 @@ h2 {
   align-self: auto;
   justify-self: auto;
   left: 50%;
-  top: 7%;
-  width: 88%;
-  height: 45%;
+  top: 6%;
+  width: 80%;
+  height: 38%;
   margin: 0;
   transform: translateX(-50%);
   overflow: visible;
@@ -626,7 +627,7 @@ h2 {
   align-self: auto;
   left: 3px;
   right: 3px;
-  top: 45%;
+  top: 40%;
   height: clamp(20px, 2.75dvh, 25px);
   display: grid;
   place-items: center;
@@ -651,9 +652,9 @@ h2 {
   align-self: auto;
   left: 4px;
   right: 4px;
-  top: 56%;
+  top: 51%;
   width: auto;
-  height: 32%;
+  height: 38%;
   min-height: 48px;
   display: flex;
   align-items: center;
@@ -1014,15 +1015,15 @@ h2 {
   z-index: 4;
   left: 50%;
   top: 50%;
-  width: 76%;
-  height: 82%;
+  width: 70%;
+  height: 76%;
   margin: 0;
   padding: 0;
   display: grid;
   place-items: center;
   transform:
     translate3d(-50%, calc(-50% - 2px), 0)
-    scale(var(--item-visual-scale, 1));
+    scale(calc(var(--item-visual-scale, 1) * .78));
   background: transparent;
   will-change: transform;
 }
@@ -1056,9 +1057,9 @@ h2 {
 
 .producer-wrap {
   z-index: 6;
-  width: 113%;
-  height: 125%;
-  transform: translate3d(-50%, calc(-50% - 3px), 0);
+  width: 74%;
+  height: 80%;
+  transform: translate3d(-50%, calc(-50% - 2px), 0) scale(.82);
 }
 
 .producer-image {
@@ -1096,7 +1097,7 @@ h2 {
 }
 
 .cell.item-selected .producer-wrap {
-  transform: translate3d(-50%, calc(-50% - 5px), 0) scale(1.04);
+  transform: translate3d(-50%, calc(-50% - 4px), 0) scale(.86);
   filter:
     drop-shadow(0 0 6px rgba(255, 220, 102, .86))
     drop-shadow(0 0 5px rgba(42, 183, 172, .55));
@@ -1105,7 +1106,7 @@ h2 {
 .cell.item-selected .ball-wrap {
   transform:
     translate3d(-50%, calc(-50% - 5px), 0)
-    scale(calc(var(--item-visual-scale, 1) * 1.04));
+    scale(calc(var(--item-visual-scale, 1) * .81));
 }
 
 .cell.order-match {
@@ -1478,7 +1479,7 @@ h2 {
   }
 
   .customer-portrait {
-    width: 122%;
+    width: 80%;
   }
 
   .order-customer-name {
@@ -1510,7 +1511,7 @@ h2 {
 @media (max-height: 800px) {
   :root {
     --ct-hud-height: 54px;
-    --ct-orders-height: 172px;
+    --ct-orders-height: 158px;
     --ct-info-height: 78px;
   }
 
@@ -1521,11 +1522,11 @@ h2 {
   }
 
   .order-customer-name {
-    top: 58%;
+    top: 40%;
   }
 
   .order-items {
-    top: 68%;
+    top: 51%;
   }
 }
 
@@ -1540,7 +1541,7 @@ h2 {
   }
 
   .customer-portrait {
-    width: 114%;
+    width: 80%;
   }
 
   .board-frame {
