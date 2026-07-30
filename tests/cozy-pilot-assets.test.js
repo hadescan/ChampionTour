@@ -34,7 +34,7 @@ const producer = data.producers.training_cart;
 assert.equal(producer.chainId, 'training');
 assert.match(
   producer.artwork,
-  /assets\/CozyAcademy\/Full\/Producers\/producer_training_v2\.png/
+  /assets\/CozyAcademy\/Full\/ProducersV3\/producer-training\.png/
 );
 assert.equal(fs.existsSync(path.join(root, producer.artwork)), true);
 assert.deepEqual(
